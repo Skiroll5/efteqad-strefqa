@@ -4,7 +4,7 @@
   "email": "Email",
   "password": "Password",
   "register": "Register",
-  "waitActivation": "Account awaiting admin approval",
+  "waitActivation": "Wait for admin activation",
   "classes": "Classes",
   "students": "Students",
   "attendance": "Attendance"

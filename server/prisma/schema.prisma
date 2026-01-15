@@ -15,6 +15,7 @@ model User {
   name      String
   role      Role     @default(SERVANT)
   isActive  Boolean  @default(false)
+  classId   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
@@ -55,9 +56,10 @@ model Student {
 
 model AttendanceRecord {
   id        String   @id @default(uuid())
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id])
   studentId String
   student   Student  @relation(fields: [studentId], references: [id])
-  date      DateTime
   status    String   // PRESENT, ABSENT, EXCUSED
   
   createdAt DateTime @default(now())
@@ -84,4 +86,37 @@ model Note {
   @@map("notes")
 }
 
+model Class {
+  id        String   @id @default(uuid())
+  name      String
+  grade     String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Soft Delete
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
 
+  // Relations
+  sessions  AttendanceSession[]
+
+  @@map("classes")
+}
+
+model AttendanceSession {
+  id        String   @id @default(uuid())
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  date      DateTime
+  note      String?
+  
+  records   AttendanceRecord[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+
+  @@map("attendance_sessions")
+}

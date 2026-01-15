@@ -7,7 +7,23 @@ class Users extends Table {
   TextColumn get email => text()();
   TextColumn get name => text()();
   TextColumn get role => text()();
+  TextColumn get classId => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(false))();
+
+  // Sync Fields
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Classes extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get grade => text().nullable()(); // e.g., "5th Grade"
 
   // Sync Fields
   DateTimeColumn get createdAt => dateTime()();
@@ -37,11 +53,42 @@ class Students extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class AttendanceSessions extends Table {
+  TextColumn get id => text()();
+  TextColumn get classId => text().references(Classes, #id)();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get note => text().nullable()();
+
+  // Sync Fields
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class AttendanceRecords extends Table {
   TextColumn get id => text()();
+  TextColumn get sessionId => text().references(AttendanceSessions, #id)();
   TextColumn get studentId => text().references(Students, #id)();
-  DateTimeColumn get date => dateTime()();
   TextColumn get status => text()(); // PRESENT, ABSENT, EXCUSED
+
+  // Sync Fields
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Notes extends Table {
+  TextColumn get id => text()();
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get content => text()();
 
   // Sync Fields
   DateTimeColumn get createdAt => dateTime()();

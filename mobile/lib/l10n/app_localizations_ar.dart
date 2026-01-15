@@ -24,13 +24,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get register => 'انشاء حساب';
 
   @override
-  String get waitActivation => 'في انتظار تفعيل الحساب من المسئول';
+  String get waitActivation => 'انتظر تفعيل الأدمن';
 
   @override
   String get classes => 'الفصول';
 
   @override
-  String get students => 'المخدومين';
+  String get students => 'الطلاب';
 
   @override
   String get attendance => 'الغياب';

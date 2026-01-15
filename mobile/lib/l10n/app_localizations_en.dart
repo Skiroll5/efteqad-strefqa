@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get register => 'Register';
 
   @override
-  String get waitActivation => 'Account awaiting admin approval';
+  String get waitActivation => 'Wait for admin activation';
 
   @override
   String get classes => 'Classes';

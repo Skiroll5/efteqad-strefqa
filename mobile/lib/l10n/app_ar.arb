@@ -4,8 +4,8 @@
   "email": "البريد الإلكتروني",
   "password": "كلمة المرور",
   "register": "انشاء حساب",
-  "waitActivation": "في انتظار تفعيل الحساب من المسئول",
+  "waitActivation": "انتظر تفعيل الأدمن",
   "classes": "الفصول",
-  "students": "المخدومين",
+  "students": "الطلاب",
   "attendance": "الغياب"
 }

@@ -1,12 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/config/api_config.dart';
 
 final authRepositoryProvider = Provider((ref) => AuthRepository(Dio()));
 
 class AuthRepository {
   final Dio _dio;
   // TODO: Move base URL to config
-  final String _baseUrl = 'http://10.0.2.2:3000'; // Android emulator localhost
+  final String _baseUrl = ApiConfig.baseUrl;
 
   AuthRepository(this._dio);
 

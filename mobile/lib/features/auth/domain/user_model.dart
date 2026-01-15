@@ -4,6 +4,7 @@ class User {
   final String name;
   final String role; // 'ADMIN' or 'SERVANT'
   final bool isActive;
+  final String? classId;
 
   User({
     required this.id,
@@ -11,6 +12,7 @@ class User {
     required this.name,
     required this.role,
     required this.isActive,
+    this.classId,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class User {
       name: json['name'] ?? '',
       role: json['role'] ?? 'SERVANT',
       isActive: json['isActive'] ?? false,
+      classId: json['classId'],
     );
   }
 
@@ -30,6 +33,7 @@ class User {
       'name': name,
       'role': role,
       'isActive': isActive,
+      'classId': classId,
     };
   }
 }

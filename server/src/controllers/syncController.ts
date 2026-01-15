@@ -17,7 +17,20 @@ export const syncChanges = async (req: AuthRequest, res: Response) => {
 
 const handlePush = async (req: AuthRequest, res: Response) => {
     const { changes } = req.body;
+    console.log('SyncController: Received push request', JSON.stringify(req.body, null, 2));
     if (!Array.isArray(changes)) return res.status(400).json({ message: 'Invalid format' });
+
+    // Sort changes by dependency order: CLASS -> USER/STUDENT -> ATTENDANCE/NOTE
+    const priority = { 'CLASS': 1, 'USER': 2, 'STUDENT': 3, 'ATTENDANCE': 4, 'NOTE': 4 };
+
+    changes.sort((a: any, b: any) => {
+        const pA = priority[a.entityType as keyof typeof priority] || 99;
+        const pB = priority[b.entityType as keyof typeof priority] || 99;
+        return pA - pB;
+    });
+
+    const processedUuids: string[] = [];
+    const failedUuids: { uuid: string; error: string }[] = [];
 
     // Process sequentially to maintain order
     for (const change of changes) {
@@ -32,18 +45,29 @@ const handlePush = async (req: AuthRequest, res: Response) => {
         // as long as timestamps are respected.
 
         const modelName = mapEntityToModel(entityType);
-        if (!modelName) continue;
+        if (!modelName) {
+            console.warn(`Unknown entity type: ${entityType}`);
+            failedUuids.push({ uuid, error: `Unknown entity type: ${entityType}` });
+            continue;
+        }
 
         try {
             const dbModel = (prisma as any)[modelName];
 
             if (operation === 'VIRTUAL_DELETE' || operation === 'DELETE') {
-                // We use Soft Deletes, so DELETE op should be an update isDeleted=true
-                // But if client sends explicit DELETE op, handle it as soft delete
-                await dbModel.upsert({
+                // If client sends DELETE, we just want to ensure it's marked deleted.
+                // We use updateMany to avoid "Record to update not found" errors (P2025)
+                // and to avoid 'upsert' trying to CREATE a record with missing required fields (the error user saw).
+
+                const deleteData: any = {
+                    isDeleted: true,
+                    deletedAt: payload.deletedAt ? new Date(payload.deletedAt) : new Date(),
+                    updatedAt: new Date() // Always bump update time
+                };
+
+                await dbModel.updateMany({
                     where: { id: entityId },
-                    create: { id: entityId, ...payload, isDeleted: true, deletedAt: new Date() },
-                    update: { isDeleted: true, deletedAt: new Date() },
+                    data: deleteData
                 });
             } else {
                 // CREATE or UPDATE
@@ -54,20 +78,48 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                 // Client sends dates as strings, need to ensure proper parsing if not handled by Prisma auto-mapping?
                 // Prisma maps ISO strings to Date automatically usually.
 
+                const sanitizedPayload = sanitizePayload(payload);
+
                 await dbModel.upsert({
                     where: { id: entityId },
-                    create: { ...payload, id: entityId },
-                    update: { ...payload },
+                    create: { ...sanitizedPayload, id: entityId },
+                    update: { ...sanitizedPayload },
                 });
             }
-        } catch (e) {
+            processedUuids.push(uuid);
+        } catch (e: any) {
             console.error(`Sync error for ${uuid}:`, e);
-            // Continue or fail? Usually continue and report errors? 
-            // For MVP, log and continue.
+            failedUuids.push({ uuid, error: e.message || String(e) });
+            // Continue to process other items even if one fails
         }
     }
 
-    res.json({ success: true });
+    res.json({ success: true, processedUuids, failedUuids });
+};
+
+const sanitizePayload = (payload: any) => {
+    const newPayload = { ...payload };
+    for (const key in newPayload) {
+        let value = newPayload[key];
+        if (typeof value === 'string') {
+            // Check if it looks like a date (basic ISO check or specific field names)
+            if (key.endsWith('At') || key === 'date' || key === 'birthdate') {
+                // Dart sends microseconds (6 digits), JS Date supports milliseconds (3 digits).
+                // We trim the microseconds to milliseconds if present.
+                if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}/.test(value)) {
+                    // Keep only first 3 fractional digits
+                    value = value.replace(/(\.\d{3})\d+/, '$1');
+                }
+                // If it's a valid date string, convert to Date object
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    newPayload[key] = date;
+                }
+                // If invalid, we leave it as string (Prisma might throw, but better than silent fail)
+            }
+        }
+    }
+    return newPayload;
 };
 
 const handlePull = async (req: AuthRequest, res: Response) => {
@@ -89,12 +141,17 @@ const handlePull = async (req: AuthRequest, res: Response) => {
         where: { updatedAt: { gt: sinceDate } },
     });
 
+    const classes = await prisma.class.findMany({
+        where: { updatedAt: { gt: sinceDate } },
+    });
+
     res.json({
         serverTimestamp,
         changes: {
             students,
             attendance,
             notes,
+            classes,
         },
     });
 };
@@ -104,6 +161,7 @@ const mapEntityToModel = (type: string): string | null => {
         case 'STUDENT': return 'student';
         case 'ATTENDANCE': return 'attendanceRecord';
         case 'NOTE': return 'note';
+        case 'CLASS': return 'class';
         default: return null;
     }
 };

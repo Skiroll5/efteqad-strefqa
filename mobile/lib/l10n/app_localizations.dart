@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @waitActivation.
   ///
   /// In en, this message translates to:
-  /// **'Account awaiting admin approval'**
+  /// **'Wait for admin activation'**
   String get waitActivation;
 
   /// No description provided for @classes.

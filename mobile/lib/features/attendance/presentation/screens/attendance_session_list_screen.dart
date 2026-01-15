@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../data/attendance_controller.dart';
@@ -16,7 +15,6 @@ class AttendanceSessionListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionsAsync = ref.watch(attendanceSessionsProvider);
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final selectedClassId = ref.watch(selectedClassIdProvider);
@@ -31,36 +29,14 @@ class AttendanceSessionListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(className ?? l10n?.attendance ?? 'Attendance'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(className != null ? '$className Attendance' : 'Attendance'),
       ),
       body: sessionsAsync.when(
         data: (sessions) {
-          if (selectedClassId == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.class_outlined,
-                    size: 64,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Please select a class from Home first',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
           if (sessions.isEmpty) {
             return Center(
               child: Column(
@@ -191,22 +167,15 @@ class AttendanceSessionListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 90),
-        child: FloatingActionButton.extended(
-          onPressed: selectedClassId == null
-              ? null
-              : () => context.push('/attendance/new'),
-          backgroundColor: selectedClassId == null
-              ? Colors.grey
-              : AppColors.goldPrimary,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text(
-            'Take Attendance',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ).animate().scale(delay: 500.ms, curve: Curves.elasticOut),
-      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/attendance/new'),
+        backgroundColor: AppColors.goldPrimary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Take Attendance',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ).animate().scale(delay: 500.ms, curve: Curves.elasticOut),
     );
   }
 }

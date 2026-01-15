@@ -6,8 +6,6 @@ import '../../data/students_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import 'package:mobile/features/classes/data/classes_controller.dart';
-import 'package:mobile/features/auth/data/auth_controller.dart';
-import 'package:mobile/features/sync/data/sync_service.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 
 class StudentListScreen extends ConsumerWidget {
@@ -15,201 +13,12 @@ class StudentListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authControllerProvider).asData?.value;
+    final studentsAsync = ref.watch(classStudentsProvider);
     final selectedClassId = ref.watch(selectedClassIdProvider);
+    final classesAsync = ref.watch(classesStreamProvider);
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
-    // If no class is selected, show class selection
-    if (selectedClassId == null) {
-      return _buildClassSelectionView(context, ref, user, isDark, theme);
-    }
-
-    // Class is selected, show students
-    return _buildStudentListView(context, ref, user, l10n, theme, isDark);
-  }
-
-  Widget _buildClassSelectionView(
-    BuildContext context,
-    WidgetRef ref,
-    dynamic user,
-    bool isDark,
-    ThemeData theme,
-  ) {
-    final classesAsync = ref.watch(classesStreamProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Class'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: 'Sync Now',
-            onPressed: () {
-              ref.read(syncServiceProvider).sync();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Sync started...'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: classesAsync.when(
-        data: (allClasses) {
-          // Filter classes based on user role
-          final classes = user?.role == 'ADMIN'
-              ? allClasses
-              : allClasses.where((c) => c.id == user?.classId).toList();
-
-          if (classes.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.class_outlined,
-                    size: 80,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ).animate().scale(
-                    duration: 500.ms,
-                    curve: Curves.easeOutBack,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    user?.role == 'ADMIN'
-                        ? 'No classes found'
-                        : 'No class assigned',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ).animate().fade(delay: 200.ms),
-                  if (user?.role == 'ADMIN') ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Go to Classes tab to create one',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ).animate().fade(delay: 400.ms),
-                  ],
-                ],
-              ),
-            );
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user?.role == 'ADMIN'
-                      ? 'Choose a class to manage:'
-                      : 'Your class:',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ).animate().fade(),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: classes.length,
-                    itemBuilder: (context, index) {
-                      final cls = classes[index];
-                      return PremiumCard(
-                        delay: index * 0.1,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        onTap: () {
-                          ref.read(selectedClassIdProvider.notifier).state =
-                              cls.id;
-                        },
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.bluePrimary.withOpacity(
-                                  isDark ? 0.3 : 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                Icons.class_,
-                                color: isDark
-                                    ? AppColors.goldPrimary
-                                    : AppColors.bluePrimary,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cls.name,
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  if (cls.grade != null &&
-                                      cls.grade!.isNotEmpty)
-                                    Text(
-                                      cls.grade!,
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            color: isDark
-                                                ? AppColors.textSecondaryDark
-                                                : AppColors.textSecondaryLight,
-                                          ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(child: Text('Error: $err')),
-      ),
-    );
-  }
-
-  Widget _buildStudentListView(
-    BuildContext context,
-    WidgetRef ref,
-    dynamic user,
-    AppLocalizations? l10n,
-    ThemeData theme,
-    bool isDark,
-  ) {
-    final studentsAsync = ref.watch(classStudentsProvider);
-    final classesAsync = ref.watch(classesStreamProvider);
-    final selectedClassId = ref.watch(selectedClassIdProvider);
 
     // Get class name for title
     String? className;
@@ -220,29 +29,15 @@ class StudentListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: user?.role == 'ADMIN'
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  ref.read(selectedClassIdProvider.notifier).state = null;
-                },
-              )
-            : null,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            ref.read(selectedClassIdProvider.notifier).state = null;
+            context.go('/');
+          },
+        ),
         title: Text(className ?? l10n?.students ?? 'Students'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: 'Sync Now',
-            onPressed: () {
-              ref.read(syncServiceProvider).sync();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Sync started...'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: 'Search',
@@ -293,7 +88,7 @@ class StudentListScreen extends ConsumerWidget {
           }
           return ListView.builder(
             itemCount: students.length,
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 160),
             itemBuilder: (context, index) {
               final student = students[index];
               return PremiumCard(
@@ -370,18 +165,49 @@ class StudentListScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 90),
-        child: FloatingActionButton.extended(
-          onPressed: () => _showAddStudentDialog(context, ref),
-          backgroundColor: AppColors.goldPrimary,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text(
-            'Add Student',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      // Bottom action buttons
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _showAddStudentDialog(context, ref),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.goldPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  icon: const Icon(Icons.person_add),
+                  label: const Text(
+                    'Add Student',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/attendance'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark
+                        ? AppColors.blueLight
+                        : AppColors.bluePrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  icon: const Icon(Icons.checklist),
+                  label: const Text(
+                    'Attendance',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ).animate().scale(delay: 500.ms, curve: Curves.elasticOut),
-      ),
+        ),
+      ).animate().fade().slideY(begin: 0.3, end: 0),
     );
   }
 

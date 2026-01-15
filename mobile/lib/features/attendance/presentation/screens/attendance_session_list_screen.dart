@@ -97,7 +97,7 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           Text(
-                            DateFormat.d().format(session.date),
+                            DateFormat('dd').format(session.date),
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isDark

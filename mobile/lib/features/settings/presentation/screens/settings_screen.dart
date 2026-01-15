@@ -95,13 +95,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ).animate().fade().slideY(begin: -0.1, end: 0),
 
-          // Appearance Section
-          _SectionTitle(
-            title: 'Appearance',
-            icon: Icons.palette_outlined,
-            isDark: isDark,
-          ),
-          const SizedBox(height: 8),
+          // Settings Card
           PremiumCard(
             margin: const EdgeInsets.only(bottom: 16),
             child: Column(
@@ -124,17 +118,29 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ).animate().fade(delay: 100.ms),
 
-          // Language Section
-          _SectionTitle(
-            title: 'Language',
-            icon: Icons.translate_outlined,
-            isDark: isDark,
-          ),
-          const SizedBox(height: 8),
+          // All Settings in one card
           PremiumCard(
             margin: const EdgeInsets.only(bottom: 16),
             child: Column(
               children: [
+                _SettingsTile(
+                  icon: Icons.brightness_6_outlined,
+                  title: 'Theme',
+                  subtitle: _getThemeName(themeMode),
+                  isDark: isDark,
+                  onTap: () =>
+                      _showThemePicker(context, ref, themeMode, isDark),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  color: isDark ? Colors.white12 : Colors.grey.shade200,
+                ),
                 _SettingsTile(
                   icon: Icons.language_outlined,
                   title: 'Language',
@@ -149,30 +155,19 @@ class SettingsScreen extends ConsumerWidget {
                         : AppColors.textSecondaryLight,
                   ),
                 ),
-              ],
-            ),
-          ).animate().fade(delay: 200.ms),
-
-          // About Section
-          _SectionTitle(
-            title: 'About',
-            icon: Icons.info_outline,
-            isDark: isDark,
-          ),
-          const SizedBox(height: 8),
-          PremiumCard(
-            margin: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              children: [
+                Divider(
+                  height: 1,
+                  color: isDark ? Colors.white12 : Colors.grey.shade200,
+                ),
                 _SettingsTile(
-                  icon: Icons.code_outlined,
+                  icon: Icons.info_outline,
                   title: 'Version',
                   subtitle: '1.0.0',
                   isDark: isDark,
                 ),
               ],
             ),
-          ).animate().fade(delay: 300.ms),
+          ).animate().fade(delay: 100.ms),
 
           // Logout Button
           SafeArea(
@@ -295,44 +290,6 @@ class SettingsScreen extends ConsumerWidget {
               ref.read(localeProvider.notifier).setLocale(const Locale('ar'));
               Navigator.pop(context);
             },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool isDark;
-
-  const _SectionTitle({
-    required this.title,
-    required this.icon,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 4),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-              color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
-            ),
           ),
         ],
       ),

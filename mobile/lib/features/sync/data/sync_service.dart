@@ -1,70 +1,136 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile/core/config/api_config.dart';
-import '../../../core/database/app_database.dart'; // Drift DB generated class
+import '../../../core/database/app_database.dart';
 
-final syncServiceProvider = Provider(
-  (ref) => SyncService(
-    ref.read(appDatabaseProvider),
-    Dio(), // Should use a configured Dio instance with interceptors
-  ),
-);
+/// Provider for the SyncService with auto-sync capability
+final syncServiceProvider = Provider((ref) {
+  final service = SyncService(ref.read(appDatabaseProvider), Dio());
+  // Start watching the sync queue for auto-sync
+  service.startAutoSync();
+  return service;
+});
 
-// Provider for AppDatabase is now in app_database.dart
+/// Connectivity state provider - tracks if we can reach the server
+final isOnlineProvider = StateProvider<bool>((ref) => true);
 
 class SyncService {
   final AppDatabase _db;
   final Dio _dio;
   final String _baseUrl = ApiConfig.baseUrl;
 
+  StreamSubscription? _queueSubscription;
+  bool _isSyncing = false;
+  Timer? _retryTimer;
+
   SyncService(this._db, this._dio);
 
+  /// Start watching the sync queue and auto-push when items are added
+  void startAutoSync() {
+    // Watch the sync queue table for changes
+    _queueSubscription?.cancel();
+    _queueSubscription = _db.select(_db.syncQueue).watch().listen((items) {
+      if (items.isNotEmpty && !_isSyncing) {
+        // Debounce: wait a bit for potential batch inserts
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _tryPushChanges();
+        });
+      }
+    });
+
+    // Also do an initial sync on startup
+    Future.delayed(const Duration(seconds: 2), () {
+      sync();
+    });
+  }
+
+  /// Stop auto-sync (call when disposing)
+  void dispose() {
+    _queueSubscription?.cancel();
+    _retryTimer?.cancel();
+  }
+
+  /// Try to push changes, silently fails and retries later if offline
+  Future<void> _tryPushChanges() async {
+    if (_isSyncing) return;
+
+    try {
+      await pushChanges();
+      // If successful, also pull changes
+      await pullChanges();
+    } catch (e) {
+      print('AutoSync: Push failed, will retry later: $e');
+      // Schedule a retry after 30 seconds
+      _scheduleRetry();
+    }
+  }
+
+  /// Schedule a retry for failed sync
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(const Duration(seconds: 30), () {
+      _tryPushChanges();
+    });
+  }
+
+  /// Manually trigger a full sync
   Future<void> sync() async {
     await pushChanges();
     await pullChanges();
   }
 
   Future<void> pushChanges() async {
-    final queueItems = await _db.select(_db.syncQueue).get();
-    print('SyncService: Found ${queueItems.length} items in sync queue');
-
-    if (queueItems.isEmpty) return;
-
-    final token = await _getToken();
-    if (token == null) {
-      print('SyncService: No token found, aborting push');
-      return;
-    }
-
-    // Transform to payload
-    final changes = queueItems.map((item) {
-      return {
-        'uuid': item.uuid,
-        'entityType': item.entityType,
-        'entityId': item.entityId,
-        'operation': item.operation,
-        'payload': jsonDecode(item.payload),
-        'createdAt': item.createdAt.toIso8601String(),
-      };
-    }).toList();
-
-    print('SyncService: Pushing ${changes.length} changes to $_baseUrl/sync');
-    print('SyncService: Payload: ${jsonEncode({'changes': changes})}');
+    if (_isSyncing) return;
+    _isSyncing = true;
 
     try {
+      final queueItems = await _db.select(_db.syncQueue).get();
+      print('SyncService: Found ${queueItems.length} items in sync queue');
+
+      if (queueItems.isEmpty) {
+        _isSyncing = false;
+        return;
+      }
+
+      final token = await _getToken();
+      if (token == null) {
+        print('SyncService: No token found, aborting push');
+        _isSyncing = false;
+        return;
+      }
+
+      // Transform to payload
+      final changes = queueItems.map((item) {
+        return {
+          'uuid': item.uuid,
+          'entityType': item.entityType,
+          'entityId': item.entityId,
+          'operation': item.operation,
+          'payload': jsonDecode(item.payload),
+          'createdAt': item.createdAt.toIso8601String(),
+        };
+      }).toList();
+
+      print('SyncService: Pushing ${changes.length} changes to $_baseUrl/sync');
+
       final response = await _dio.post(
         '$_baseUrl/sync',
         data: {'changes': changes},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
       );
 
       print('SyncService: Push success, response code: ${response.statusCode}');
       final responseData = response.data;
 
-      // Extract processed UUIDs if available (Robust Sync)
+      // Extract processed UUIDs if available
       List<dynamic>? processedUuids;
       if (responseData is Map<String, dynamic> &&
           responseData.containsKey('processedUuids')) {
@@ -74,27 +140,16 @@ class SyncService {
       await _db.batch((batch) {
         for (var item in queueItems) {
           if (processedUuids != null) {
-            // Robust Mode: Only delete if server confirmed uuid
             if (processedUuids.contains(item.uuid)) {
-              print('SyncService: Server confirmed ${item.uuid}, deleting...');
               batch.delete(_db.syncQueue, item);
-            } else {
-              print(
-                'SyncService: Server did NOT confirm ${item.uuid}, keeping in queue.',
-              );
             }
           } else {
-            // Legacy Mode (or fallback): Delete all if we got a 200 OK and no specific list
-            // BUT user requested we be strict. So maybe we should assume failure if list missing?
-            // For safety, let's stick to "delete all" ONLY if the server didn't explicitly send the new format.
-            // This keeps backward compat if server wasn't updated yet (though we manage both).
-            print(
-              'SyncService: No detailed confirmation list, deleting confirmed item ${item.uuid}',
-            );
+            // Legacy fallback: delete all on success
             batch.delete(_db.syncQueue, item);
           }
         }
       });
+
       print('SyncService: Queue processing complete');
     } catch (e) {
       print('SyncService: Push failed: $e');
@@ -102,6 +157,8 @@ class SyncService {
         print('SyncService: DioError: ${e.response?.data}');
       }
       rethrow;
+    } finally {
+      _isSyncing = false;
     }
   }
 
@@ -116,40 +173,38 @@ class SyncService {
       final response = await _dio.get(
         '$_baseUrl/sync',
         queryParameters: lastSync != null ? {'since': lastSync} : null,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
       );
 
       final data = response.data;
       final serverTimestamp = data['serverTimestamp'];
       final changes = data['changes'];
-      // Expected structure: { students: [], attendance: [], ... }
 
       await _db.transaction(() async {
-        // Process Students
         if (changes['students'] != null) {
           for (var s in changes['students']) {
             await _upsertStudent(s);
           }
         }
-        // Process Attendance
         if (changes['attendance'] != null) {
           for (var a in changes['attendance']) {
             await _upsertAttendance(a);
           }
         }
-        // Process Notes
         if (changes['notes'] != null) {
           for (var n in changes['notes']) {
             await _upsertNote(n);
           }
         }
-        // Process Classes
         if (changes['classes'] != null) {
           for (var c in changes['classes']) {
             await _upsertClass(c);
           }
         }
-        // Process Attendance Sessions
         if (changes['attendance_sessions'] != null) {
           for (var s in changes['attendance_sessions']) {
             await _upsertAttendanceSession(s);
@@ -181,7 +236,6 @@ class SyncService {
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
       ),
     );
-
     await _db.into(_db.students).insertOnConflictUpdate(entity);
   }
 

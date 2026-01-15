@@ -8,6 +8,7 @@ import '../../../classes/data/classes_controller.dart';
 import '../../../auth/data/auth_controller.dart';
 import '../../../sync/data/sync_service.dart';
 import '../../../students/data/students_controller.dart';
+import '../../../../core/database/app_database.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -19,11 +20,15 @@ class HomeScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Get first name for greeting
-    final firstName = user?.name.split(' ').first ?? 'User';
+    // Get first name for greeting (capitalized)
+    final rawName = user?.name.split(' ').first ?? 'User';
+    final firstName = rawName.isNotEmpty
+        ? rawName[0].toUpperCase() + rawName.substring(1).toLowerCase()
+        : 'User';
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false, // Align to start (left in LTR, right in RTL)
         title: RichText(
           text: TextSpan(
             style: theme.textTheme.titleLarge,
@@ -105,7 +110,7 @@ class HomeScreen extends ConsumerWidget {
                   if (user?.role == 'ADMIN') ...[
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: () => context.push('/classes'),
+                      onPressed: () => _showAddClassDialog(context, ref),
                       icon: const Icon(Icons.add),
                       label: const Text('Create Class'),
                     ).animate().fade(delay: 400.ms).slideY(begin: 0.2, end: 0),
@@ -145,7 +150,6 @@ class HomeScreen extends ConsumerWidget {
                         delay: index * 0.1,
                         margin: const EdgeInsets.only(bottom: 16),
                         onTap: () {
-                          // Select class and navigate to students
                           ref.read(selectedClassIdProvider.notifier).state =
                               cls.id;
                           context.push('/students');
@@ -207,44 +211,92 @@ class HomeScreen extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.white10
-                                    : Colors.black.withOpacity(0.05),
-                                shape: BoxShape.circle,
+                            // Admin: Show menu with edit/delete options
+                            if (user?.role == 'ADMIN')
+                              PopupMenuButton<String>(
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
+                                onSelected: (value) {
+                                  if (value == 'rename') {
+                                    _showRenameClassDialog(context, ref, cls);
+                                  } else if (value == 'delete') {
+                                    _showDeleteClassDialog(context, ref, cls);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'rename',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.edit, size: 20),
+                                        SizedBox(width: 8),
+                                        Text('Rename'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          size: 20,
+                                          color: AppColors.redPrimary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Delete',
+                                          style: TextStyle(
+                                            color: AppColors.redPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.black.withOpacity(0.05),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  size: 20,
+                                  color: isDark
+                                      ? AppColors.goldPrimary
+                                      : AppColors.bluePrimary,
+                                ),
                               ),
-                              child: Icon(
-                                Icons.arrow_forward,
-                                size: 20,
-                                color: isDark
-                                    ? AppColors.goldPrimary
-                                    : AppColors.bluePrimary,
-                              ),
-                            ),
                           ],
                         ),
                       );
                     },
                   ),
                 ),
-                // Admin: Manage Classes button
+                // Admin: Add Class button at bottom
                 if (user?.role == 'ADMIN')
                   SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: OutlinedButton.icon(
-                        onPressed: () => context.push('/classes'),
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Manage Classes'),
-                        style: OutlinedButton.styleFrom(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showAddClassDialog(context, ref),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Class'),
+                        style: ElevatedButton.styleFrom(
                           minimumSize: const Size.fromHeight(48),
-                          side: BorderSide(
-                            color: isDark
-                                ? AppColors.goldPrimary
-                                : AppColors.bluePrimary,
-                          ),
+                          backgroundColor: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.bluePrimary,
+                          foregroundColor: Colors.white,
                         ),
                       ).animate().fade(delay: 500.ms),
                     ),
@@ -255,6 +307,140 @@ class HomeScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  void _showAddClassDialog(BuildContext context, WidgetRef ref) {
+    final nameController = TextEditingController();
+    final gradeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create New Class'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Class Name',
+                prefixIcon: Icon(Icons.class_),
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: gradeController,
+              decoration: const InputDecoration(
+                labelText: 'Grade (optional)',
+                prefixIcon: Icon(Icons.grade),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.goldPrimary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (nameController.text.isNotEmpty) {
+                await ref
+                    .read(classesControllerProvider)
+                    .addClass(
+                      name: nameController.text,
+                      grade: gradeController.text.isNotEmpty
+                          ? gradeController.text
+                          : null,
+                    );
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRenameClassDialog(BuildContext context, WidgetRef ref, Class cls) {
+    final nameController = TextEditingController(text: cls.name);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rename Class'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Class Name',
+            prefixIcon: Icon(Icons.class_),
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.goldPrimary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (nameController.text.isNotEmpty) {
+                await ref
+                    .read(classesControllerProvider)
+                    .updateClass(cls.id, nameController.text);
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteClassDialog(BuildContext context, WidgetRef ref, Class cls) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Class'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Text(
+          'Are you sure you want to delete "${cls.name}"? This will also remove all students in this class.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.redPrimary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              await ref.read(classesControllerProvider).deleteClass(cls.id);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

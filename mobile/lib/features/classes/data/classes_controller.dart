@@ -24,4 +24,14 @@ class ClassesController {
     final repository = _ref.read(classesRepositoryProvider);
     await repository.addClass(name, grade);
   }
+
+  Future<void> updateClass(String id, String newName) async {
+    final repository = _ref.read(classesRepositoryProvider);
+    await repository.updateClass(id, newName);
+  }
+
+  Future<void> deleteClass(String id) async {
+    final repository = _ref.read(classesRepositoryProvider);
+    await repository.deleteClass(id);
+  }
 }

@@ -358,8 +358,8 @@ class HomeScreen extends ConsumerWidget {
                 await ref
                     .read(classesControllerProvider)
                     .addClass(
-                      name: nameController.text,
-                      grade: gradeController.text.isNotEmpty
+                      nameController.text,
+                      gradeController.text.isNotEmpty
                           ? gradeController.text
                           : null,
                     );
@@ -373,7 +373,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showRenameClassDialog(BuildContext context, WidgetRef ref, Class cls) {
+  void _showRenameClassDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ClassesData cls,
+  ) {
     final nameController = TextEditingController(text: cls.name);
 
     showDialog(
@@ -415,7 +419,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showDeleteClassDialog(BuildContext context, WidgetRef ref, Class cls) {
+  void _showDeleteClassDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ClassesData cls,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

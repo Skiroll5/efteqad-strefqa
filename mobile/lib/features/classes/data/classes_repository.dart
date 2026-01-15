@@ -52,4 +52,72 @@ class ClassesRepository {
           );
     });
   }
+
+  Future<void> updateClass(String id, String newName) async {
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      await (_db.update(_db.classes)..where((t) => t.id.equals(id))).write(
+        ClassesCompanion(name: Value(newName), updatedAt: Value(now)),
+      );
+
+      await _db
+          .into(_db.syncQueue)
+          .insert(
+            SyncQueueCompanion(
+              uuid: Value(const Uuid().v4()),
+              entityType: const Value('CLASS'),
+              entityId: Value(id),
+              operation: const Value('UPDATE'),
+              payload: Value(
+                jsonEncode({
+                  'id': id,
+                  'name': newName,
+                  'updatedAt': now.toIso8601String(),
+                }),
+              ),
+              createdAt: Value(now),
+            ),
+          );
+    });
+  }
+
+  Future<void> deleteClass(String id) async {
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      // Soft delete the class
+      await (_db.update(_db.classes)..where((t) => t.id.equals(id))).write(
+        ClassesCompanion(
+          isDeleted: const Value(true),
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      // Soft delete all students in this class
+      await (_db.update(
+        _db.students,
+      )..where((t) => t.classId.equals(id))).write(
+        StudentsCompanion(
+          isDeleted: const Value(true),
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      await _db
+          .into(_db.syncQueue)
+          .insert(
+            SyncQueueCompanion(
+              uuid: Value(const Uuid().v4()),
+              entityType: const Value('CLASS'),
+              entityId: Value(id),
+              operation: const Value('DELETE'),
+              payload: Value(
+                jsonEncode({'id': id, 'deletedAt': now.toIso8601String()}),
+              ),
+              createdAt: Value(now),
+            ),
+          );
+    });
+  }
 }

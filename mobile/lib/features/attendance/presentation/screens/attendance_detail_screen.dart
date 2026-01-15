@@ -16,15 +16,16 @@ class AttendanceDetailScreen extends ConsumerWidget {
     final recordsAsync = ref.watch(
       sessionRecordsWithStudentsProvider(sessionId),
     );
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Session Details'),
-        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: AppColors.redPrimary),
+            icon: const Icon(Icons.delete_outline),
             onPressed: () => _showDeleteDialog(context, ref),
+            tooltip: 'Delete',
           ),
         ],
       ),
@@ -33,54 +34,105 @@ class AttendanceDetailScreen extends ConsumerWidget {
           final presentCount = records
               .where((r) => r.record.status == 'PRESENT')
               .length;
-          final absentCount = records
-              .where((r) => r.record.status == 'ABSENT')
-              .length;
+          final total = records.length;
+          final percentage = total > 0 ? (presentCount / total) : 0.0;
 
           return Column(
             children: [
-              // Summary Header
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.bluePrimary, AppColors.blueLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+              // Progress Bar Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildStat(
-                      'Present',
-                      presentCount.toString(),
-                      AppColors.goldLight,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Attendance Rate',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${(percentage * 100).toStringAsFixed(0)}%',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _getProgressColor(percentage),
+                          ),
+                        ),
+                      ],
                     ),
-                    Container(width: 1, height: 40, color: Colors.white24),
-                    _buildStat(
-                      'Absent',
-                      absentCount.toString(),
-                      Colors.white70,
+                    const SizedBox(height: 12),
+                    // Progress Bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Stack(
+                        children: [
+                          // Background
+                          Container(
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          // Filled portion
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeOutCubic,
+                            height: 16,
+                            width:
+                                MediaQuery.of(context).size.width *
+                                percentage *
+                                0.85, // Account for padding
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  _getProgressColor(percentage),
+                                  _getProgressColor(
+                                    percentage,
+                                  ).withOpacity(0.7),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Container(width: 1, height: 40, color: Colors.white24),
-                    _buildStat(
-                      'Total',
-                      records.length.toString(),
-                      Colors.white,
+                    const SizedBox(height: 8),
+                    // Summary text
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildMiniStat(
+                          Icons.check_circle,
+                          presentCount,
+                          'Present',
+                          AppColors.goldPrimary,
+                        ),
+                        const SizedBox(width: 24),
+                        _buildMiniStat(
+                          Icons.cancel,
+                          total - presentCount,
+                          'Absent',
+                          Colors.grey,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ).animate().fade().slideY(begin: -0.1, end: 0),
+
+              const Divider(height: 1),
 
               // Records List
               Expanded(
                 child: records.isEmpty
                     ? const Center(child: Text('No attendance records'))
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: records.length,
                         itemBuilder: (context, index) {
                           final item = records[index];
@@ -121,27 +173,14 @@ class AttendanceDetailScreen extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isPresent
-                                        ? AppColors.goldPrimary.withOpacity(0.2)
-                                        : Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    isPresent ? 'Present' : 'Absent',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isPresent
-                                          ? AppColors.goldDark
-                                          : Colors.grey.shade600,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                Icon(
+                                  isPresent
+                                      ? Icons.check_circle
+                                      : Icons.cancel_outlined,
+                                  color: isPresent
+                                      ? AppColors.goldPrimary
+                                      : Colors.grey.shade400,
+                                  size: 22,
                                 ),
                               ],
                             ),
@@ -158,24 +197,27 @@ class AttendanceDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStat(String label, String value, Color color) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildMiniStat(IconData icon, int count, String label, Color color) {
+    return Row(
       children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 4),
         Text(
-          value,
+          '$count $label',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+            fontSize: 13,
             color: color,
+            fontWeight: FontWeight.w600,
           ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Colors.white70),
         ),
       ],
     );
+  }
+
+  Color _getProgressColor(double percentage) {
+    if (percentage >= 0.8) return AppColors.goldPrimary;
+    if (percentage >= 0.5) return Colors.orange;
+    return AppColors.redPrimary;
   }
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {

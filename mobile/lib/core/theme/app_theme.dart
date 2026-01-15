@@ -44,11 +44,18 @@ class AppTheme {
       onSurface: AppColors.textPrimaryLight,
     ),
     textTheme: _textTheme(false),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.bluePrimary,
-      foregroundColor: Colors.white,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      foregroundColor: AppColors.textPrimaryLight,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: true,
+      titleTextStyle: GoogleFonts.cairo(
+        color: AppColors.textPrimaryLight,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+      iconTheme: const IconThemeData(color: AppColors.bluePrimary),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -77,11 +84,18 @@ class AppTheme {
       onSurface: AppColors.textPrimaryDark,
     ),
     textTheme: _textTheme(true),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.surfaceDark,
-      foregroundColor: AppColors.goldPrimary,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      foregroundColor: AppColors.textPrimaryDark,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: true,
+      titleTextStyle: GoogleFonts.cairo(
+        color: AppColors.textPrimaryDark,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+      iconTheme: const IconThemeData(color: AppColors.goldPrimary),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/components/premium_card.dart';
 import '../../../auth/data/auth_controller.dart';
 import '../../data/settings_controller.dart';
 
@@ -11,109 +13,325 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).value;
     final themeMode = ref.watch(themeModeProvider);
-    final locale = ref.watch(localeProvider); // l10n removed as unused
-
-    // Helper for localized text
-    String getLanguageName(String code) {
-      if (code == 'en') return 'English';
-      if (code == 'ar') return 'العربية';
-      return code;
-    }
+    final locale = ref.watch(localeProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: const Text('Settings'), centerTitle: false),
       body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // Profile Section
-          if (user != null) ...[
-            Container(
-              padding: const EdgeInsets.all(24),
-              color: AppColors.backgroundLight, // Should adapt to theme
-              child: Column(
+          // Profile Card
+          if (user != null)
+            PremiumCard(
+              margin: const EdgeInsets.only(top: 8, bottom: 24),
+              child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.goldPrimary,
-                    child: Text(
-                      user.name[0].toUpperCase(),
-                      style: const TextStyle(fontSize: 32, color: Colors.white),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [AppColors.goldPrimary, AppColors.goldDark]
+                            : [AppColors.bluePrimary, AppColors.blueLight],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.transparent,
+                      child: Text(
+                        user.name[0].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 28,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    user.name,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  Text(
-                    user.role,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondaryLight,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                (isDark
+                                        ? AppColors.goldPrimary
+                                        : AppColors.bluePrimary)
+                                    .withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            user.role,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppColors.goldPrimary
+                                  : AppColors.bluePrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-            const Divider(),
-          ],
+            ).animate().fade().slideY(begin: -0.1, end: 0),
 
           // Appearance Section
-          _SectionHeader(title: 'Appearance'),
-          ListTile(
-            leading: const Icon(Icons.brightness_6),
-            title: const Text('Theme'),
-            subtitle: Text(themeMode.toString().split('.').last.toUpperCase()),
-            trailing: DropdownButton<ThemeMode>(
-              value: themeMode,
-              onChanged: (ThemeMode? newMode) {
-                if (newMode != null) {
-                  ref.read(themeModeProvider.notifier).setTheme(newMode);
-                }
-              },
-              items: ThemeMode.values.map((mode) {
-                return DropdownMenuItem(
-                  value: mode,
-                  child: Text(mode.toString().split('.').last.toUpperCase()),
-                );
-              }).toList(),
-            ),
+          _SectionTitle(
+            title: 'Appearance',
+            icon: Icons.palette_outlined,
+            isDark: isDark,
           ),
-
-          // Language Section
-          _SectionHeader(title: 'Language'),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language'),
-            subtitle: Text(getLanguageName(locale.languageCode)),
-            trailing: DropdownButton<Locale>(
-              value: locale,
-              onChanged: (Locale? newLocale) {
-                if (newLocale != null) {
-                  ref.read(localeProvider.notifier).setLocale(newLocale);
-                }
-              },
-              items: const [
-                DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                DropdownMenuItem(value: Locale('ar'), child: Text('العربية')),
+          const SizedBox(height: 8),
+          PremiumCard(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.brightness_6_outlined,
+                  title: 'Theme',
+                  subtitle: _getThemeName(themeMode),
+                  isDark: isDark,
+                  onTap: () =>
+                      _showThemePicker(context, ref, themeMode, isDark),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
               ],
             ),
-          ),
+          ).animate().fade(delay: 100.ms),
 
-          const Divider(),
+          // Language Section
+          _SectionTitle(
+            title: 'Language',
+            icon: Icons.translate_outlined,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 8),
+          PremiumCard(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.language_outlined,
+                  title: 'Language',
+                  subtitle: _getLanguageName(locale.languageCode),
+                  isDark: isDark,
+                  onTap: () =>
+                      _showLanguagePicker(context, ref, locale, isDark),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fade(delay: 200.ms),
+
+          // About Section
+          _SectionTitle(
+            title: 'About',
+            icon: Icons.info_outline,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 8),
+          PremiumCard(
+            margin: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.code_outlined,
+                  title: 'Version',
+                  subtitle: '1.0.0',
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ).animate().fade(delay: 300.ms),
 
           // Logout Button
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                ref.read(authControllerProvider.notifier).logout();
-                // Router redirects to login automatically
-              },
-              icon: const Icon(Icons.logout),
-              label: const Text('Logout'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade100,
-                foregroundColor: Colors.red,
-              ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: ElevatedButton.icon(
+                onPressed: () =>
+                    ref.read(authControllerProvider.notifier).logout(),
+                icon: const Icon(Icons.logout),
+                label: const Text(
+                  'Logout',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.redPrimary.withOpacity(0.1),
+                  foregroundColor: AppColors.redPrimary,
+                  minimumSize: const Size.fromHeight(52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+              ).animate().fade(delay: 400.ms),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getThemeName(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.system:
+        return 'System';
+    }
+  }
+
+  String _getLanguageName(String code) {
+    if (code == 'en') return 'English';
+    if (code == 'ar') return 'العربية';
+    return code;
+  }
+
+  void _showThemePicker(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode current,
+    bool isDark,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _PickerSheet(
+        title: 'Select Theme',
+        isDark: isDark,
+        options: [
+          _PickerOption(
+            icon: Icons.brightness_auto,
+            title: 'System',
+            selected: current == ThemeMode.system,
+            onTap: () {
+              ref.read(themeModeProvider.notifier).setTheme(ThemeMode.system);
+              Navigator.pop(context);
+            },
+          ),
+          _PickerOption(
+            icon: Icons.light_mode,
+            title: 'Light',
+            selected: current == ThemeMode.light,
+            onTap: () {
+              ref.read(themeModeProvider.notifier).setTheme(ThemeMode.light);
+              Navigator.pop(context);
+            },
+          ),
+          _PickerOption(
+            icon: Icons.dark_mode,
+            title: 'Dark',
+            selected: current == ThemeMode.dark,
+            onTap: () {
+              ref.read(themeModeProvider.notifier).setTheme(ThemeMode.dark);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguagePicker(
+    BuildContext context,
+    WidgetRef ref,
+    Locale current,
+    bool isDark,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _PickerSheet(
+        title: 'Select Language',
+        isDark: isDark,
+        options: [
+          _PickerOption(
+            icon: Icons.language,
+            title: 'English',
+            selected: current.languageCode == 'en',
+            onTap: () {
+              ref.read(localeProvider.notifier).setLocale(const Locale('en'));
+              Navigator.pop(context);
+            },
+          ),
+          _PickerOption(
+            icon: Icons.language,
+            title: 'العربية',
+            selected: current.languageCode == 'ar',
+            onTap: () {
+              ref.read(localeProvider.notifier).setLocale(const Locale('ar'));
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool isDark;
+
+  const _SectionTitle({
+    required this.title,
+    required this.icon,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
             ),
           ),
         ],
@@ -122,21 +340,155 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
   final String title;
-  const _SectionHeader({required this.title});
+  final String subtitle;
+  final bool isDark;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.isDark,
+    this.onTap,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: AppColors.bluePrimary,
-          fontWeight: FontWeight.bold,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: (isDark ? AppColors.goldPrimary : AppColors.bluePrimary)
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 22,
+                color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null) trailing!,
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _PickerSheet extends StatelessWidget {
+  final String title;
+  final bool isDark;
+  final List<_PickerOption> options;
+
+  const _PickerSheet({
+    required this.title,
+    required this.isDark,
+    required this.options,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag Handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Title
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          // Options
+          ...options,
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _PickerOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PickerOption({
+    required this.icon,
+    required this.title,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = isDark ? AppColors.goldPrimary : AppColors.bluePrimary;
+
+    return ListTile(
+      leading: Icon(icon, color: selected ? accentColor : null),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+          color: selected ? accentColor : null,
+        ),
+      ),
+      trailing: selected ? Icon(Icons.check_circle, color: accentColor) : null,
+      onTap: onTap,
     );
   }
 }

@@ -142,13 +142,37 @@ class HomeScreen extends ConsumerWidget {
                 ).animate().fade(delay: 100.ms),
                 const SizedBox(height: 20),
                 Expanded(
-                  child: ListView.builder(
+                  child: ReorderableListView.builder(
+                    onReorder: (oldIndex, newIndex) {
+                      // Store reorder in local state (classes remain the same visually)
+                      // Future: persist sort order to database
+                      if (oldIndex < newIndex) newIndex -= 1;
+                      final item = classes.removeAt(oldIndex);
+                      classes.insert(newIndex, item);
+                    },
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) => Material(
+                          elevation: 8,
+                          shadowColor:
+                              (isDark
+                                      ? AppColors.goldPrimary
+                                      : AppColors.bluePrimary)
+                                  .withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(16),
+                          child: child,
+                        ),
+                        child: child,
+                      );
+                    },
                     itemCount: classes.length,
                     itemBuilder: (context, index) {
                       final cls = classes[index];
                       return PremiumCard(
-                        delay: index * 0.1,
-                        margin: const EdgeInsets.only(bottom: 16),
+                        key: ValueKey(cls.id),
+                        delay: 0, // Skip delay for reorderable
+                        margin: const EdgeInsets.only(bottom: 12),
                         onTap: () {
                           ref.read(selectedClassIdProvider.notifier).state =
                               cls.id;
@@ -156,8 +180,19 @@ class HomeScreen extends ConsumerWidget {
                         },
                         child: Row(
                           children: [
+                            // Drag Handle (Admin only)
+                            if (user?.role == 'ADMIN')
+                              Icon(
+                                Icons.drag_handle,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            if (user?.role == 'ADMIN')
+                              const SizedBox(width: 12),
+                            // Class Icon
                             Container(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: isDark
@@ -183,25 +218,24 @@ class HomeScreen extends ConsumerWidget {
                                 color: isDark
                                     ? AppColors.goldPrimary
                                     : AppColors.bluePrimary,
-                                size: 32,
+                                size: 28,
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     cls.name,
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   if (cls.grade != null &&
                                       cls.grade!.isNotEmpty)
                                     Text(
                                       cls.grade!,
-                                      style: theme.textTheme.bodyMedium
+                                      style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: isDark
                                                 ? AppColors.textSecondaryDark
@@ -270,7 +304,7 @@ class HomeScreen extends ConsumerWidget {
                                 ),
                                 child: Icon(
                                   Icons.arrow_forward,
-                                  size: 20,
+                                  size: 18,
                                   color: isDark
                                       ? AppColors.goldPrimary
                                       : AppColors.bluePrimary,

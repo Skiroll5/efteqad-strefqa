@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../data/attendance_controller.dart';
@@ -16,15 +17,47 @@ class AttendanceDetailScreen extends ConsumerWidget {
     final recordsAsync = ref.watch(
       sessionRecordsWithStudentsProvider(sessionId),
     );
+    final sessionsAsync = ref.watch(attendanceSessionsProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Get session info for date display
+    String dateText = 'Attendance';
+    sessionsAsync.whenData((sessions) {
+      final session = sessions.where((s) => s.id == sessionId).firstOrNull;
+      if (session != null) {
+        dateText = DateFormat.yMMMd().format(session.date);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Session Details'),
+        centerTitle: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              dateText,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Attendance Details',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _showDeleteDialog(context, ref),
+            icon: Icon(
+              Icons.delete_outline,
+              color: AppColors.redPrimary.withOpacity(0.8),
+            ),
+            onPressed: () => _showDeleteSheet(context, ref),
             tooltip: 'Delete',
           ),
         ],
@@ -39,110 +72,180 @@ class AttendanceDetailScreen extends ConsumerWidget {
 
           return Column(
             children: [
-              // Progress Bar Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              // Stats Header
+              Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [
+                            AppColors.goldPrimary.withOpacity(0.2),
+                            AppColors.goldDark.withOpacity(0.1),
+                          ]
+                        : [
+                            AppColors.bluePrimary.withOpacity(0.1),
+                            AppColors.blueLight.withOpacity(0.05),
+                          ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color:
+                        (isDark ? AppColors.goldPrimary : AppColors.bluePrimary)
+                            .withOpacity(0.2),
+                  ),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Attendance Rate',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${(percentage * 100).toStringAsFixed(0)}%',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: _getProgressColor(percentage),
-                          ),
-                        ),
-                      ],
+                    // Big Percentage
+                    Text(
+                      '${(percentage * 100).toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: _getProgressColor(percentage),
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Attendance Rate',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     // Progress Bar
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       child: Stack(
                         children: [
-                          // Background
                           Container(
-                            height: 16,
+                            height: 12,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(10),
+                              color: isDark
+                                  ? Colors.white12
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          // Filled portion
                           AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
+                            duration: const Duration(milliseconds: 800),
                             curve: Curves.easeOutCubic,
-                            height: 16,
+                            height: 12,
                             width:
                                 MediaQuery.of(context).size.width *
                                 percentage *
-                                0.85, // Account for padding
+                                0.75,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
                                   _getProgressColor(percentage),
                                   _getProgressColor(
                                     percentage,
-                                  ).withOpacity(0.7),
+                                  ).withOpacity(0.6),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    // Summary text
+                    const SizedBox(height: 16),
+                    // Present / Absent Row
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildMiniStat(
-                          Icons.check_circle,
-                          presentCount,
-                          'Present',
-                          AppColors.goldPrimary,
+                        _StatChip(
+                          icon: Icons.check_circle,
+                          label: 'Present',
+                          count: presentCount,
+                          color: AppColors.goldPrimary,
+                          isDark: isDark,
                         ),
-                        const SizedBox(width: 24),
-                        _buildMiniStat(
-                          Icons.cancel,
-                          total - presentCount,
-                          'Absent',
-                          Colors.grey,
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: isDark ? Colors.white12 : Colors.grey.shade300,
+                        ),
+                        _StatChip(
+                          icon: Icons.cancel,
+                          label: 'Absent',
+                          count: total - presentCount,
+                          color: Colors.grey,
+                          isDark: isDark,
                         ),
                       ],
                     ),
                   ],
                 ),
-              ).animate().fade().slideY(begin: -0.1, end: 0),
+              ).animate().fade().scale(
+                begin: const Offset(0.95, 0.95),
+                end: const Offset(1, 1),
+              ),
 
-              const Divider(height: 1),
+              // Students List Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      'STUDENTS',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '($total)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // Records List
               Expanded(
                 child: records.isEmpty
-                    ? const Center(child: Text('No attendance records'))
+                    ? Center(
+                        child: Text(
+                          'No attendance records',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      )
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                         itemCount: records.length,
                         itemBuilder: (context, index) {
                           final item = records[index];
                           final isPresent = item.record.status == 'PRESENT';
 
                           return PremiumCard(
-                            delay: index * 0.03,
+                            delay: index * 0.02,
                             margin: const EdgeInsets.only(bottom: 8),
                             color: isPresent
-                                ? AppColors.goldPrimary.withOpacity(0.05)
+                                ? AppColors.goldPrimary.withOpacity(
+                                    isDark ? 0.1 : 0.05,
+                                  )
                                 : null,
                             child: Row(
                               children: [
@@ -150,13 +253,17 @@ class AttendanceDetailScreen extends ConsumerWidget {
                                   radius: 18,
                                   backgroundColor: isPresent
                                       ? AppColors.goldPrimary
-                                      : Colors.grey.shade300,
+                                      : (isDark
+                                            ? Colors.grey.shade700
+                                            : Colors.grey.shade200),
                                   child: Text(
                                     item.studentName[0].toUpperCase(),
                                     style: TextStyle(
                                       color: isPresent
                                           ? Colors.white
-                                          : Colors.grey.shade600,
+                                          : (isDark
+                                                ? Colors.white70
+                                                : Colors.grey),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
@@ -168,8 +275,15 @@ class AttendanceDetailScreen extends ConsumerWidget {
                                     item.studentName,
                                     style: TextStyle(
                                       fontWeight: isPresent
-                                          ? FontWeight.bold
+                                          ? FontWeight.w600
                                           : FontWeight.normal,
+                                      color: isPresent
+                                          ? (isDark
+                                                ? AppColors.textPrimaryDark
+                                                : AppColors.textPrimaryLight)
+                                          : (isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondaryLight),
                                     ),
                                   ),
                                 ),
@@ -197,56 +311,163 @@ class AttendanceDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMiniStat(IconData icon, int count, String label, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 4),
-        Text(
-          '$count $label',
-          style: TextStyle(
-            fontSize: 13,
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
   Color _getProgressColor(double percentage) {
     if (percentage >= 0.8) return AppColors.goldPrimary;
     if (percentage >= 0.5) return Colors.orange;
     return AppColors.redPrimary;
   }
 
-  void _showDeleteDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
+  void _showDeleteSheet(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Session'),
-        content: const Text(
-          'Are you sure you want to delete this attendance session?',
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.redPrimary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete_forever,
+                  color: AppColors.redPrimary,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Delete this session?',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'This attendance session and all its records will be permanently deleted.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await ref
+                            .read(attendanceControllerProvider.notifier)
+                            .deleteSession(sessionId);
+                        if (context.mounted) context.pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.redPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.redPrimary),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref
-                  .read(attendanceControllerProvider.notifier)
-                  .deleteSession(sessionId);
-              if (context.mounted) context.pop();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+  final Color color;
+  final bool isDark;
+
+  const _StatChip({
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
+          ),
+        ),
+      ],
     );
   }
 }

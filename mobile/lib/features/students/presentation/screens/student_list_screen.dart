@@ -15,76 +15,220 @@ class StudentListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final studentsAsync = ref.watch(classStudentsProvider);
     final user = ref.watch(authControllerProvider).asData?.value;
+    final selectedClassId = ref.watch(selectedClassIdProvider);
     final l10n = AppLocalizations.of(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // If no class is selected, show class selection
+    if (selectedClassId == null) {
+      return _buildClassSelectionView(context, ref, user, isDark, theme);
+    }
+
+    // Class is selected, show students
+    return _buildStudentListView(context, ref, user, l10n, theme, isDark);
+  }
+
+  Widget _buildClassSelectionView(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic user,
+    bool isDark,
+    ThemeData theme,
+  ) {
+    final classesAsync = ref.watch(classesStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: user?.role == 'ADMIN'
-            ? Consumer(
-                builder: (context, ref, _) {
-                  final classesAsync = ref.watch(classesStreamProvider);
-                  final selectedInfo = ref.watch(selectedClassIdProvider);
-                  return classesAsync.when(
-                    data: (classes) {
-                      if (classes.isEmpty) return const Text('Manage Classes');
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: selectedInfo,
-                            hint: const Text(
-                              'Select Class',
-                              style: TextStyle(color: Colors.white),
+        title: const Text('Select Class'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: 'Sync Now',
+            onPressed: () {
+              ref.read(syncServiceProvider).sync();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Sync started...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: classesAsync.when(
+        data: (allClasses) {
+          // Filter classes based on user role
+          final classes = user?.role == 'ADMIN'
+              ? allClasses
+              : allClasses.where((c) => c.id == user?.classId).toList();
+
+          if (classes.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.class_outlined,
+                    size: 80,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ).animate().scale(
+                    duration: 500.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    user?.role == 'ADMIN'
+                        ? 'No classes found'
+                        : 'No class assigned',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ).animate().fade(delay: 200.ms),
+                  if (user?.role == 'ADMIN') ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Go to Classes tab to create one',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ).animate().fade(delay: 400.ms),
+                  ],
+                ],
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user?.role == 'ADMIN'
+                      ? 'Choose a class to manage:'
+                      : 'Your class:',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ).animate().fade(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: classes.length,
+                    itemBuilder: (context, index) {
+                      final cls = classes[index];
+                      return PremiumCard(
+                        delay: index * 0.1,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        onTap: () {
+                          ref.read(selectedClassIdProvider.notifier).state =
+                              cls.id;
+                        },
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.bluePrimary.withOpacity(
+                                  isDark ? 0.3 : 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.class_,
+                                color: isDark
+                                    ? AppColors.goldPrimary
+                                    : AppColors.bluePrimary,
+                                size: 28,
+                              ),
                             ),
-                            dropdownColor: AppColors.bluePrimary,
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.white,
-                            ),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            items: classes
-                                .map(
-                                  (c) => DropdownMenuItem(
-                                    value: c.id,
-                                    child: Text(c.name),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cls.name,
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                )
-                                .toList(),
-                            onChanged: (val) {
-                              if (val != null) {
-                                ref
-                                        .read(selectedClassIdProvider.notifier)
-                                        .state =
-                                    val;
-                              }
-                            },
-                          ),
+                                  if (cls.grade != null &&
+                                      cls.grade!.isNotEmpty)
+                                    Text(
+                                      cls.grade!,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondaryLight,
+                                          ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                            ),
+                          ],
                         ),
                       );
                     },
-                    loading: () => const SizedBox(),
-                    error: (_, __) => const Text('Error'),
-                  );
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, st) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  Widget _buildStudentListView(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic user,
+    AppLocalizations? l10n,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    final studentsAsync = ref.watch(classStudentsProvider);
+    final classesAsync = ref.watch(classesStreamProvider);
+    final selectedClassId = ref.watch(selectedClassIdProvider);
+
+    // Get class name for title
+    String? className;
+    classesAsync.whenData((classes) {
+      final cls = classes.where((c) => c.id == selectedClassId).firstOrNull;
+      className = cls?.name;
+    });
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: user?.role == 'ADMIN'
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  ref.read(selectedClassIdProvider.notifier).state = null;
                 },
               )
-            : Text(
-                l10n?.students ?? 'My Class',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            : null,
+        title: Text(className ?? l10n?.students ?? 'Students'),
         actions: [
           IconButton(
             icon: const Icon(Icons.sync),
@@ -118,31 +262,42 @@ class StudentListScreen extends ConsumerWidget {
                   Icon(
                     Icons.people_outline,
                     size: 80,
-                    color: AppColors.textSecondaryLight.withOpacity(0.5),
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ).animate().scale(
                     duration: 500.ms,
                     curve: Curves.easeOutBack,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No students found',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.textSecondaryLight,
-                      fontWeight: FontWeight.bold,
+                    'No students yet',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ).animate().fade(delay: 200.ms),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap below to add the first student',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ).animate().fade(delay: 400.ms),
                 ],
               ),
             );
           }
           return ListView.builder(
             itemCount: students.length,
-            // Add extra padding at bottom to clear the floating navbar
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
             itemBuilder: (context, index) {
               final student = students[index];
               return PremiumCard(
-                delay: index * 0.05, // Staggered animation
+                delay: index * 0.05,
                 margin: const EdgeInsets.only(bottom: 12),
                 onTap: () => context.push('/students/${student.id}'),
                 child: Row(
@@ -169,8 +324,9 @@ class StudentListScreen extends ConsumerWidget {
                         children: [
                           Text(
                             student.name,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -178,17 +334,20 @@ class StudentListScreen extends ConsumerWidget {
                               Icon(
                                 Icons.phone,
                                 size: 14,
-                                color: AppColors.textSecondaryLight,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 student.phone?.isNotEmpty == true
                                     ? student.phone!
                                     : 'No phone',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: AppColors.textSecondaryLight,
-                                    ),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
                               ),
                             ],
                           ),
@@ -198,7 +357,9 @@ class StudentListScreen extends ConsumerWidget {
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: AppColors.textSecondaryLight.withOpacity(0.5),
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ],
                 ),
@@ -210,139 +371,90 @@ class StudentListScreen extends ConsumerWidget {
         error: (err, st) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(
-          bottom: 90,
-        ), // Lift above floating navbar
+        padding: const EdgeInsets.only(bottom: 90),
         child: FloatingActionButton.extended(
           onPressed: () => _showAddStudentDialog(context, ref),
           backgroundColor: AppColors.goldPrimary,
           icon: const Icon(Icons.add, color: Colors.white),
-          label: Text(
+          label: const Text(
             'Add Student',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-        ).animate().scale(delay: 1.seconds, curve: Curves.elasticOut),
+        ).animate().scale(delay: 500.ms, curve: Curves.elasticOut),
       ),
     );
   }
 
   void _showAddStudentDialog(BuildContext context, WidgetRef ref) {
-    // Keeping logic same, just UI update if needed later
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
-    final user = ref.read(authControllerProvider).asData?.value;
-    String? selectedClassId = user?.classId;
-    final bool isAdmin = user?.classId == null;
+    final selectedClassId = ref.read(selectedClassIdProvider);
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Add New Student'),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Student Name',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                ),
+      builder: (context) => AlertDialog(
+        title: const Text('Add New Student'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Student Name',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  prefixIcon: Icon(Icons.phone),
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              if (isAdmin) ...[
-                const SizedBox(height: 16),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final classesAsync = ref.watch(classesStreamProvider);
-                    return classesAsync.when(
-                      data: (classes) {
-                        if (classes.isEmpty)
-                          return const Text('No classes available');
-                        return DropdownButtonFormField<String>(
-                          value: selectedClassId,
-                          decoration: const InputDecoration(
-                            labelText: 'Assign Class',
-                            prefixIcon: Icon(Icons.class_),
-                            border: OutlineInputBorder(),
-                          ),
-                          items: classes
-                              .map(
-                                (c) => DropdownMenuItem(
-                                  value: c.id,
-                                  child: Text(c.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            setState(() => selectedClassId = val);
-                          },
-                        );
-                      },
-                      loading: () => const LinearProgressIndicator(),
-                      error: (e, s) => Text('Error loading classes: $e'),
-                    );
-                  },
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.goldPrimary,
-                foregroundColor: Colors.white,
+            const SizedBox(height: 16),
+            TextField(
+              controller: phoneController,
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                prefixIcon: Icon(Icons.phone),
+                border: OutlineInputBorder(),
               ),
-              onPressed: () async {
-                if (nameController.text.isNotEmpty && selectedClassId != null) {
-                  try {
-                    await ref
-                        .read(studentsControllerProvider)
-                        .addStudent(
-                          name: nameController.text,
-                          phone: phoneController.text,
-                          classId: selectedClassId,
-                        );
-                    if (context.mounted) Navigator.pop(context);
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter name and select class'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Add Student'),
+              keyboardType: TextInputType.phone,
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.goldPrimary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (nameController.text.isNotEmpty && selectedClassId != null) {
+                try {
+                  await ref
+                      .read(studentsControllerProvider)
+                      .addStudent(
+                        name: nameController.text,
+                        phone: phoneController.text,
+                        classId: selectedClassId,
+                      );
+                  if (context.mounted) Navigator.pop(context);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a name')),
+                );
+              }
+            },
+            child: const Text('Add Student'),
+          ),
+        ],
       ),
     );
   }

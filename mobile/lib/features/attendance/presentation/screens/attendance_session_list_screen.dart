@@ -9,7 +9,6 @@ import '../../../../core/components/premium_card.dart';
 import '../../data/attendance_controller.dart';
 import '../../../students/data/students_controller.dart';
 import '../../../classes/data/classes_controller.dart';
-import '../../../auth/data/auth_controller.dart';
 
 class AttendanceSessionListScreen extends ConsumerWidget {
   const AttendanceSessionListScreen({super.key});
@@ -19,72 +18,20 @@ class AttendanceSessionListScreen extends ConsumerWidget {
     final sessionsAsync = ref.watch(attendanceSessionsProvider);
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final selectedClassId = ref.watch(selectedClassIdProvider);
-    final user = ref.watch(authControllerProvider).asData?.value;
+    final classesAsync = ref.watch(classesStreamProvider);
+
+    // Get class name for title
+    String? className;
+    classesAsync.whenData((classes) {
+      final cls = classes.where((c) => c.id == selectedClassId).firstOrNull;
+      className = cls?.name;
+    });
 
     return Scaffold(
       appBar: AppBar(
-        title: user?.role == 'ADMIN'
-            ? Consumer(
-                builder: (context, ref, _) {
-                  final classesAsync = ref.watch(classesStreamProvider);
-                  final selectedInfo = ref.watch(selectedClassIdProvider);
-                  return classesAsync.when(
-                    data: (classes) {
-                      if (classes.isEmpty) return const Text('Attendance');
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: selectedInfo,
-                            hint: const Text(
-                              'Select Class',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            dropdownColor: AppColors.bluePrimary,
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              color: Colors.white,
-                            ),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            items: classes
-                                .map(
-                                  (c) => DropdownMenuItem(
-                                    value: c.id,
-                                    child: Text(c.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (val) {
-                              if (val != null) {
-                                ref
-                                        .read(selectedClassIdProvider.notifier)
-                                        .state =
-                                    val;
-                              }
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                    loading: () => const SizedBox(),
-                    error: (_, __) => const Text('Error'),
-                  );
-                },
-              )
-            : Text(l10n?.attendance ?? 'Attendance'),
-        centerTitle: true,
+        title: Text(className ?? l10n?.attendance ?? 'Attendance'),
       ),
       body: sessionsAsync.when(
         data: (sessions) {
@@ -93,15 +40,21 @@ class AttendanceSessionListScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.class_outlined,
                     size: 64,
-                    color: Colors.grey,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Please select a class',
-                    style: TextStyle(color: Colors.grey),
+                  Text(
+                    'Please select a class from Home first',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                 ],
               ),
@@ -116,7 +69,9 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                   Icon(
                     Icons.event_note_outlined,
                     size: 80,
-                    color: Colors.grey.withOpacity(0.5),
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ).animate().scale(
                     duration: 500.ms,
                     curve: Curves.easeOutBack,
@@ -125,14 +80,18 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                   Text(
                     'No attendance sessions yet',
                     style: theme.textTheme.titleLarge?.copyWith(
-                      color: Colors.grey,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ).animate().fade(delay: 200.ms),
                   const SizedBox(height: 8),
                   Text(
                     'Tap below to take attendance',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade500,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ).animate().fade(delay: 400.ms),
                 ],
@@ -154,7 +113,9 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.bluePrimary.withOpacity(0.1),
+                        color: isDark
+                            ? AppColors.goldPrimary.withOpacity(0.2)
+                            : AppColors.bluePrimary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -163,13 +124,17 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                             DateFormat.d().format(session.date),
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.bluePrimary,
+                              color: isDark
+                                  ? AppColors.goldPrimary
+                                  : AppColors.bluePrimary,
                             ),
                           ),
                           Text(
                             DateFormat.MMM().format(session.date).toUpperCase(),
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.bluePrimary,
+                              color: isDark
+                                  ? AppColors.goldPrimary
+                                  : AppColors.bluePrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -193,23 +158,29 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.grey,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
                               ),
                             ),
                           const SizedBox(height: 4),
                           Text(
                             DateFormat.jm().format(session.date),
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.grey.shade500,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ],
                 ),
@@ -234,7 +205,7 @@ class AttendanceSessionListScreen extends ConsumerWidget {
             'Take Attendance',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-        ),
+        ).animate().scale(delay: 500.ms, curve: Curves.elasticOut),
       ),
     );
   }

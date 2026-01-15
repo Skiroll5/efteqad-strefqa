@@ -24,8 +24,8 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final studentsAsync = ref.watch(classStudentsProvider);
-    final selectedClassId = ref.watch(selectedClassIdProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     // Calculate stats
     final totalStudents = studentsAsync.value?.length ?? 0;
@@ -34,11 +34,13 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Attendance'),
-        centerTitle: true,
         actions: [
           IconButton(
             onPressed: _saveAttendance,
-            icon: const Icon(Icons.check, color: AppColors.goldPrimary),
+            icon: Icon(
+              Icons.check,
+              color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+            ),
             tooltip: 'Save',
           ),
         ],
@@ -46,7 +48,16 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
       body: studentsAsync.when(
         data: (students) {
           if (students.isEmpty) {
-            return const Center(child: Text('No students in this class.'));
+            return Center(
+              child: Text(
+                'No students in this class.',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+            );
           }
 
           return Column(
@@ -58,7 +69,11 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.grey.withOpacity(0.2),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -77,9 +92,11 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                       },
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.calendar_today,
-                            color: AppColors.bluePrimary,
+                            color: isDark
+                                ? AppColors.goldPrimary
+                                : AppColors.bluePrimary,
                           ),
                           const SizedBox(width: 12),
                           Text(
@@ -89,7 +106,13 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                             ),
                           ),
                           const Spacer(),
-                          const Icon(Icons.edit, size: 16, color: Colors.grey),
+                          Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
                         ],
                       ),
                     ),
@@ -99,9 +122,11 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                       controller: _noteController,
                       decoration: InputDecoration(
                         hintText: 'Add a note (optional)',
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.note_outlined,
-                          color: Colors.grey,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -125,7 +150,9 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                     Text(
                       "Total: $totalStudents",
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                     Text(
@@ -153,7 +180,9 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                       delay: index * 0.03,
                       margin: const EdgeInsets.only(bottom: 8),
                       color: isPresent
-                          ? AppColors.goldPrimary.withOpacity(0.05)
+                          ? AppColors.goldPrimary.withOpacity(
+                              isDark ? 0.15 : 0.05,
+                            )
                           : null,
                       border: isPresent
                           ? Border.all(
@@ -172,11 +201,15 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                             radius: 18,
                             backgroundColor: isPresent
                                 ? AppColors.goldPrimary
-                                : Colors.grey.withOpacity(0.2),
+                                : (isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade200),
                             child: Text(
                               student.name[0].toUpperCase(),
                               style: TextStyle(
-                                color: isPresent ? Colors.white : Colors.grey,
+                                color: isPresent
+                                    ? Colors.white
+                                    : (isDark ? Colors.white70 : Colors.grey),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -191,8 +224,12 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                                     ? FontWeight.bold
                                     : FontWeight.normal,
                                 color: isPresent
-                                    ? AppColors.textPrimaryLight
-                                    : AppColors.textSecondaryLight,
+                                    ? (isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight)
+                                    : (isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight),
                               ),
                             ),
                           ),
@@ -208,7 +245,9 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                               border: Border.all(
                                 color: isPresent
                                     ? AppColors.goldPrimary
-                                    : Colors.grey.shade400,
+                                    : (isDark
+                                          ? Colors.grey.shade600
+                                          : Colors.grey.shade400),
                                 width: 2,
                               ),
                             ),

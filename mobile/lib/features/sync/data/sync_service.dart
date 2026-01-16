@@ -11,6 +11,7 @@ import '../../classes/data/classes_repository.dart';
 import '../../classes/data/classes_controller.dart';
 import '../../students/data/students_repository.dart';
 import '../../students/data/students_controller.dart';
+import '../../auth/data/auth_controller.dart';
 
 /// Provider for the SyncService with auto-sync capability
 final syncServiceProvider = Provider((ref) {
@@ -19,6 +20,7 @@ final syncServiceProvider = Provider((ref) {
     Dio(),
     ref.read(classesRepositoryProvider),
     ref.read(studentsRepositoryProvider),
+    ref,
   );
   // Start watching the sync queue for auto-sync
   service.startAutoSync();
@@ -35,6 +37,7 @@ class SyncService {
   final Dio _dio;
   final ClassesRepository _classesRepo;
   final StudentsRepository _studentsRepo;
+  final Ref _ref;
   final String _baseUrl = ApiConfig.baseUrl;
 
   StreamSubscription? _queueSubscription;
@@ -42,7 +45,13 @@ class SyncService {
   Timer? _retryTimer;
   IO.Socket? _socket;
 
-  SyncService(this._db, this._dio, this._classesRepo, this._studentsRepo);
+  SyncService(
+    this._db,
+    this._dio,
+    this._classesRepo,
+    this._studentsRepo,
+    this._ref,
+  );
 
   /// Start watching the sync queue and auto-push when items are added
   void startAutoSync() {
@@ -203,6 +212,11 @@ class SyncService {
       print('SyncService: Push failed: $e');
       if (e is DioException) {
         print('SyncService: DioError: ${e.response?.data}');
+        // Auto-logout on 403 (token expired/invalid)
+        if (e.response?.statusCode == 403) {
+          print('SyncService: Token expired, logging out user');
+          await _ref.read(authControllerProvider.notifier).logout();
+        }
       }
       rethrow;
     } finally {
@@ -263,6 +277,11 @@ class SyncService {
       await prefs.setString('last_sync_timestamp', serverTimestamp);
     } catch (e) {
       print('Pull failed: $e');
+      // Auto-logout on 403 (token expired/invalid)
+      if (e is DioException && e.response?.statusCode == 403) {
+        print('SyncService: Token expired, logging out user');
+        await _ref.read(authControllerProvider.notifier).logout();
+      }
       rethrow;
     }
   }

@@ -171,6 +171,24 @@ class StudentListScreen extends ConsumerWidget {
     );
   }
 
+  String _getMonthAbbr(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
+  }
+
   Widget _buildBirthdaySection(
     BuildContext context,
     List<Student> students,
@@ -229,7 +247,7 @@ class StudentListScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 100,
+          height: 145,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -250,7 +268,7 @@ class StudentListScreen extends ConsumerWidget {
                 onTap: () => context.push('/students/${student.id}'),
                 child:
                     Container(
-                          width: 140,
+                          width: 120,
                           margin: const EdgeInsets.only(right: 12),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -258,9 +276,11 @@ class StudentListScreen extends ConsumerWidget {
                                 ? LinearGradient(
                                     colors: [
                                       AppColors.goldPrimary.withValues(
-                                        alpha: 0.2,
+                                        alpha: 0.25,
                                       ),
-                                      AppColors.goldDark.withValues(alpha: 0.1),
+                                      AppColors.goldDark.withValues(
+                                        alpha: 0.15,
+                                      ),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -274,101 +294,104 @@ class StudentListScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isToday
-                                  ? AppColors.goldPrimary.withValues(alpha: 0.5)
+                                  ? AppColors.goldPrimary.withValues(alpha: 0.6)
                                   : (isDark
                                         ? Colors.white10
                                         : Colors.grey.shade200),
+                              width: isToday ? 1.5 : 1,
                             ),
                           ),
-                          child: Row(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Avatar with date
-                              Stack(
-                                alignment: Alignment.bottomRight,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 26,
-                                    backgroundColor: isToday
-                                        ? AppColors.goldPrimary
-                                        : (isDark
-                                              ? Colors.grey.shade700
-                                              : Colors.grey.shade300),
-                                    child: Text(
-                                      student.name
-                                          .substring(0, 1)
-                                          .toUpperCase(),
+                              // Date Box
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isToday
+                                      ? AppColors.goldPrimary
+                                      : (isDark
+                                            ? Colors.grey.shade700
+                                            : Colors.grey.shade200),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      b.day.toString().padLeft(2, '0'),
                                       style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                         color: isToday
                                             ? Colors.white
                                             : (isDark
                                                   ? Colors.white
                                                   : Colors.black87),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
                                       ),
                                     ),
-                                  ),
-                                  if (isToday)
-                                    Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Text(
-                                        "🎉",
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(width: 10),
-                              // Name & Days
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
                                     Text(
-                                      student.name.split(' ').first,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      _getMonthAbbr(b.month),
                                       style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black87,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: isToday
+                                            ? Colors.white70
+                                            : (isDark
+                                                  ? Colors.white60
+                                                  : Colors.grey.shade600),
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Name
+                              Text(
+                                student.name.split(' ').first,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Days left badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isToday
+                                      ? Colors.white.withValues(alpha: 0.2)
+                                      : (isDark
+                                            ? Colors.grey.shade800
+                                            : Colors.grey.shade100),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isToday)
+                                      const Text(
+                                        "🎉 ",
+                                        style: TextStyle(fontSize: 10),
                                       ),
-                                      decoration: BoxDecoration(
+                                    Text(
+                                      isToday
+                                          ? (l10n?.today ?? "Today!")
+                                          : (l10n?.daysLeft(diff) ??
+                                                "$diff days"),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
                                         color: isToday
-                                            ? AppColors.goldPrimary
-                                            : (isDark
-                                                  ? Colors.grey.shade700
-                                                  : Colors.grey.shade200),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        isToday
-                                            ? (l10n?.today ?? "Today!")
-                                            : (l10n?.daysLeft(diff) ??
-                                                  "$diff days"),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: isToday
-                                              ? Colors.white
-                                              : (isDark
-                                                    ? Colors.white70
-                                                    : Colors.grey.shade700),
-                                        ),
+                                            ? Colors.white
+                                            : AppColors.goldPrimary,
                                       ),
                                     ),
                                   ],
@@ -433,6 +456,7 @@ class StudentListScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
+          // Recent Sessions List (Horizontal or Vertical condensed)
           if (sessions.isEmpty)
             Container(
               padding: const EdgeInsets.all(16),

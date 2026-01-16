@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/components/premium_card.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../data/attendance_controller.dart';
+import 'package:mobile/core/theme/app_colors.dart';
+import 'package:mobile/core/components/premium_card.dart';
+import 'package:mobile/l10n/app_localizations.dart';
+import 'package:mobile/features/attendance/data/attendance_controller.dart';
 
 class AttendanceDetailScreen extends ConsumerWidget {
   final String sessionId;
@@ -57,7 +57,7 @@ class AttendanceDetailScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(
               Icons.delete_outline,
-              color: AppColors.redPrimary.withOpacity(0.8),
+              color: AppColors.redPrimary.withValues(alpha: 0.8),
             ),
             onPressed: () => _showDeleteSheet(context, ref),
             tooltip: 'Delete',
@@ -82,12 +82,12 @@ class AttendanceDetailScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [
-                            AppColors.goldPrimary.withOpacity(0.2),
-                            AppColors.goldDark.withOpacity(0.1),
+                            AppColors.goldPrimary.withValues(alpha: 0.2),
+                            AppColors.goldDark.withValues(alpha: 0.1),
                           ]
                         : [
-                            AppColors.goldPrimary.withOpacity(0.1),
-                            AppColors.goldLight.withOpacity(0.05),
+                            AppColors.goldPrimary.withValues(alpha: 0.1),
+                            AppColors.goldLight.withValues(alpha: 0.05),
                           ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -96,7 +96,7 @@ class AttendanceDetailScreen extends ConsumerWidget {
                   border: Border.all(
                     color:
                         (isDark ? AppColors.goldPrimary : AppColors.goldPrimary)
-                            .withOpacity(0.2),
+                            .withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(
@@ -148,7 +148,7 @@ class AttendanceDetailScreen extends ConsumerWidget {
                                   _getProgressColor(percentage),
                                   _getProgressColor(
                                     percentage,
-                                  ).withOpacity(0.6),
+                                  ).withValues(alpha: 0.6),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(8),
@@ -196,7 +196,7 @@ class AttendanceDetailScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     Text(
-                      l10n?.students?.toUpperCase() ?? 'STUDENTS',
+                      l10n?.students.toUpperCase() ?? 'STUDENTS',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -245,8 +245,8 @@ class AttendanceDetailScreen extends ConsumerWidget {
                             delay: index * 0.02,
                             margin: const EdgeInsets.only(bottom: 8),
                             color: isPresent
-                                ? AppColors.goldPrimary.withOpacity(
-                                    isDark ? 0.1 : 0.05,
+                                ? AppColors.goldPrimary.withValues(
+                                    alpha: isDark ? 0.1 : 0.05,
                                   )
                                 : null,
                             child: Row(
@@ -348,10 +348,10 @@ class AttendanceDetailScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.redPrimary.withOpacity(0.1),
+                  color: AppColors.redPrimary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.delete_forever,
                   color: AppColors.redPrimary,
                   size: 32,

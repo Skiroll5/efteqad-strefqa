@@ -294,4 +294,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get late => 'Late';
+
+  @override
+  String get dataManagement => 'Data Management';
+
+  @override
+  String get resetDataCaption =>
+      'If you manually reset the backend database, use this to clear local data.';
+
+  @override
+  String get resetSyncData => 'Reset Sync & Data';
+
+  @override
+  String get confirmReset => 'Confirm Reset';
+
+  @override
+  String get resetWarning =>
+      'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.';
 }

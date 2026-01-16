@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../auth/data/auth_controller.dart';
 import '../../data/settings_controller.dart';
+import '../../../sync/data/sync_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -269,6 +270,71 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
 
+          // Emergency Data Reset (Developer/Admin section)
+          if (user?.role == 'ADMIN')
+            PremiumCard(
+              margin: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: isDark
+                              ? AppColors.redLight
+                              : AppColors.redPrimary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n?.dataManagement ?? 'Data Management',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    l10n?.resetDataCaption ??
+                        'If you manually reset the backend database, use this to clear local data.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ).animate().fade(delay: 500.ms),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => _confirmDataReset(context, ref, l10n),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: Text(l10n?.resetSyncData ?? 'Reset Sync & Data'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDark
+                          ? AppColors.redLight
+                          : AppColors.redPrimary,
+                      side: BorderSide(
+                        color:
+                            (isDark ? AppColors.redLight : AppColors.redPrimary)
+                                .withOpacity(0.3),
+                      ),
+                      minimumSize: const Size.fromHeight(45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fade(delay: 500.ms),
+
           // Logout Button
           SafeArea(
             child: Padding(
@@ -295,6 +361,61 @@ class SettingsScreen extends ConsumerWidget {
                   elevation: 0,
                 ),
               ).animate().fade(delay: 400.ms),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDataReset(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations? l10n,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n?.confirmReset ?? 'Confirm Reset'),
+        content: Text(
+          l10n?.resetWarning ??
+              'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n?.cancel ?? 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                final syncService = ref.read(syncServiceProvider);
+                await syncService.clearLocalData();
+                await syncService.pullChanges();
+
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Success: Local data reset and re-synced.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Error resetting data: $e'),
+                    backgroundColor: AppColors.redPrimary,
+                  ),
+                );
+              }
+            },
+            child: Text(
+              l10n?.delete ?? 'Delete',
+              style: const TextStyle(
+                color: AppColors.redPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

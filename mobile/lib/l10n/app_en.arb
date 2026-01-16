@@ -118,5 +118,10 @@
   "present": "Present",
   "absent": "Absent",
   "excused": "Excused",
-  "late": "Late"
+  "late": "Late",
+  "dataManagement": "Data Management",
+  "resetDataCaption": "If you manually reset the backend database, use this to clear local data.",
+  "resetSyncData": "Reset Sync & Data",
+  "confirmReset": "Confirm Reset",
+  "resetWarning": "This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared."
 }

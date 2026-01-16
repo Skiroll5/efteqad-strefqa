@@ -292,4 +292,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get late => 'متأخر';
+
+  @override
+  String get dataManagement => 'إدارة البيانات';
+
+  @override
+  String get resetDataCaption =>
+      'إذا قمت بإعادة تعيين قاعدة البيانات على الخادم، استخدم هذا لمسح البيانات المحلية.';
+
+  @override
+  String get resetSyncData => 'إعادة تعيين البيانات والمزامنة';
+
+  @override
+  String get confirmReset => 'تأكيد إعادة التعيين';
+
+  @override
+  String get resetWarning =>
+      'سيتم حذف جميع سجلات الغياب المحلية وفرض مزامنة كاملة من الخادم. استخدمه فقط إذا تم مسح البيانات على الخادم.';
 }

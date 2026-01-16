@@ -350,4 +350,23 @@ class SyncService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
+
+  /// Clears all local data and resets sync timestamp.
+  /// Useful if backend was manually reset.
+  Future<void> clearLocalData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('last_sync_timestamp');
+
+    await _db.transaction(() async {
+      // Delete in correct order to avoid foreign key issues (if any)
+      await _db.delete(_db.attendanceRecords).go();
+      await _db.delete(_db.attendanceSessions).go();
+      await _db.delete(_db.notes).go();
+      await _db.delete(_db.students).go();
+      await _db.delete(_db.classes).go();
+      await _db.delete(_db.syncQueue).go();
+    });
+
+    print('SyncService: Local data and sync timestamp cleared');
+  }
 }

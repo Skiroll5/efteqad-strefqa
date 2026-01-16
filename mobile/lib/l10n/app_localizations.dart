@@ -643,6 +643,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Late'**
   String get late;
+
+  /// No description provided for @dataManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Management'**
+  String get dataManagement;
+
+  /// No description provided for @resetDataCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'If you manually reset the backend database, use this to clear local data.'**
+  String get resetDataCaption;
+
+  /// No description provided for @resetSyncData.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Sync & Data'**
+  String get resetSyncData;
+
+  /// No description provided for @confirmReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Reset'**
+  String get confirmReset;
+
+  /// No description provided for @resetWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.'**
+  String get resetWarning;
 }
 
 class _AppLocalizationsDelegate

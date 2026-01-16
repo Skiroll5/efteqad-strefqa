@@ -35,8 +35,8 @@ class AppTheme {
     primaryColor: AppColors.goldPrimary,
     scaffoldBackgroundColor: AppColors.backgroundLight,
     colorScheme: const ColorScheme.light(
-      primary: AppColors.bluePrimary,
-      secondary: AppColors.goldPrimary,
+      primary: AppColors.goldPrimary, // Changed from bluePrimary
+      secondary: AppColors.goldDark, // Changed from goldPrimary
       surface: AppColors.surfaceLight,
       error: AppColors.redPrimary,
       onPrimary: Colors.white,
@@ -55,11 +55,13 @@ class AppTheme {
         fontSize: 18,
         fontWeight: FontWeight.bold,
       ),
-      iconTheme: const IconThemeData(color: AppColors.bluePrimary),
+      iconTheme: const IconThemeData(
+        color: AppColors.goldDark,
+      ), // Changed from bluePrimary to goldDark for contrast
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.bluePrimary,
+        backgroundColor: AppColors.goldPrimary, // Changed from bluePrimary
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

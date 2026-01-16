@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
-import '../../../classes/data/classes_controller.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/auth_controller.dart';
-import '../../../students/data/students_controller.dart';
+import '../../../classes/data/classes_controller.dart';
+
+import '../../../statistics/presentation/widgets/statistics_dashboard.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../students/data/students_controller.dart';
+import '../../../sync/data/sync_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -16,8 +20,12 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).asData?.value;
     final classesAsync = ref.watch(classesStreamProvider);
+    // Ensure SyncService is alive and syncing
+    ref.watch(syncServiceProvider);
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     // Get first name for greeting (capitalized)
     final rawName = user?.name.split(' ').first ?? 'User';
@@ -33,7 +41,7 @@ class HomeScreen extends ConsumerWidget {
             style: theme.textTheme.titleLarge,
             children: [
               TextSpan(
-                text: 'Hi, ',
+                text: '${l10n?.hi ?? 'Hi'}, ',
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
                   color: isDark
@@ -45,7 +53,7 @@ class HomeScreen extends ConsumerWidget {
                 text: firstName,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+                  color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
                 ),
               ),
               const TextSpan(text: ' 👋'),
@@ -55,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
+            tooltip: l10n?.settings ?? 'Settings',
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -67,7 +75,8 @@ class HomeScreen extends ConsumerWidget {
               ? allClasses
               : allClasses.where((c) => c.id == user?.classId).toList();
 
-          if (classes.isEmpty) {
+          if (classes.isEmpty && user?.role != 'ADMIN') {
+            // Only show empty state if not admin (admin might have dashboard but no classes yet)
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -85,41 +94,68 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     user?.role == 'ADMIN'
-                        ? 'No classes yet'
-                        : 'No class assigned',
+                        ? (l10n?.noClassesYet ?? 'No classes yet')
+                        : (l10n?.noClassAssigned ?? 'No class assigned'),
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: isDark
                           ? AppColors.textSecondaryDark
                           : AppColors.textSecondaryLight,
                     ),
                   ).animate().fade(delay: 200.ms),
-                  if (user?.role == 'ADMIN') ...[
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () => _showAddClassDialog(context, ref),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Create Class'),
-                    ).animate().fade(delay: 400.ms).slideY(begin: 0.2, end: 0),
-                  ],
+                  if (user?.role == 'ADMIN') ...[const SizedBox(height: 16)],
                 ],
               ),
             );
           }
 
-          return Padding(
+          return ListView(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user?.role == 'ADMIN' ? 'Your Classes' : 'Your Class',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            children: [
+              if (user?.role == 'ADMIN') ...[
+                const StatisticsDashboard(),
+                const SizedBox(height: 24),
+              ],
+
+              if (classes.isNotEmpty || user?.role == 'ADMIN') ...[
+                Row(
+                  children: [
+                    Text(
+                      user?.role == 'ADMIN'
+                          ? (l10n?.yourClasses ?? 'Your Classes')
+                          : (l10n?.yourClass ?? 'Your Class'),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (user?.role == 'ADMIN')
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.goldPrimary.withValues(alpha: 0.1)
+                              : AppColors.goldPrimary.withValues(
+                                  alpha: 0.1,
+                                ), // Unified Gold
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.add),
+                          color: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.goldDark,
+                          tooltip: l10n?.createClass ?? 'Create Class',
+                          onPressed: () => _showAddClassDialog(context, ref),
+                        ),
+                      ).animate().fade(delay: 300.ms).scale(),
+                  ],
                 ).animate().fade(),
                 const SizedBox(height: 4),
                 Text(
-                  'Select a class to manage students and attendance',
+                  l10n?.selectClassToManage ??
+                      'Select a class to manage students and attendance',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark
                         ? AppColors.textSecondaryDark
@@ -127,204 +163,156 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ).animate().fade(delay: 100.ms),
                 const SizedBox(height: 20),
-                Expanded(
-                  child: ReorderableListView.builder(
-                    onReorder: (oldIndex, newIndex) {
-                      // Store reorder in local state (classes remain the same visually)
-                      // Future: persist sort order to database
-                      if (oldIndex < newIndex) newIndex -= 1;
-                      final item = classes.removeAt(oldIndex);
-                      classes.insert(newIndex, item);
+
+                // Classes List
+                ...classes.map((cls) {
+                  return PremiumCard(
+                    key: ValueKey(cls.id),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    onTap: () {
+                      ref.read(selectedClassIdProvider.notifier).state = cls.id;
+                      context.push('/students');
                     },
-                    proxyDecorator: (child, index, animation) {
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, child) => Material(
-                          elevation: 8,
-                          shadowColor:
-                              (isDark
-                                      ? AppColors.goldPrimary
-                                      : AppColors.bluePrimary)
-                                  .withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(16),
-                          child: child,
-                        ),
-                        child: child,
-                      );
-                    },
-                    itemCount: classes.length,
-                    itemBuilder: (context, index) {
-                      final cls = classes[index];
-                      return PremiumCard(
-                        key: ValueKey(cls.id),
-                        delay: 0, // Skip delay for reorderable
-                        margin: const EdgeInsets.only(bottom: 12),
-                        onTap: () {
-                          ref.read(selectedClassIdProvider.notifier).state =
-                              cls.id;
-                          context.push('/students');
-                        },
-                        child: Row(
-                          children: [
-                            // Drag Handle (Admin only)
-                            if (user?.role == 'ADMIN')
-                              Icon(
-                                Icons.drag_handle,
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight,
-                              ),
-                            if (user?.role == 'ADMIN')
-                              const SizedBox(width: 12),
-                            // Class Icon
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: isDark
-                                      ? [
-                                          AppColors.goldPrimary.withOpacity(
-                                            0.3,
-                                          ),
-                                          AppColors.goldDark.withOpacity(0.2),
-                                        ]
-                                      : [
-                                          AppColors.bluePrimary.withOpacity(
-                                            0.15,
-                                          ),
-                                          AppColors.blueLight.withOpacity(0.1),
-                                        ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                Icons.class_,
-                                color: isDark
-                                    ? AppColors.goldPrimary
-                                    : AppColors.bluePrimary,
-                                size: 28,
-                              ),
+                    child: Row(
+                      children: [
+                        // Class Icon
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? [
+                                      AppColors.goldPrimary.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      AppColors.goldDark.withValues(alpha: 0.2),
+                                    ]
+                                  : [
+                                      AppColors.goldPrimary.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      AppColors.goldLight.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                    ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cls.name,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.class_,
+                            color: isDark
+                                ? AppColors.goldPrimary
+                                : AppColors
+                                      .goldDark, // goldDark for contrast on light
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                cls.name,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
+                                ),
+                              ),
+                              if (cls.grade != null && cls.grade!.isNotEmpty)
+                                Text(
+                                  cls.grade!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight,
                                   ),
-                                  if (cls.grade != null &&
-                                      cls.grade!.isNotEmpty)
+                                ),
+                            ],
+                          ),
+                        ),
+                        // Admin: Show menu with edit/delete options
+                        if (user?.role == 'ADMIN')
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                            ),
+                            onSelected: (value) {
+                              if (value == 'rename') {
+                                _showRenameClassDialog(context, ref, cls);
+                              } else if (value == 'delete') {
+                                _showDeleteClassDialog(context, ref, cls);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'rename',
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.edit, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(l10n?.rename ?? 'Rename'),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete,
+                                      size: 20,
+                                      color: isDark
+                                          ? AppColors.redLight
+                                          : AppColors.redPrimary,
+                                    ),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      cls.grade!,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: isDark
-                                                ? AppColors.textSecondaryDark
-                                                : AppColors.textSecondaryLight,
-                                          ),
+                                      l10n?.delete ?? 'Delete',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? AppColors.redLight
+                                            : AppColors.redPrimary,
+                                      ),
                                     ),
-                                ],
+                                  ],
+                                ),
                               ),
+                            ],
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withOpacity(0.05),
+                              shape: BoxShape.circle,
                             ),
-                            // Admin: Show menu with edit/delete options
-                            if (user?.role == 'ADMIN')
-                              PopupMenuButton<String>(
-                                icon: Icon(
-                                  Icons.more_vert,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondaryLight,
-                                ),
-                                onSelected: (value) {
-                                  if (value == 'rename') {
-                                    _showRenameClassDialog(context, ref, cls);
-                                  } else if (value == 'delete') {
-                                    _showDeleteClassDialog(context, ref, cls);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'rename',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.edit, size: 20),
-                                        SizedBox(width: 8),
-                                        Text('Rename'),
-                                      ],
-                                    ),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.delete,
-                                          size: 20,
-                                          color: AppColors.redPrimary,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Delete',
-                                          style: TextStyle(
-                                            color: AppColors.redPrimary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )
-                            else
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white10
-                                      : Colors.black.withOpacity(0.05),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.arrow_forward,
-                                  size: 18,
-                                  color: isDark
-                                      ? AppColors.goldPrimary
-                                      : AppColors.bluePrimary,
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                // Admin: Add Class button at bottom
-                if (user?.role == 'ADMIN')
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showAddClassDialog(context, ref),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add Class'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          backgroundColor: isDark
-                              ? AppColors.goldPrimary
-                              : AppColors.bluePrimary,
-                          foregroundColor: Colors.white,
-                        ),
-                      ).animate().fade(delay: 500.ms),
+                            child: Icon(
+                              Icons.arrow_forward,
+                              size: 18,
+                              color: isDark
+                                  ? AppColors.goldPrimary
+                                  : AppColors.goldPrimary,
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
+                  );
+                }),
               ],
-            ),
+            ],
           );
         },
+
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
       ),
@@ -336,6 +324,7 @@ class HomeScreen extends ConsumerWidget {
     final gradeController = TextEditingController();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     showModalBottomSheet(
       context: context,
@@ -369,14 +358,14 @@ class HomeScreen extends ConsumerWidget {
               ),
               // Title
               Text(
-                'Create New Class',
+                l10n?.createNewClass ?? 'Create New Class',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Add a new class to manage students',
+                l10n?.addClassCaption ?? 'Add a new class to manage students',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isDark
                       ? AppColors.textSecondaryDark
@@ -389,8 +378,9 @@ class HomeScreen extends ConsumerWidget {
                 controller: nameController,
                 autofocus: true,
                 decoration: InputDecoration(
-                  labelText: 'Class Name',
-                  hintText: 'e.g. Sunday School - Grade 3',
+                  labelText: l10n?.className ?? 'Class Name',
+                  hintText:
+                      l10n?.classNameHint ?? 'e.g. Sunday School - Grade 3',
                   prefixIcon: Icon(
                     Icons.class_,
                     color: isDark
@@ -405,7 +395,7 @@ class HomeScreen extends ConsumerWidget {
                     borderSide: BorderSide(
                       color: isDark
                           ? AppColors.goldPrimary
-                          : AppColors.bluePrimary,
+                          : AppColors.goldPrimary, // Unified Gold
                       width: 2,
                     ),
                   ),
@@ -416,8 +406,8 @@ class HomeScreen extends ConsumerWidget {
               TextField(
                 controller: gradeController,
                 decoration: InputDecoration(
-                  labelText: 'Grade (optional)',
-                  hintText: 'e.g. Grade 3',
+                  labelText: l10n?.gradeOptional ?? 'Grade (optional)',
+                  hintText: l10n?.gradeHint ?? 'e.g. Grade 3',
                   prefixIcon: Icon(
                     Icons.grade,
                     color: isDark
@@ -432,7 +422,7 @@ class HomeScreen extends ConsumerWidget {
                     borderSide: BorderSide(
                       color: isDark
                           ? AppColors.goldPrimary
-                          : AppColors.bluePrimary,
+                          : AppColors.goldPrimary, // Unified Gold
                       width: 2,
                     ),
                   ),
@@ -451,7 +441,7 @@ class HomeScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Cancel'),
+                      child: Text(l10n?.cancel ?? 'Cancel'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -553,7 +543,7 @@ class HomeScreen extends ConsumerWidget {
                     Icons.class_,
                     color: isDark
                         ? AppColors.goldPrimary
-                        : AppColors.bluePrimary,
+                        : AppColors.goldPrimary,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -563,7 +553,7 @@ class HomeScreen extends ConsumerWidget {
                     borderSide: BorderSide(
                       color: isDark
                           ? AppColors.goldPrimary
-                          : AppColors.bluePrimary,
+                          : AppColors.goldPrimary, // Unified Gold
                       width: 2,
                     ),
                   ),
@@ -599,7 +589,7 @@ class HomeScreen extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark
                             ? AppColors.goldPrimary
-                            : AppColors.bluePrimary,
+                            : AppColors.goldPrimary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -660,9 +650,9 @@ class HomeScreen extends ConsumerWidget {
                   color: AppColors.redPrimary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.delete_forever,
-                  color: AppColors.redPrimary,
+                  color: isDark ? AppColors.redLight : AppColors.redPrimary,
                   size: 32,
                 ),
               ),
@@ -672,6 +662,9 @@ class HomeScreen extends ConsumerWidget {
                 'Delete "${cls.name}"?',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
                 textAlign: TextAlign.center,
               ),

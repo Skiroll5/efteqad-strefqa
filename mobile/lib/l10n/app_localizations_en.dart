@@ -34,4 +34,228 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendance => 'Attendance';
+
+  @override
+  String get statisticsDashboard => 'Statistics';
+
+  @override
+  String get atRiskStudents => 'At Risk Students';
+
+  @override
+  String get atRiskThreshold => 'At Risk Threshold';
+
+  @override
+  String thresholdCaption(Object count) {
+    return 'Flag student after $count consecutive absences';
+  }
+
+  @override
+  String get attendanceTrends => 'Attendance Trends (Last 12 Weeks)';
+
+  @override
+  String absentTimes(Object count) {
+    return 'Absent $count times';
+  }
+
+  @override
+  String get noAtRiskStudents =>
+      'Great job! No students are currently at risk.';
+
+  @override
+  String get yourClasses => 'Your Classes';
+
+  @override
+  String get yourClass => 'Your Class';
+
+  @override
+  String get selectClassToManage =>
+      'Select a class to manage students and attendance';
+
+  @override
+  String get noClassesYet => 'No classes yet';
+
+  @override
+  String get noClassAssigned => 'No class assigned';
+
+  @override
+  String get createClass => 'Create Class';
+
+  @override
+  String get addClass => 'Add Class';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get hi => 'Hi';
+
+  @override
+  String get call => 'Call';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get noPhone => 'No Phone';
+
+  @override
+  String get address => 'Address';
+
+  @override
+  String get birthdate => 'Birthdate';
+
+  @override
+  String get visitationNotes => 'Notes';
+
+  @override
+  String get noNotes => 'No notes yet.';
+
+  @override
+  String get addNote => 'Add Note';
+
+  @override
+  String get age => 'Age';
+
+  @override
+  String yearsOld(Object count) {
+    return '$count years old';
+  }
+
+  @override
+  String get nextBirthday => 'Next Birthday';
+
+  @override
+  String birthdayCountdown(Object months, Object days) {
+    return 'In $months months, $days days';
+  }
+
+  @override
+  String get todayIsBirthday => 'Today is their birthday! 🎉';
+
+  @override
+  String get addNoteCaption => 'Add a note for this student';
+
+  @override
+  String get whatHappened => 'Write note content...';
+
+  @override
+  String get studentDetails => 'Student Details';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get version => 'Version';
+
+  @override
+  String get admin => 'Admin';
+
+  @override
+  String get servant => 'Servant';
+
+  @override
+  String get studentNotFound => 'Student not found';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get noAddress => 'No address provided';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get editStudent => 'Edit Student';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get dateOfBirth => 'Date of Birth';
+
+  @override
+  String get deleteStudentQuestion => 'Delete Student?';
+
+  @override
+  String get deleteStudentWarning =>
+      'This student and all their records will be permanently removed. This action cannot be undone.';
+
+  @override
+  String get selectTheme => 'Select Theme';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get addNewStudent => 'Add New Student';
+
+  @override
+  String get addStudentCaption => 'Add a student to this class';
+
+  @override
+  String get studentName => 'Student Name';
+
+  @override
+  String get phoneNumberOptional => 'Phone Number (optional)';
+
+  @override
+  String get addressOptional => 'Address (optional)';
+
+  @override
+  String get pleaseEnterName => 'Please enter a name';
+
+  @override
+  String get addStudentAction => 'Add Student';
+
+  @override
+  String get createNewClass => 'Create New Class';
+
+  @override
+  String get addClassCaption => 'Add a new class to manage students';
+
+  @override
+  String get className => 'Class Name';
+
+  @override
+  String get classNameHint => 'e.g. Sunday School - Grade 3';
+
+  @override
+  String get gradeOptional => 'Grade (optional)';
+
+  @override
+  String get gradeHint => 'e.g. Grade 3';
+
+  @override
+  String get create => 'Create';
 }

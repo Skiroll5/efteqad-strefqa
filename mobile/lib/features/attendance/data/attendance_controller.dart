@@ -40,6 +40,16 @@ final sessionRecordsWithStudentsProvider =
       return repo.watchRecordsWithStudents(sessionId);
     });
 
+// Watch aggregated stats for a class
+final classAttendanceStatsProvider =
+    StreamProvider.family<Map<String, StudentAttendanceStats>, String>((
+      ref,
+      classId,
+    ) {
+      final repo = ref.watch(attendanceRepositoryProvider);
+      return repo.watchClassStudentStats(classId);
+    });
+
 // --- Controller ---
 
 final attendanceControllerProvider =

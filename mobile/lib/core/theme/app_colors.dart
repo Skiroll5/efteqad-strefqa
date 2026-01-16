@@ -14,6 +14,9 @@ class AppColors {
   // Deep Red (Martyrdom/Coptic Ribbon)
   static const Color redPrimary = Color(0xFF800000);
   static const Color redAccent = Color(0xFFA52A2A);
+  static const Color redLight = Color(
+    0xFFFF5252,
+  ); // High contrast for dark mode
 
   // Neutrals - Light
   static const Color backgroundLight = Color(0xFFF8F9FA); // Off-white

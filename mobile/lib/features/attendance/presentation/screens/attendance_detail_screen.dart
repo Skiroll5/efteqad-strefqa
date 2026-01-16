@@ -84,8 +84,8 @@ class AttendanceDetailScreen extends ConsumerWidget {
                             AppColors.goldDark.withOpacity(0.1),
                           ]
                         : [
-                            AppColors.bluePrimary.withOpacity(0.1),
-                            AppColors.blueLight.withOpacity(0.05),
+                            AppColors.goldPrimary.withOpacity(0.1),
+                            AppColors.goldLight.withOpacity(0.05),
                           ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -93,7 +93,7 @@ class AttendanceDetailScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color:
-                        (isDark ? AppColors.goldPrimary : AppColors.bluePrimary)
+                        (isDark ? AppColors.goldPrimary : AppColors.goldPrimary)
                             .withOpacity(0.2),
                   ),
                 ),

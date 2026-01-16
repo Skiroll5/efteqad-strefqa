@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,6 +9,7 @@ import '../../../../core/database/app_database.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import '../../data/students_controller.dart';
 import '../../data/notes_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
   final String studentId;
@@ -19,26 +21,19 @@ class StudentDetailScreen extends ConsumerWidget {
     final studentAsync = ref.watch(studentProvider(studentId));
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n?.students ?? 'Student Details'),
+        title: Text(l10n?.studentDetails ?? 'Student Details'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () => _showEditDialog(context, ref, studentAsync.value!),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: AppColors.redPrimary),
-            onPressed: () => _showDeleteDialog(context, ref),
-          ),
-        ],
       ),
       body: studentAsync.when(
         data: (student) {
           if (student == null) {
-            return const Center(child: Text('Student not found'));
+            return Center(
+              child: Text(l10n?.studentNotFound ?? 'Student not found'),
+            );
           }
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -46,33 +41,27 @@ class StudentDetailScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Avatar Section
-                Hero(
-                  tag: 'student_avatar_${student.id}',
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.goldPrimary,
-                        width: 2,
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.goldPrimary, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.goldPrimary.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.goldPrimary.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 60,
-                      backgroundColor: AppColors.goldPrimary,
-                      child: Text(
-                        student.name.substring(0, 1).toUpperCase(),
-                        style: theme.textTheme.displayMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: AppColors.goldPrimary,
+                    child: Text(
+                      student.name.substring(0, 1).toUpperCase(),
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -82,65 +71,85 @@ class StudentDetailScreen extends ConsumerWidget {
                   student.name,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                   textAlign: TextAlign.center,
                 ).animate().fade().slideY(begin: 0.1, end: 0, delay: 100.ms),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.bluePrimary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.phone, size: 16, color: AppColors.bluePrimary),
-                      const SizedBox(width: 8),
-                      Text(
-                        student.phone?.isNotEmpty == true
-                            ? student.phone!
-                            : 'No Phone',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.bluePrimary,
-                          fontWeight: FontWeight.bold,
+                InkWell(
+                  onTap: () async {
+                    if (student.phone != null && student.phone!.isNotEmpty) {
+                      final Uri launchUri = Uri(
+                        scheme: 'tel',
+                        path: student.phone!,
+                      );
+                      if (await canLaunchUrl(launchUri)) {
+                        await launchUrl(launchUri);
+                      }
+                    }
+                  },
+                  onLongPress: () {
+                    if (student.phone != null && student.phone!.isNotEmpty) {
+                      Clipboard.setData(ClipboardData(text: student.phone!));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Phone number copied')),
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.goldPrimary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.phone,
+                          size: 18,
+                          color: AppColors.goldDark,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Text(
+                          student.phone?.isNotEmpty == true
+                              ? _formatPhone(student.phone!)
+                              : (l10n?.noPhone ?? 'No Phone'),
+                          textDirection: TextDirection.ltr,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: AppColors.goldDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ).animate().fade().slideY(begin: 0.1, end: 0, delay: 200.ms),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
-                // Info Cards
-                PremiumCard(
-                  delay: 0.3,
-                  isGlass: true,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader(context, "Details"),
-                      const SizedBox(height: 8),
-                      _buildInfoRow(
-                        context,
-                        Icons.location_on_outlined,
-                        "Address",
-                        student.address ?? "No address provided",
-                      ),
-                      const Divider(height: 24),
-                      _buildInfoRow(
-                        context,
-                        Icons.cake_outlined,
-                        "Birthdate",
-                        student.birthdate?.toString().split(" ")[0] ??
-                            "Not set",
-                      ),
-                    ],
-                  ),
-                ),
+                // Info Cards (Stacked)
+                _buildBirthdayCard(
+                  context,
+                  student,
+                  l10n,
+                  isDark,
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 300.ms),
+
+                const SizedBox(height: 12),
+
+                _buildAddressCard(
+                  context,
+                  student,
+                  l10n,
+                  isDark,
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 350.ms),
 
                 const SizedBox(height: 24),
 
@@ -148,7 +157,11 @@ class StudentDetailScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildSectionHeader(context, "Visitation Notes"),
+                    _buildSectionHeader(
+                      context,
+                      l10n?.visitationNotes ?? "Visitation Notes",
+                      isDark,
+                    ),
                     IconButton(
                       icon: const Icon(
                         Icons.add_circle,
@@ -169,10 +182,12 @@ class StudentDetailScreen extends ConsumerWidget {
                         if (notes.isEmpty) {
                           return PremiumCard(
                             delay: 0.4,
-                            child: const Center(
+                            child: Center(
                               child: Padding(
                                 padding: EdgeInsets.all(16),
-                                child: Text('No visitation notes yet.'),
+                                child: Text(
+                                  l10n?.noNotes ?? 'No visitation notes yet.',
+                                ),
                               ),
                             ),
                           );
@@ -187,11 +202,11 @@ class StudentDetailScreen extends ConsumerWidget {
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 leading: CircleAvatar(
-                                  backgroundColor: AppColors.bluePrimary
+                                  backgroundColor: AppColors.goldPrimary
                                       .withOpacity(0.1),
                                   child: const Icon(
                                     Icons.note,
-                                    color: AppColors.bluePrimary,
+                                    color: AppColors.goldDark,
                                     size: 18,
                                   ),
                                 ),
@@ -220,6 +235,47 @@ class StudentDetailScreen extends ConsumerWidget {
                   },
                 ),
 
+                const SizedBox(height: 48),
+
+                // Edit/Delete Buttons
+                // Edit/Delete Buttons (Swapped & Styled)
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            _showEditDialog(context, ref, studentAsync.value!),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.goldPrimary,
+                          side: const BorderSide(color: AppColors.goldPrimary),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(l10n?.edit ?? 'Edit'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showDeleteDialog(context, ref),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.redPrimary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.delete_outline),
+                        label: Text(l10n?.delete ?? 'Delete'),
+                      ),
+                    ),
+                  ],
+                ).animate().fade().slideY(begin: 0.4, end: 0, delay: 500.ms),
+
                 // Add bottom padding for better scroll
                 const SizedBox(height: 100),
               ],
@@ -232,37 +288,259 @@ class StudentDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
+  Widget _buildSectionHeader(BuildContext context, String title, bool isDark) {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.bold,
-        color: AppColors.textPrimaryLight,
+        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
       ),
     );
   }
 
-  Widget _buildInfoRow(
+  Widget _buildBirthdayCard(
     BuildContext context,
-    IconData icon,
-    String label,
-    String value,
+    Student student,
+    AppLocalizations? l10n,
+    bool isDark,
   ) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-          ],
+    if (student.birthdate == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final birthdate = student.birthdate!;
+    int age = (now.year - birthdate.year).toInt();
+    if (now.month < birthdate.month ||
+        (now.month == birthdate.month && now.day < birthdate.day)) {
+      age--;
+    }
+
+    // Localization for Age
+    final ageText = l10n?.yearsOld(age) ?? "$age years old";
+
+    // Next Birthday Calculation
+    DateTime nextBirthday = DateTime(now.year, birthdate.month, birthdate.day);
+    if (nextBirthday.isBefore(now.subtract(const Duration(days: 1)))) {
+      nextBirthday = DateTime(now.year + 1, birthdate.month, birthdate.day);
+    }
+
+    final difference = nextBirthday.difference(now);
+    final daysUntil = difference.inDays;
+    final months = daysUntil ~/ 30;
+    final days = daysUntil % 30;
+
+    String nextBirthdayText;
+    bool isToday = daysUntil == 0;
+
+    if (isToday) {
+      nextBirthdayText = l10n?.todayIsBirthday ?? "Today is their birthday! 🎉";
+    } else {
+      nextBirthdayText =
+          l10n?.birthdayCountdown(months, days) ??
+          "In $months months, $days days";
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.goldPrimary.withValues(alpha: 0.15),
+                  Colors.black.withValues(alpha: 0.4),
+                ]
+              : [AppColors.goldPrimary.withValues(alpha: 0.1), Colors.white],
         ),
-      ],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.goldPrimary.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Decorative Circle
+          Positioned(
+            top: -20,
+            right: -20,
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: AppColors.goldPrimary.withValues(alpha: 0.05),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Icon Container
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldPrimary.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.cake,
+                        color: AppColors.goldPrimary,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Date & Age
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n?.birthdate ?? "Birthdate",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            student.birthdate?.toString().split(" ")[0] ?? "",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.black54
+                                  : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              ageText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? Colors.grey.shade300
+                                    : Colors.grey.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+
+                // Countdown Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n?.nextBirthday ?? "Next Birthday",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        nextBirthdayText,
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: isToday
+                              ? AppColors.goldPrimary
+                              : (isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressCard(
+    BuildContext context,
+    Student student,
+    AppLocalizations? l10n,
+    bool isDark,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.grey.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.location_on_outlined,
+            color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n?.address ?? "Address",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  student.address ?? (l10n?.noAddress ?? "No address provided"),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -272,6 +550,7 @@ class StudentDetailScreen extends ConsumerWidget {
     final noteController = TextEditingController();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     showModalBottomSheet(
       context: context,
@@ -303,14 +582,15 @@ class StudentDetailScreen extends ConsumerWidget {
                 ),
               ),
               Text(
-                'Add Note',
+                l10n?.addNote ?? 'Add Note',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Add a visitation note for this student',
+                l10n?.addNoteCaption ??
+                    'Add a visitation note for this student',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isDark
                       ? AppColors.textSecondaryDark
@@ -323,12 +603,11 @@ class StudentDetailScreen extends ConsumerWidget {
                 autofocus: true,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'What happened during the visit?',
+                  hintText:
+                      l10n?.whatHappened ?? 'What happened during the visit?',
                   prefixIcon: Icon(
                     Icons.note_outlined,
-                    color: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.bluePrimary,
+                    color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -338,7 +617,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     borderSide: BorderSide(
                       color: isDark
                           ? AppColors.goldPrimary
-                          : AppColors.bluePrimary,
+                          : AppColors.goldPrimary,
                       width: 2,
                     ),
                   ),
@@ -356,7 +635,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Cancel'),
+                      child: Text(l10n?.cancel ?? 'Cancel'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -373,15 +652,15 @@ class StudentDetailScreen extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark
                             ? AppColors.goldPrimary
-                            : AppColors.bluePrimary,
+                            : AppColors.goldPrimary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Add Note',
+                      child: Text(
+                        l10n?.addNote ?? 'Add Note',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -405,6 +684,7 @@ class StudentDetailScreen extends ConsumerWidget {
     DateTime? selectedBirthdate = student.birthdate;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     final inputDecoration = InputDecoration(
       filled: true,
@@ -422,7 +702,7 @@ class StudentDetailScreen extends ConsumerWidget {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(
-          color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+          color: isDark ? AppColors.goldPrimary : AppColors.goldPrimary,
         ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -460,7 +740,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Edit Student',
+                    l10n?.editStudent ?? 'Edit Student',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -472,12 +752,12 @@ class StudentDetailScreen extends ConsumerWidget {
                     controller: nameController,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: 'Name',
+                      labelText: l10n?.name ?? 'Name',
                       prefixIcon: Icon(
                         Icons.person_outline,
                         color: isDark
                             ? AppColors.goldPrimary.withOpacity(0.7)
-                            : AppColors.bluePrimary.withOpacity(0.7),
+                            : AppColors.goldDark.withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -489,12 +769,12 @@ class StudentDetailScreen extends ConsumerWidget {
                     keyboardType: TextInputType.phone,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: 'Phone',
+                      labelText: l10n?.phone ?? 'Phone',
                       prefixIcon: Icon(
                         Icons.phone_outlined,
                         color: isDark
                             ? AppColors.goldPrimary.withOpacity(0.7)
-                            : AppColors.bluePrimary.withOpacity(0.7),
+                            : AppColors.goldDark.withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -505,12 +785,12 @@ class StudentDetailScreen extends ConsumerWidget {
                     controller: addressController,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: 'Address',
+                      labelText: l10n?.address ?? 'Address',
                       prefixIcon: Icon(
                         Icons.location_on_outlined,
                         color: isDark
                             ? AppColors.goldPrimary.withOpacity(0.7)
-                            : AppColors.bluePrimary.withOpacity(0.7),
+                            : AppColors.goldDark.withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -537,7 +817,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                         onSurface: Colors.white,
                                       )
                                     : const ColorScheme.light(
-                                        primary: AppColors.bluePrimary,
+                                        primary: AppColors.goldPrimary,
                                         onPrimary: Colors.white,
                                       ),
                               ),
@@ -568,7 +848,7 @@ class StudentDetailScreen extends ConsumerWidget {
                               Icons.cake_outlined,
                               color: isDark
                                   ? AppColors.goldPrimary.withOpacity(0.7)
-                                  : AppColors.bluePrimary.withOpacity(0.7),
+                                  : AppColors.goldDark.withOpacity(0.7),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -576,7 +856,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Date of Birth',
+                                    l10n?.dateOfBirth ?? 'Date of Birth',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark
@@ -588,7 +868,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                   Text(
                                     selectedBirthdate != null
                                         ? '${selectedBirthdate!.day}/${selectedBirthdate!.month}/${selectedBirthdate!.year}'
-                                        : 'Not set',
+                                        : (l10n?.notSet ?? 'Not set'),
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16,
@@ -628,7 +908,7 @@ class StudentDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           child: Text(
-                            'Cancel',
+                            l10n?.cancel ?? 'Cancel',
                             style: TextStyle(
                               color: isDark
                                   ? Colors.white70
@@ -648,7 +928,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                 color:
                                     (isDark
                                             ? AppColors.goldPrimary
-                                            : AppColors.bluePrimary)
+                                            : AppColors.goldPrimary)
                                         .withOpacity(0.3),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
@@ -679,7 +959,7 @@ class StudentDetailScreen extends ConsumerWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isDark
                                   ? AppColors.goldPrimary
-                                  : AppColors.bluePrimary,
+                                  : AppColors.goldPrimary,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               elevation: 0,
@@ -687,8 +967,8 @@ class StudentDetailScreen extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Text(
-                              'Save Changes',
+                            child: Text(
+                              l10n?.save ?? 'Save Changes',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -712,6 +992,7 @@ class StudentDetailScreen extends ConsumerWidget {
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     showModalBottomSheet(
       context: context,
@@ -741,23 +1022,27 @@ class StudentDetailScreen extends ConsumerWidget {
                   color: AppColors.redPrimary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person_remove,
-                  color: AppColors.redPrimary,
+                  color: isDark ? AppColors.redLight : AppColors.redPrimary,
                   size: 32,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                'Delete Student?',
+                l10n?.deleteStudentQuestion ?? 'Delete Student?',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'This student and all their records will be permanently removed. This action cannot be undone.',
+                l10n?.deleteStudentWarning ??
+                    'This student and all their records will be permanently removed. This action cannot be undone.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isDark
                       ? AppColors.textSecondaryDark
@@ -777,7 +1062,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Cancel'),
+                      child: Text(l10n?.cancel ?? 'Cancel'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -793,16 +1078,18 @@ class StudentDetailScreen extends ConsumerWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.redPrimary,
+                        backgroundColor: isDark
+                            ? AppColors.redLight
+                            : AppColors.redPrimary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(
+                        l10n?.delete ?? 'Delete',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -814,5 +1101,18 @@ class StudentDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _formatPhone(String phone) {
+    // Remove any non-digit characters
+    final cleaned = phone.replaceAll(RegExp(r'\D'), '');
+
+    // Check if it's an 11-digit number
+    if (cleaned.length == 11) {
+      // 4 digits + space + 3 digits + space + 4 digits
+      return '${cleaned.substring(0, 4)} ${cleaned.substring(4, 7)} ${cleaned.substring(7, 11)}';
+    }
+
+    return phone;
   }
 }

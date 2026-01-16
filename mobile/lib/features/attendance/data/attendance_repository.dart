@@ -14,10 +14,72 @@ class AttendanceRecordWithStudent {
   });
 }
 
+class StudentAttendanceStats {
+  final String studentId;
+  final int totalRecords;
+  final int presentCount;
+  final int absentCount;
+
+  StudentAttendanceStats({
+    required this.studentId,
+    required this.totalRecords,
+    required this.presentCount,
+    required this.absentCount,
+  });
+
+  double get presencePercentage =>
+      totalRecords == 0 ? 0.0 : (presentCount / totalRecords) * 100.0;
+
+  bool get isCritical => absentCount >= 3; // Example rule, customizable
+}
+
 class AttendanceRepository {
   final AppDatabase _db;
 
   AttendanceRepository(this._db);
+
+  // Watch aggregated stats for all students in a class
+  Stream<Map<String, StudentAttendanceStats>> watchClassStudentStats(
+    String classId,
+  ) {
+    final query =
+        _db.select(_db.attendanceRecords).join([
+          innerJoin(
+            _db.attendanceSessions,
+            _db.attendanceSessions.id.equalsExp(
+              _db.attendanceRecords.sessionId,
+            ),
+          ),
+        ])..where(
+          _db.attendanceSessions.classId.equals(classId) &
+              _db.attendanceSessions.isDeleted.equals(false) &
+              _db.attendanceRecords.isDeleted.equals(false),
+        );
+
+    return query.watch().map((rows) {
+      final Map<String, List<AttendanceRecord>> recordsByStudent = {};
+
+      for (final row in rows) {
+        final record = row.readTable(_db.attendanceRecords);
+        recordsByStudent.putIfAbsent(record.studentId, () => []).add(record);
+      }
+
+      final statsMap = <String, StudentAttendanceStats>{};
+      recordsByStudent.forEach((studentId, records) {
+        final present = records.where((r) => r.status == 'PRESENT').length;
+        final absent = records.where((r) => r.status == 'ABSENT').length;
+
+        statsMap[studentId] = StudentAttendanceStats(
+          studentId: studentId,
+          totalRecords: records.length,
+          presentCount: present,
+          absentCount: absent,
+        );
+      });
+
+      return statsMap;
+    });
+  }
 
   // Watch attendance records for a specific session
   Stream<List<AttendanceRecord>> watchRecordsForSession(String sessionId) {

@@ -91,7 +91,7 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: isDark
                             ? AppColors.goldPrimary.withOpacity(0.2)
-                            : AppColors.bluePrimary.withOpacity(0.1),
+                            : AppColors.goldPrimary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -102,7 +102,7 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? AppColors.goldPrimary
-                                  : AppColors.bluePrimary,
+                                  : AppColors.goldDark,
                             ),
                           ),
                           Text(
@@ -110,7 +110,7 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: isDark
                                   ? AppColors.goldPrimary
-                                  : AppColors.bluePrimary,
+                                  : AppColors.goldDark,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

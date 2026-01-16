@@ -71,7 +71,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
           IconButton(
             icon: Icon(
               Icons.calendar_month,
-              color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+              color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
             ),
             tooltip: 'Change Date',
             onPressed: () async {
@@ -131,8 +131,8 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                             AppColors.goldDark.withOpacity(0.1),
                           ]
                         : [
-                            AppColors.bluePrimary.withOpacity(0.08),
-                            AppColors.blueLight.withOpacity(0.05),
+                            AppColors.goldPrimary.withOpacity(0.08),
+                            AppColors.goldLight.withOpacity(0.05),
                           ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
@@ -157,7 +157,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                             valueColor: AlwaysStoppedAnimation(
                               isDark
                                   ? AppColors.goldPrimary
-                                  : AppColors.bluePrimary,
+                                  : AppColors.goldPrimary,
                             ),
                           ),
                           Center(
@@ -168,7 +168,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                                 fontWeight: FontWeight.bold,
                                 color: isDark
                                     ? AppColors.goldPrimary
-                                    : AppColors.bluePrimary,
+                                    : AppColors.goldDark,
                               ),
                             ),
                           ),
@@ -217,7 +217,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? AppColors.goldPrimary
-                              : AppColors.bluePrimary,
+                              : AppColors.goldDark,
                         ),
                       ),
                     ),
@@ -382,7 +382,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isDark
                         ? AppColors.goldPrimary
-                        : AppColors.bluePrimary,
+                        : AppColors.goldPrimary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -452,7 +452,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                     borderSide: BorderSide(
                       color: isDark
                           ? AppColors.goldPrimary
-                          : AppColors.bluePrimary,
+                          : AppColors.goldPrimary,
                       width: 2,
                     ),
                   ),
@@ -469,7 +469,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isDark
                         ? AppColors.goldPrimary
-                        : AppColors.bluePrimary,
+                        : AppColors.goldPrimary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

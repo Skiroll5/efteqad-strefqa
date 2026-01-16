@@ -7,10 +7,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile/core/config/api_config.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../core/database/app_database.dart';
+import '../../classes/data/classes_repository.dart';
+import '../../classes/data/classes_controller.dart';
+import '../../students/data/students_repository.dart';
+import '../../students/data/students_controller.dart';
 
 /// Provider for the SyncService with auto-sync capability
 final syncServiceProvider = Provider((ref) {
-  final service = SyncService(ref.read(appDatabaseProvider), Dio());
+  final service = SyncService(
+    ref.read(appDatabaseProvider),
+    Dio(),
+    ref.read(classesRepositoryProvider),
+    ref.read(studentsRepositoryProvider),
+  );
   // Start watching the sync queue for auto-sync
   service.startAutoSync();
   // Ensure disposal when provider is disposed
@@ -24,6 +33,8 @@ final isOnlineProvider = StateProvider<bool>((ref) => true);
 class SyncService {
   final AppDatabase _db;
   final Dio _dio;
+  final ClassesRepository _classesRepo;
+  final StudentsRepository _studentsRepo;
   final String _baseUrl = ApiConfig.baseUrl;
 
   StreamSubscription? _queueSubscription;
@@ -31,7 +42,7 @@ class SyncService {
   Timer? _retryTimer;
   IO.Socket? _socket;
 
-  SyncService(this._db, this._dio);
+  SyncService(this._db, this._dio, this._classesRepo, this._studentsRepo);
 
   /// Start watching the sync queue and auto-push when items are added
   void startAutoSync() {
@@ -224,7 +235,7 @@ class SyncService {
       await _db.transaction(() async {
         if (changes['students'] != null) {
           for (var s in changes['students']) {
-            await _upsertStudent(s);
+            await _studentsRepo.upsertStudentFromSync(s);
           }
         }
         if (changes['attendance'] != null) {
@@ -239,7 +250,7 @@ class SyncService {
         }
         if (changes['classes'] != null) {
           for (var c in changes['classes']) {
-            await _upsertClass(c);
+            await _classesRepo.upsertClassFromSync(c);
           }
         }
         if (changes['attendance_sessions'] != null) {
@@ -254,26 +265,6 @@ class SyncService {
       print('Pull failed: $e');
       rethrow;
     }
-  }
-
-  Future<void> _upsertStudent(Map<String, dynamic> data) async {
-    final entity = StudentsCompanion(
-      id: Value(data['id']),
-      name: Value(data['name']),
-      phone: Value(data['phone']),
-      address: Value(data['address']),
-      birthdate: Value(
-        data['birthdate'] != null ? DateTime.parse(data['birthdate']) : null,
-      ),
-      classId: Value(data['classId']),
-      createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
-      isDeleted: Value(data['isDeleted'] ?? false),
-      deletedAt: Value(
-        data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
-      ),
-    );
-    await _db.into(_db.students).insertOnConflictUpdate(entity);
   }
 
   Future<void> _upsertAttendance(Map<String, dynamic> data) async {
@@ -321,21 +312,6 @@ class SyncService {
       ),
     );
     await _db.into(_db.notes).insertOnConflictUpdate(entity);
-  }
-
-  Future<void> _upsertClass(Map<String, dynamic> data) async {
-    final entity = ClassesCompanion(
-      id: Value(data['id']),
-      name: Value(data['name']),
-      grade: Value(data['grade']),
-      createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
-      isDeleted: Value(data['isDeleted'] ?? false),
-      deletedAt: Value(
-        data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
-      ),
-    );
-    await _db.into(_db.classes).insertOnConflictUpdate(entity);
   }
 
   Future<String?> _getToken() async {

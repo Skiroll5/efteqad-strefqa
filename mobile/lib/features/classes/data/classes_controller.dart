@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
 
@@ -5,7 +6,7 @@ import 'classes_repository.dart';
 
 final classesRepositoryProvider = Provider((ref) {
   final db = ref.watch(appDatabaseProvider);
-  return ClassesRepository(db);
+  return ClassesRepository(db, Dio());
 });
 
 final classesStreamProvider = StreamProvider<List<ClassesData>>((ref) {

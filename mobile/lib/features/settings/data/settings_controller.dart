@@ -56,3 +56,29 @@ class LocaleController extends StateNotifier<Locale> {
     await prefs.setString('languageCode', locale.languageCode);
   }
 }
+
+// --- Statistics Settings Controller ---
+final statisticsSettingsProvider =
+    StateNotifierProvider<StatisticsSettingsController, int>((ref) {
+      return StatisticsSettingsController();
+    });
+
+class StatisticsSettingsController extends StateNotifier<int> {
+  StatisticsSettingsController() : super(3) {
+    _loadThreshold();
+  }
+
+  Future<void> _loadThreshold() async {
+    final prefs = await SharedPreferences.getInstance();
+    final val = prefs.getInt('atRiskThreshold');
+    if (val != null) {
+      state = val;
+    }
+  }
+
+  Future<void> setThreshold(int value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('atRiskThreshold', value);
+  }
+}

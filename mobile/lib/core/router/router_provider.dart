@@ -84,6 +84,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/classes',
         builder: (context, state) => const ClassListScreen(),
       ),
+      // Statistics
+
       // Settings
       GoRoute(
         path: '/settings',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../auth/data/auth_controller.dart';
@@ -16,9 +17,13 @@ class SettingsScreen extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings'), centerTitle: false),
+      appBar: AppBar(
+        title: Text(l10n?.settings ?? 'Settings'),
+        centerTitle: false,
+      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
@@ -34,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
                       gradient: LinearGradient(
                         colors: isDark
                             ? [AppColors.goldPrimary, AppColors.goldDark]
-                            : [AppColors.bluePrimary, AppColors.blueLight],
+                            : [AppColors.goldPrimary, AppColors.goldLight],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -73,18 +78,20 @@ class SettingsScreen extends ConsumerWidget {
                             color:
                                 (isDark
                                         ? AppColors.goldPrimary
-                                        : AppColors.bluePrimary)
+                                        : AppColors.goldPrimary)
                                     .withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            user.role,
+                            user.role == 'ADMIN'
+                                ? (l10n?.admin ?? 'Admin')
+                                : (l10n?.servant ?? 'Servant'),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? AppColors.goldPrimary
-                                  : AppColors.bluePrimary,
+                                  : AppColors.goldDark,
                             ),
                           ),
                         ),
@@ -102,8 +109,8 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 _SettingsTile(
                   icon: Icons.brightness_6_outlined,
-                  title: 'Theme',
-                  subtitle: _getThemeName(themeMode),
+                  title: l10n?.theme ?? 'Theme',
+                  subtitle: _getThemeName(context, themeMode),
                   isDark: isDark,
                   onTap: () =>
                       _showThemePicker(context, ref, themeMode, isDark),
@@ -125,7 +132,7 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 _SettingsTile(
                   icon: Icons.language_outlined,
-                  title: 'Language',
+                  title: l10n?.language ?? 'Language',
                   subtitle: _getLanguageName(locale.languageCode),
                   isDark: isDark,
                   onTap: () =>
@@ -170,7 +177,7 @@ class SettingsScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Version',
+                            l10n?.version ?? 'Version',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: isDark
@@ -196,6 +203,72 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ).animate().fade(delay: 300.ms),
 
+          // Statistics Settings (Threshold)
+          if (user?.role == 'ADMIN')
+            Consumer(
+              builder: (context, ref, child) {
+                final threshold = ref.watch(statisticsSettingsProvider);
+                return PremiumCard(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.goldPrimary.withOpacity(0.1)
+                                : AppColors.goldPrimary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.analytics_outlined,
+                            color: isDark
+                                ? AppColors.goldPrimary
+                                : AppColors.goldDark,
+                          ),
+                        ),
+                        title: Text(
+                          l10n?.atRiskThreshold ?? 'At Risk Threshold',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? Colors.white
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        subtitle: Text(
+                          l10n?.thresholdCaption(threshold) ??
+                              'Flag student after $threshold consecutive absences',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ),
+                      Slider(
+                        value: threshold.toDouble(),
+                        min: 1,
+                        max: 10,
+                        divisions: 9,
+                        label: threshold.toString(),
+                        activeColor: isDark
+                            ? AppColors.goldPrimary
+                            : AppColors.goldPrimary,
+                        onChanged: (val) {
+                          ref
+                              .read(statisticsSettingsProvider.notifier)
+                              .setThreshold(val.toInt());
+                        },
+                      ),
+                    ],
+                  ),
+                ).animate().fade(delay: 400.ms);
+              },
+            ),
+
           // Logout Button
           SafeArea(
             child: Padding(
@@ -204,13 +277,17 @@ class SettingsScreen extends ConsumerWidget {
                 onPressed: () =>
                     ref.read(authControllerProvider.notifier).logout(),
                 icon: const Icon(Icons.logout),
-                label: const Text(
-                  'Logout',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n?.logout ?? 'Logout',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.redPrimary.withOpacity(0.1),
-                  foregroundColor: AppColors.redPrimary,
+                  backgroundColor:
+                      (isDark ? AppColors.redLight : AppColors.redPrimary)
+                          .withOpacity(0.1),
+                  foregroundColor: isDark
+                      ? AppColors.redLight
+                      : AppColors.redPrimary,
                   minimumSize: const Size.fromHeight(52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -225,14 +302,15 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  String _getThemeName(ThemeMode mode) {
+  String _getThemeName(BuildContext context, ThemeMode mode) {
+    final l10n = AppLocalizations.of(context);
     switch (mode) {
       case ThemeMode.light:
-        return 'Light';
+        return l10n?.light ?? 'Light';
       case ThemeMode.dark:
-        return 'Dark';
+        return l10n?.dark ?? 'Dark';
       case ThemeMode.system:
-        return 'System';
+        return l10n?.system ?? 'System';
     }
   }
 
@@ -353,14 +431,14 @@ class _SettingsTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: (isDark ? AppColors.goldPrimary : AppColors.bluePrimary)
+                color: (isDark ? AppColors.goldPrimary : AppColors.goldPrimary)
                     .withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
                 size: 22,
-                color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
+                color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
               ),
             ),
             const SizedBox(width: 14),
@@ -460,7 +538,7 @@ class _PickerOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = isDark ? AppColors.goldPrimary : AppColors.bluePrimary;
+    final accentColor = isDark ? AppColors.goldPrimary : AppColors.goldDark;
 
     return ListTile(
       leading: Icon(icon, color: selected ? accentColor : null),

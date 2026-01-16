@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -9,7 +10,7 @@ final uuidProvider = Provider((ref) => const Uuid());
 
 final studentsRepositoryProvider = Provider((ref) {
   final db = ref.watch(appDatabaseProvider);
-  return StudentsRepository(db);
+  return StudentsRepository(db, Dio());
 });
 
 final selectedClassIdProvider = StateProvider<String?>((ref) => null);

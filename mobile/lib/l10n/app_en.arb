@@ -7,5 +7,100 @@
   "waitActivation": "Wait for admin activation",
   "classes": "Classes",
   "students": "Students",
-  "attendance": "Attendance"
+  "attendance": "Attendance",
+  "statisticsDashboard": "Statistics",
+  "atRiskStudents": "At Risk Students",
+  "atRiskThreshold": "At Risk Threshold",
+  "thresholdCaption": "Flag student after {count} consecutive absences",
+  "@thresholdCaption": {
+    "placeholders": {
+        "count": {}
+    }
+  },
+  "attendanceTrends": "Attendance Trends (Last 12 Weeks)",
+  "absentTimes": "Absent {count} times",
+  "@absentTimes": {
+    "placeholders": {
+        "count": {}
+    }
+  },
+  "noAtRiskStudents": "Great job! No students are currently at risk.",
+  "yourClasses": "Your Classes",
+  "yourClass": "Your Class",
+  "selectClassToManage": "Select a class to manage students and attendance",
+  "noClassesYet": "No classes yet",
+  "noClassAssigned": "No class assigned",
+  "createClass": "Create Class",
+  "addClass": "Add Class",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "rename": "Rename",
+  "hi": "Hi",
+  "call": "Call",
+  "phone": "Phone",
+  "noPhone": "No Phone",
+  "address": "Address",
+  "birthdate": "Birthdate",
+  "visitationNotes": "Notes",
+  "noNotes": "No notes yet",
+  "addNote": "Add Note",
+  "age": "Age",
+  "yearsOld": "{count} years old",
+  "@yearsOld": {
+    "placeholders": {
+        "count": {}
+    }
+  },
+  "nextBirthday": "Next Birthday",
+  "birthdayCountdown": "In {months} months, {days} days",
+  "@birthdayCountdown": {
+    "placeholders": {
+        "months": {},
+        "days": {}
+    }
+  },
+  "todayIsBirthday": "Today is their birthday! 🎉",
+  "addNoteCaption": "Add a note for this student",
+  "whatHappened": "Write note content...",
+  "studentDetails": "Student Details",
+  "settings": "Settings",
+  "logout": "Logout",
+  "language": "Language",
+  "theme": "Theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "version": "Version",
+  "admin": "Admin",
+  "servant": "Servant",
+  "studentNotFound": "Student not found",
+  "details": "Details",
+  "noAddress": "No address provided",
+  "notSet": "Not set",
+  "noNotes": "No notes yet.",
+  "editStudent": "Edit Student",
+  "name": "Name",
+  "dateOfBirth": "Date of Birth",
+  "deleteStudentQuestion": "Delete Student?",
+  "deleteStudentWarning": "This student and all their records will be permanently removed. This action cannot be undone.",
+  "selectTheme": "Select Theme",
+  "selectTheme": "Select Theme",
+  "selectLanguage": "Select Language",
+  "addNewStudent": "Add New Student",
+  "addStudentCaption": "Add a student to this class",
+  "studentName": "Student Name",
+  "phoneNumberOptional": "Phone Number (optional)",
+  "addressOptional": "Address (optional)",
+  "pleaseEnterName": "Please enter a name",
+  "pleaseEnterName": "Please enter a name",
+  "addStudentAction": "Add Student",
+  "createNewClass": "Create New Class",
+  "addClassCaption": "Add a new class to manage students",
+  "className": "Class Name",
+  "classNameHint": "e.g. Sunday School - Grade 3",
+  "gradeOptional": "Grade (optional)",
+  "gradeHint": "e.g. Grade 3",
+  "create": "Create"
 }

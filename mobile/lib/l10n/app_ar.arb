@@ -14,6 +14,11 @@
   "thresholdCaption": "تنبيه بعد {count} غيابات متتالية",
   "attendanceTrends": "مؤشر الحضور (آخر 12 أسبوع)",
   "absentTimes": "غائب {count} مرات",
+  "@absentTimes": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "noAtRiskStudents": "عمل رائع! لا يوجد طلاب معرضون للخطر حالياً.",
   "yourClasses": "فصولك",
   "yourClass": "فصلك",

@@ -70,7 +70,20 @@ class StudentListScreen extends ConsumerWidget {
 
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              // 2. Attendance Sessions Section (Inline)
+              // 2. At Risk Students Section
+              SliverToBoxAdapter(
+                child: _buildAtRiskSection(
+                  context,
+                  students,
+                  attendanceStatsAsync,
+                  isDark,
+                  l10n,
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+              // 3. Attendance Sessions Section (Inline)
               SliverToBoxAdapter(
                 child: _buildSessionsSection(
                   context,
@@ -639,6 +652,221 @@ class StudentListScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildAtRiskSection(
+    BuildContext context,
+    List<Student> students,
+    AsyncValue<Map<String, StudentAttendanceStats>> statsAsync,
+    bool isDark,
+    AppLocalizations? l10n,
+  ) {
+    return statsAsync.when(
+      data: (statsMap) {
+        final atRisk = students.where((s) {
+          final stats = statsMap[s.id];
+          if (stats == null || stats.totalRecords == 0) return false;
+          // Flag if presence < 85% OR has at least 2 absences
+          return stats.presencePercentage < 85 || stats.absentCount >= 2;
+        }).toList();
+
+        atRisk.sort((a, b) {
+          final pctA = statsMap[a.id]?.presencePercentage ?? 100.0;
+          final pctB = statsMap[b.id]?.presencePercentage ?? 100.0;
+          return pctA.compareTo(pctB);
+        });
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 18,
+                    color: isDark ? AppColors.redLight : AppColors.redPrimary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n?.atRiskStudents ?? "At Risk Students",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (atRisk.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.green.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n?.noAtRiskStudents ??
+                              "No students are currently at risk.",
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 85,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: atRisk.length,
+                  itemBuilder: (context, index) {
+                    final student = atRisk[index];
+                    final stats = statsMap[student.id]!;
+                    final pct = stats.presencePercentage;
+
+                    final color = pct < 50
+                        ? (isDark ? AppColors.redLight : AppColors.redPrimary)
+                        : (pct < 75 ? Colors.orange : Colors.green);
+
+                    return Container(
+                          width: 155,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                await Future.delayed(
+                                  const Duration(milliseconds: 150),
+                                );
+                                if (context.mounted) {
+                                  context.push('/students/${student.id}');
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              splashColor: color.withValues(alpha: 0.2),
+                              highlightColor: color.withValues(alpha: 0.1),
+                              child: Ink(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.grey.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: color.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "${pct.toStringAsFixed(0)}%",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: color,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            student.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: isDark
+                                                      ? Colors.grey.shade400
+                                                      : Colors.grey.shade600,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            l10n?.absentTimes(
+                                                  stats.absentCount,
+                                                ) ??
+                                                "${stats.absentCount} absences",
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: color.withValues(
+                                                alpha: 0.8,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fade(delay: (index * 50).ms)
+                        .slideX(begin: 0.2, curve: Curves.easeOutQuad);
+                  },
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildStudentCard(
     BuildContext context,
     Student student,
@@ -649,6 +877,8 @@ class StudentListScreen extends ConsumerWidget {
     final presentPct = stats?.presencePercentage ?? 0.0;
     final isCritical = stats?.isCritical ?? false;
     final absentCount = stats?.absentCount ?? 0;
+
+    final l10n = AppLocalizations.of(context);
 
     return PremiumCard(
       delay: index * 0.05,
@@ -698,23 +928,47 @@ class StudentListScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isCritical
-                      ? AppColors.redPrimary.withValues(alpha: 0.1)
-                      : Colors.green.withValues(alpha: 0.1),
+                  color:
+                      (presentPct < 50
+                              ? (isDark
+                                    ? AppColors.redLight
+                                    : AppColors.redPrimary)
+                              : (presentPct < 75
+                                    ? Colors.orange
+                                    : Colors.green))
+                          .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isCritical ? AppColors.redPrimary : Colors.green,
+                    color: presentPct < 50
+                        ? (isDark ? AppColors.redLight : AppColors.redPrimary)
+                        : (presentPct < 75 ? Colors.orange : Colors.green),
                     width: 0.5,
                   ),
                 ),
-                child: Text(
-                  "${presentPct.toStringAsFixed(0)}%",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isCritical ? AppColors.redPrimary : Colors.green,
-                  ),
-                ),
+                child: (stats == null)
+                    ? Text(
+                        l10n?.notSet ?? "No Data",
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark
+                              ? Colors.grey.shade500
+                              : Colors.grey.shade400,
+                        ),
+                      )
+                    : Text(
+                        "${presentPct.toStringAsFixed(0)}%",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: presentPct < 50
+                              ? (isDark
+                                    ? AppColors.redLight
+                                    : AppColors.redPrimary)
+                              : (presentPct < 75
+                                    ? Colors.orange
+                                    : Colors.green),
+                        ),
+                      ),
               ),
               const SizedBox(height: 2),
               Text(

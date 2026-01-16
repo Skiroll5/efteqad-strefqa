@@ -265,12 +265,21 @@ class StudentListScreen extends ConsumerWidget {
               final diff = nextB.difference(now).inDays;
               final isToday = diff == 0;
 
-              return GestureDetector(
-                onTap: () => context.push('/students/${student.id}'),
-                child:
-                    Container(
-                          width: 150,
-                          margin: const EdgeInsets.only(right: 12),
+              return Container(
+                    width: 150,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => context.push('/students/${student.id}'),
+                        borderRadius: BorderRadius.circular(16),
+                        splashColor: AppColors.goldPrimary.withValues(
+                          alpha: 0.2,
+                        ),
+                        highlightColor: AppColors.goldPrimary.withValues(
+                          alpha: 0.1,
+                        ),
+                        child: Ink(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 10,
@@ -398,11 +407,13 @@ class StudentListScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
-                        )
-                        .animate()
-                        .fade(delay: (index * 100).ms)
-                        .slideX(begin: 0.1, end: 0),
-              );
+                        ),
+                      ),
+                    ),
+                  )
+                  .animate()
+                  .fade(delay: (index * 100).ms)
+                  .slideX(begin: 0.1, end: 0);
             },
           ),
         ),

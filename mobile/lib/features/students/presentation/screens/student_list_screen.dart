@@ -356,8 +356,6 @@ class StudentListScreen extends ConsumerWidget {
                                   children: [
                                     Text(
                                       student.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
@@ -522,7 +520,7 @@ class StudentListScreen extends ConsumerWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           )
-                        : null,
+                        : const SizedBox(height: 18),
                     trailing: const Icon(Icons.chevron_right, size: 20),
                     onTap: () => context.push('/attendance/${session.id}'),
                   ),

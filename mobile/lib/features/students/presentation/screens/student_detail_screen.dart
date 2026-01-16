@@ -10,6 +10,9 @@ import 'package:mobile/l10n/app_localizations.dart';
 import '../../data/students_controller.dart';
 import '../../data/notes_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart' as intl;
+import '../../../attendance/data/attendance_controller.dart';
+import '../../../attendance/data/attendance_repository.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
   final String studentId;
@@ -19,6 +22,7 @@ class StudentDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final studentAsync = ref.watch(studentProvider(studentId));
+    final historyAsync = ref.watch(studentAttendanceHistoryProvider(studentId));
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -150,6 +154,18 @@ class StudentDetailScreen extends ConsumerWidget {
                   l10n,
                   isDark,
                 ).animate().fade().slideY(begin: 0.2, end: 0, delay: 350.ms),
+
+                const SizedBox(height: 24),
+
+                // Attendance History Logic
+                if (historyAsync.valueOrNull != null &&
+                    historyAsync.valueOrNull!.isNotEmpty)
+                  _buildAttendanceHistory(
+                    context,
+                    historyAsync.value!,
+                    isDark,
+                    l10n,
+                  ).animate().fade().slideY(begin: 0.3, end: 0, delay: 400.ms),
 
                 const SizedBox(height: 24),
 
@@ -541,6 +557,178 @@ class StudentDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAttendanceHistory(
+    BuildContext context,
+    List<AttendanceRecordWithSession> history,
+    bool isDark,
+    AppLocalizations? l10n,
+  ) {
+    // Group by Month
+    final grouped = <String, List<AttendanceRecordWithSession>>{};
+    for (var item in history) {
+      final key = intl.DateFormat('MMMM yyyy').format(item.session.date);
+      if (!grouped.containsKey(key)) grouped[key] = [];
+      grouped[key]!.add(item);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          l10n?.attendanceHistory ?? "Attendance History",
+          isDark,
+        ),
+        const SizedBox(height: 16),
+        ...grouped.entries.map((entry) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8, top: 4),
+                child: Text(
+                  entry.key,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.goldPrimary,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              ...entry.value.map((item) {
+                final status = item.record.status; // PRESENT, ABSENT, EXCUSED
+                final isPresent = status == 'PRESENT';
+                final isAbsent = status == 'ABSENT';
+
+                Color statusColor;
+                IconData statusIcon;
+                String statusText;
+
+                if (isPresent) {
+                  statusColor = Colors.green;
+                  statusIcon = Icons.check_circle;
+                  statusText = l10n?.present ?? "Present";
+                } else if (isAbsent) {
+                  statusColor = AppColors.redPrimary;
+                  statusIcon = Icons.cancel;
+                  statusText = l10n?.absent ?? "Absent";
+                } else {
+                  statusColor = Colors.orange;
+                  statusIcon = Icons.info;
+                  statusText = l10n?.excused ?? "Excused";
+                }
+
+                return PremiumCard(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        // Date Box
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                intl.DateFormat('dd').format(item.session.date),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                intl.DateFormat(
+                                  'EEE',
+                                ).format(item.session.date).toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Time & Note
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                intl.DateFormat(
+                                  'hh:mm a',
+                                ).format(item.session.date),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              if (item.session.note != null &&
+                                  item.session.note!.isNotEmpty)
+                                Text(
+                                  item.session.note!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        // Status Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(statusIcon, size: 14, color: statusColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                statusText,
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+          );
+        }),
+      ],
     );
   }
 

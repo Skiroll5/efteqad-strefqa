@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart';
 import '../../auth/data/auth_controller.dart';
+import '../../attendance/data/attendance_controller.dart';
 import 'students_repository.dart';
 
 final uuidProvider = Provider((ref) => const Uuid());
@@ -55,15 +56,18 @@ class StudentsController {
     required String? classId,
     String? address,
     DateTime? birthdate,
+    bool markAbsentPast = false,
   }) async {
     final repo = _ref.read(studentsRepositoryProvider);
+    final attendanceRepo = _ref.read(attendanceRepositoryProvider);
     final uuid = _ref.read(uuidProvider);
 
     print('Controller: Adding student $name to class $classId');
     try {
+      final newStudentId = uuid.v4();
       await repo.addStudent(
         StudentsCompanion(
-          id: Value(uuid.v4()),
+          id: Value(newStudentId),
           name: Value(name),
           phone: Value(phone),
           classId: Value(classId),
@@ -73,6 +77,15 @@ class StudentsController {
           updatedAt: Value(DateTime.now()),
         ),
       );
+
+      // Handle Retroactive Absence
+      if (markAbsentPast && classId != null) {
+        await attendanceRepo.markStudentAbsentForPastSessions(
+          studentId: newStudentId,
+          classId: classId,
+        );
+      }
+
       print('Controller: Add student done');
     } catch (e) {
       print('Controller Error: $e');

@@ -140,7 +140,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get todayIsBirthday => 'عيد ميلاده اليوم! 🎉';
+  String get todayIsBirthday => 'عيد ميلاده النهاردة! 🎉';
 
   @override
   String get addNoteCaption => 'أضف ملاحظة لهذا الطالب';
@@ -256,4 +256,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get create => 'إنشاء';
+
+  @override
+  String get upcomingBirthdays => 'أعياد الميلاد القادمة';
+
+  @override
+  String get today => 'اليوم!';
+
+  @override
+  String daysLeft(Object count) {
+    return 'باقي $count يوم';
+  }
+
+  @override
+  String get markAbsentPast => 'تسجيل غياب للحصص السابقة';
+
+  @override
+  String get markAbsentPastCaption =>
+      'سيتم تسجيل الطالب \'غائب\' في جميع الحصص السابقة.';
+
+  @override
+  String get sessionTime => 'الوقت';
+
+  @override
+  String get attendanceHistory => 'سجل الحضور';
+
+  @override
+  String get present => 'حاضر';
+
+  @override
+  String get absent => 'غائب';
+
+  @override
+  String get excused => 'بعذر';
+
+  @override
+  String get late => 'متأخر';
 }

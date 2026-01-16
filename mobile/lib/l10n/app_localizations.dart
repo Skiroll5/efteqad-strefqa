@@ -577,6 +577,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create'**
   String get create;
+
+  /// No description provided for @upcomingBirthdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Birthdays'**
+  String get upcomingBirthdays;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today!'**
+  String get today;
+
+  /// No description provided for @daysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days left'**
+  String daysLeft(Object count);
+
+  /// No description provided for @markAbsentPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark absent for past sessions'**
+  String get markAbsentPast;
+
+  /// No description provided for @markAbsentPastCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Student will be recorded as ABSENT for all previous sessions.'**
+  String get markAbsentPastCaption;
+
+  /// No description provided for @sessionTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get sessionTime;
+
+  /// No description provided for @attendanceHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance History'**
+  String get attendanceHistory;
+
+  /// No description provided for @present.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get present;
+
+  /// No description provided for @absent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get absent;
+
+  /// No description provided for @excused.
+  ///
+  /// In en, this message translates to:
+  /// **'Excused'**
+  String get excused;
+
+  /// No description provided for @late.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get late;
 }
 
 class _AppLocalizationsDelegate

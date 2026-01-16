@@ -258,4 +258,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get create => 'Create';
+
+  @override
+  String get upcomingBirthdays => 'Upcoming Birthdays';
+
+  @override
+  String get today => 'Today!';
+
+  @override
+  String daysLeft(Object count) {
+    return '$count days left';
+  }
+
+  @override
+  String get markAbsentPast => 'Mark absent for past sessions';
+
+  @override
+  String get markAbsentPastCaption =>
+      'Student will be recorded as ABSENT for all previous sessions.';
+
+  @override
+  String get sessionTime => 'Time';
+
+  @override
+  String get attendanceHistory => 'Attendance History';
+
+  @override
+  String get present => 'Present';
+
+  @override
+  String get absent => 'Absent';
+
+  @override
+  String get excused => 'Excused';
+
+  @override
+  String get late => 'Late';
 }

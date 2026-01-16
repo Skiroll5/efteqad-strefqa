@@ -50,6 +50,16 @@ final classAttendanceStatsProvider =
       return repo.watchClassStudentStats(classId);
     });
 
+// Watch attendance history for a single student
+final studentAttendanceHistoryProvider =
+    StreamProvider.family<List<AttendanceRecordWithSession>, String>((
+      ref,
+      studentId,
+    ) {
+      final repo = ref.watch(attendanceRepositoryProvider);
+      return repo.watchStudentAttendance(studentId);
+    });
+
 // --- Controller ---
 
 final attendanceControllerProvider =

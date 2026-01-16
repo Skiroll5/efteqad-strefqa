@@ -52,7 +52,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              DateFormat.yMMMd().format(_selectedDate),
+              DateFormat('EEE, MMM d • HH:mm').format(_selectedDate),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
@@ -67,21 +67,40 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
           ],
         ),
         actions: [
-          // Date picker
+          // Date & Time Picker
           IconButton(
             icon: Icon(
-              Icons.calendar_month,
+              Icons.edit_calendar,
               color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
             ),
-            tooltip: 'Change Date',
+            tooltip: 'Change Date & Time',
             onPressed: () async {
-              final picked = await showDatePicker(
+              final pickedDate = await showDatePicker(
                 context: context,
                 initialDate: _selectedDate,
                 firstDate: DateTime(2020),
                 lastDate: DateTime.now(),
               );
-              if (picked != null) setState(() => _selectedDate = picked);
+              if (pickedDate != null) {
+                if (context.mounted) {
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                  );
+
+                  if (pickedTime != null) {
+                    setState(() {
+                      _selectedDate = DateTime(
+                        pickedDate.year,
+                        pickedDate.month,
+                        pickedDate.day,
+                        pickedTime.hour,
+                        pickedTime.minute,
+                      );
+                    });
+                  }
+                }
+              }
             },
           ),
         ],

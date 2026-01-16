@@ -48,16 +48,7 @@ class StudentListScreen extends ConsumerWidget {
           },
         ),
         title: Text(className ?? l10n?.students ?? 'Class Dashboard'),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.add,
-              color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
-            ),
-            tooltip: l10n?.addNewStudent ?? 'Add Student',
-            onPressed: () => _showAddStudentDialog(context, ref),
-          ),
-        ],
+        actions: [],
       ),
       body: studentsAsync.when(
         data: (students) {
@@ -93,14 +84,28 @@ class StudentListScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                  child: Text(
-                    "${l10n?.students ?? 'Students'} (${students.length})",
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${l10n?.students ?? 'Students'} (${students.length})",
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.add_circle,
+                          size: 24,
+                          color: AppColors.goldPrimary,
+                        ),
+                        tooltip: l10n?.addNewStudent ?? 'Add Student',
+                        onPressed: () => _showAddStudentDialog(context, ref),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -379,24 +384,45 @@ class StudentListScreen extends ConsumerWidget {
                     ),
                   ),
                   child: ListTile(
-                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.goldPrimary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.goldPrimary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.calendar_today,
-                        size: 16,
+                        size: 20,
                         color: AppColors.goldPrimary,
                       ),
                     ),
-                    title: Text(DateFormat('MMM d, yyyy').format(session.date)),
-                    subtitle: session.note != null
-                        ? Text(session.note!, maxLines: 1)
-                        : null,
-                    trailing: const Icon(Icons.chevron_right, size: 16),
+                    title: Text(
+                      DateFormat(
+                        'dd/MM/yyyy  HH:mm (EEE)',
+                      ).format(session.date),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: session.note != null && session.note!.isNotEmpty
+                        ? Text(
+                            session.note!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        : Text(
+                            l10n?.sessionTime ?? "Session",
+                            style: TextStyle(
+                              color: Colors.grey.withOpacity(0.5),
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                    trailing: const Icon(Icons.chevron_right, size: 20),
                     onTap: () => context.push('/attendance/${session.id}'),
                   ),
                 );
@@ -516,6 +542,7 @@ class StudentListScreen extends ConsumerWidget {
     DateTime? selectedBirthdate;
     String? nameError;
     String? serverError;
+    bool markAbsentPast = false;
 
     // Logic to determine class ID based on user role
     final user = ref.read(authControllerProvider).asData?.value;
@@ -799,6 +826,148 @@ class StudentListScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 16),
+
+                  // Retroactive Absence Checkbox
+                  StatefulBuilder(
+                    builder: (context, setStateCheckbox) {
+                      bool markAbsentPast =
+                          false; // Internal state for this widget in loop? No.
+                      // We need to lift this state up to the StatefulBuilder wrapping the content.
+                      // Actually, 'setSheetState' is available. Let's use a local var in the main dialog build function.
+                      return CheckboxListTile(
+                        value: markAbsentPast,
+                        onChanged: (val) {
+                          setSheetState(() => markAbsentPast = val ?? false);
+                        },
+                        title: Text(
+                          l10n?.markAbsentPast ??
+                              "Mark absent for past sessions",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        subtitle: Text(
+                          l10n?.markAbsentPastCaption ??
+                              "Student will be recorded as ABSENT for all previous sessions.",
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        activeColor: AppColors.goldPrimary,
+                        contentPadding: EdgeInsets.zero,
+                        controlAffinity: ListTileControlAffinity.leading,
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.white24
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          child: Text(
+                            l10n?.cancel ?? 'Cancel',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final name = nameController.text.trim();
+                            if (name.isEmpty) {
+                              setSheetState(
+                                () => nameError =
+                                    l10n?.pleaseEnterName ??
+                                    'Please enter a name',
+                              );
+                              return;
+                            }
+
+                            if (selectedClassId == null) {
+                              setSheetState(
+                                () => serverError = "No class selected",
+                              );
+                              return;
+                            }
+
+                            try {
+                              Navigator.pop(
+                                context,
+                              ); // Close dialog first? Or wait? User didn't specify. Standard is wait or close. Close for optimistic.
+
+                              await ref
+                                  .read(studentsControllerProvider)
+                                  .addStudent(
+                                    name: name,
+                                    phone: phoneController.text.trim(),
+                                    classId: selectedClassId,
+                                    address: addressController.text.trim(),
+                                    birthdate: selectedBirthdate,
+                                    markAbsentPast:
+                                        markAbsentPast, // Pass the flag
+                                  );
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Student added successfully'),
+                                    backgroundColor: AppColors.goldPrimary,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              // If we popped, we can't show error in dialog.
+                              // So maybe don't pop? But optimistically popping is better UX usually.
+                              // Let's show snackbar error if pop happened.
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error adding student: $e'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.goldPrimary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            l10n?.addStudentAction ?? 'Add Student',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
 
                   const SizedBox(height: 32),
 

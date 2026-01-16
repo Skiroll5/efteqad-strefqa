@@ -220,4 +220,113 @@ class AttendanceRepository {
       ),
     );
   }
+
+  // --- New Features ---
+
+  // Mark a student absent for all past sessions in a class (Retroactive Absence)
+  Future<void> markStudentAbsentForPastSessions({
+    required String studentId,
+    required String classId,
+  }) async {
+    final now = DateTime.now();
+
+    // 1. Get all sessions for this class that are in the past
+    final sessions =
+        await (_db.select(_db.attendanceSessions)..where(
+              (s) =>
+                  s.classId.equals(classId) &
+                  s.date.isSmallerThanValue(now) &
+                  s.isDeleted.equals(false),
+            ))
+            .get();
+
+    if (sessions.isEmpty) return;
+
+    await _db.batch((batch) {
+      for (final session in sessions) {
+        final id = const Uuid().v4();
+        // Check if record already exists? Ideally we assume new student has none.
+        // But safe to ignore if collision (unlikely with UUID) or check first.
+        // For simplicity and performance, we'll blindly insert. Unique constraint on (sessionId, studentId) would be good in schema but we use UUID PK.
+        // We will just insert.
+
+        batch.insert(
+          _db.attendanceRecords,
+          AttendanceRecordsCompanion(
+            id: Value(id),
+            sessionId: Value(session.id),
+            studentId: Value(studentId),
+            status: const Value('ABSENT'),
+            isDeleted: const Value(false),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+
+        // Sync Queue
+        batch.insert(
+          _db.syncQueue,
+          SyncQueueCompanion(
+            uuid: Value(const Uuid().v4()),
+            entityType: const Value('ATTENDANCE'),
+            entityId: Value(id),
+            operation: const Value('CREATE'),
+            payload: Value(
+              jsonEncode({
+                'id': id,
+                'sessionId': session.id,
+                'studentId': studentId,
+                'status': 'ABSENT',
+                'createdAt': now.toIso8601String(),
+                'updatedAt': now.toIso8601String(),
+              }),
+            ),
+            createdAt: Value(now),
+          ),
+        );
+      }
+    });
+  }
+
+  // Watch attendance history for a specific student
+  // Returns List of (Record + Session Date)
+  Stream<List<AttendanceRecordWithSession>> watchStudentAttendance(
+    String studentId,
+  ) {
+    final query =
+        _db.select(_db.attendanceRecords).join([
+            innerJoin(
+              _db.attendanceSessions,
+              _db.attendanceSessions.id.equalsExp(
+                _db.attendanceRecords.sessionId,
+              ),
+            ),
+          ])
+          ..where(
+            _db.attendanceRecords.studentId.equals(studentId) &
+                _db.attendanceRecords.isDeleted.equals(false) &
+                _db.attendanceSessions.isDeleted.equals(false),
+          )
+          ..orderBy([
+            OrderingTerm(
+              expression: _db.attendanceSessions.date,
+              mode: OrderingMode.desc,
+            ),
+          ]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        final record = row.readTable(_db.attendanceRecords);
+        final session = row.readTable(_db.attendanceSessions);
+        return AttendanceRecordWithSession(record: record, session: session);
+      }).toList();
+    });
+  }
+}
+
+class AttendanceRecordWithSession {
+  final AttendanceRecord record;
+  final AttendanceSession session;
+
+  AttendanceRecordWithSession({required this.record, required this.session});
 }

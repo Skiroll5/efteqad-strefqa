@@ -110,5 +110,13 @@
     "placeholders": {
         "count": {}
     }
-  }
+  },
+  "markAbsentPast": "Mark absent for past sessions",
+  "markAbsentPastCaption": "Student will be recorded as ABSENT for all previous sessions.",
+  "sessionTime": "Time",
+  "attendanceHistory": "Attendance History",
+  "present": "Present",
+  "absent": "Absent",
+  "excused": "Excused",
+  "late": "Late"
 }

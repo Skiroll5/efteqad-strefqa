@@ -261,7 +261,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get upcomingBirthdays => 'أعياد الميلاد القادمة';
 
   @override
-  String get today => 'اليوم!';
+  String get today => 'النهاردة!';
 
   @override
   String daysLeft(Object count) {

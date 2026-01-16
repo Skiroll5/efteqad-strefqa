@@ -67,8 +67,12 @@ class SyncService {
     });
 
     // Also do an initial sync on startup
-    Future.delayed(const Duration(seconds: 2), () {
-      sync();
+    Future.delayed(const Duration(seconds: 2), () async {
+      try {
+        await sync();
+      } catch (e) {
+        print('SyncService: Initial sync failed: $e');
+      }
     });
 
     // Real-time Sync with Socket.io
@@ -93,10 +97,14 @@ class SyncService {
       print('SyncService: Socket Disconnected');
     });
 
-    _socket?.on('sync_update', (_) {
+    _socket?.on('sync_update', (_) async {
       print('SyncService: Received sync_update event from server');
       if (!_isSyncing) {
-        pullChanges();
+        try {
+          await pullChanges();
+        } catch (e) {
+          print('SyncService: Automatic pull failed: $e');
+        }
       }
     });
 
@@ -212,10 +220,12 @@ class SyncService {
       print('SyncService: Push failed: $e');
       if (e is DioException) {
         print('SyncService: DioError: ${e.response?.data}');
-        // Auto-logout on 403 (token expired/invalid)
-        if (e.response?.statusCode == 403) {
-          print('SyncService: Token expired, logging out user');
+        // Auto-logout on 401/403 (token expired/invalid)
+        if (e.response?.statusCode == 403 || e.response?.statusCode == 401) {
+          print('SyncService: Token expired/invalid, logging out user');
           await _ref.read(authControllerProvider.notifier).logout();
+          // Don't rethrow on auth errors since we've handled it by logging out
+          return;
         }
       }
       rethrow;
@@ -277,10 +287,13 @@ class SyncService {
       await prefs.setString('last_sync_timestamp', serverTimestamp);
     } catch (e) {
       print('Pull failed: $e');
-      // Auto-logout on 403 (token expired/invalid)
-      if (e is DioException && e.response?.statusCode == 403) {
-        print('SyncService: Token expired, logging out user');
+      // Auto-logout on 401/403 (token expired/invalid)
+      if (e is DioException &&
+          (e.response?.statusCode == 403 || e.response?.statusCode == 401)) {
+        print('SyncService: Token expired/invalid, logging out user');
         await _ref.read(authControllerProvider.notifier).logout();
+        // Don't rethrow on auth errors since we've handled it by logging out
+        return;
       }
       rethrow;
     }

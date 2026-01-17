@@ -311,7 +311,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم حذف جميع سجلات الغياب المحلية وفرض مزامنة كاملة من الخادم. استخدمه فقط إذا تم مسح البيانات على الخادم.';
 
   @override
-  String get lastSession => 'Last Session';
+  String get lastSession => 'آخر حصة';
 
   @override
   String get attendanceSessions => 'جلسات الحضور';

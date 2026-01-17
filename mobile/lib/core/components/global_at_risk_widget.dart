@@ -5,6 +5,7 @@ import 'package:mobile/core/components/premium_card.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/features/statistics/data/statistics_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GlobalAtRiskWidget extends StatelessWidget {
   final List<AtRiskStudent> atRiskStudents;
@@ -29,7 +30,7 @@ class GlobalAtRiskWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -54,14 +55,11 @@ class GlobalAtRiskWidget extends StatelessWidget {
       ).animate().fade();
     }
 
-    // Limit to top 5 to avoid clutter on home screen
-    final displayList = atRiskStudents.take(5).toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           child: Row(
             children: [
               Icon(
@@ -80,32 +78,21 @@ class GlobalAtRiskWidget extends StatelessWidget {
             ],
           ),
         ),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: displayList.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final item = displayList[index];
-            return _GlobalAtRiskItem(
-              item: item,
-              isDark: isDark,
-            ).animate().fade(delay: (index * 50).ms).slideX(begin: 0.1);
-          },
-        ),
-        if (atRiskStudents.length > 5)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Center(
-              child: Text(
-                "+ ${atRiskStudents.length - 5} more",
-                style: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.black38,
-                  fontSize: 12,
-                ),
-              ),
-            ),
+        SizedBox(
+          height: 150, // Fixed height for horizontal cards
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: atRiskStudents.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final item = atRiskStudents[index];
+              return _GlobalAtRiskItem(
+                item: item,
+                isDark: isDark,
+              ).animate().fade(delay: (index * 50).ms).slideX(begin: 0.1);
+            },
           ),
+        ),
       ],
     );
   }
@@ -117,75 +104,171 @@ class _GlobalAtRiskItem extends StatelessWidget {
 
   const _GlobalAtRiskItem({required this.item, required this.isDark});
 
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
+  }
+
+  Future<void> _openWhatsApp(String phoneNumber) async {
+    var cleanNumber = phoneNumber.replaceAll(RegExp(r'\D'), '');
+    final Uri launchUri = Uri.parse("https://wa.me/$cleanNumber");
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return PremiumCard(
-      child: InkWell(
-        onTap: () {
-          context.push('/students/${item.student.id}');
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              // Avatar
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.redPrimary.withOpacity(0.1),
-                child: Text(
-                  item.student.name.characters.first.toUpperCase(),
-                  style: const TextStyle(
-                    color: AppColors.redPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Name & Class
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    // Using SizedBox to enforce width since PremiumCard doesn't have width prop
+    return SizedBox(
+      width: 280,
+      child: PremiumCard(
+        padding: EdgeInsets.zero, // Use internal padding
+        child: InkWell(
+          onTap: () {
+            context.push('/students/${item.student.id}');
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      item.student.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.redPrimary.withValues(
+                        alpha: 0.1,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Text(
+                        item.student.name.characters.first.toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.redPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
-                    Text(
-                      item.className,
-                      style: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.black54,
-                        fontSize: 11,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.student.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            item.className,
+                            style: TextStyle(
+                              color: isDark ? Colors.white54 : Colors.black54,
+                              fontSize: 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              // Absences Tag
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.redPrimary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.redPrimary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        "${item.consecutiveAbsences} ${l10n?.absent ?? 'Absent'}",
+                        style: const TextStyle(
+                          color: AppColors.redPrimary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        if (item.phoneNumber != null &&
+                            item.phoneNumber!.isNotEmpty) ...[
+                          _ActionButton(
+                            icon: Icons.call,
+                            color: Colors.blue,
+                            onTap: () => _makePhoneCall(item.phoneNumber!),
+                          ),
+                          const SizedBox(width: 8),
+                          _ActionButton(
+                            icon: Icons.message,
+                            color: Colors.green,
+                            isWhatsApp: true,
+                            onTap: () => _openWhatsApp(item.phoneNumber!),
+                          ),
+                        ] else
+                          Text(
+                            l10n?.noPhone ?? 'No Phone',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? Colors.white30 : Colors.black38,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: Text(
-                  "${item.consecutiveAbsences} ${l10n?.absent ?? 'Absent'}",
-                  style: const TextStyle(
-                    color: AppColors.redPrimary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final bool isWhatsApp;
+
+  const _ActionButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.isWhatsApp = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            isWhatsApp ? Icons.chat_bubble_outline : icon,
+            size: 18,
+            color: color,
           ),
         ),
       ),

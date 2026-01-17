@@ -15,6 +15,7 @@ import '../../../statistics/data/statistics_repository.dart';
 import '../../../students/data/students_controller.dart';
 import '../../../sync/data/sync_service.dart';
 import 'package:mobile/core/database/app_database.dart';
+import 'package:mobile/features/home/data/home_insights_repository.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -778,56 +779,42 @@ class _InsightsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final atRiskAsync = ref.watch(atRiskStudentsProvider);
-
-    // For "All Students" (Birthdays), we might need a provider that returns ALL students, not just one class.
-    // The `classStudentsProvider` usually checks `selectedClassIdProvider`.
-    // Let's assume we can get all students from `studentsController` if we don't filter.
-    // OR we iterate all classes.
-    // Implementing a simple provider here for "All Students" if not exists?
-    // Actually, `studentsStreamProvider` in `students_controller` returns ALL students from database.
+    final classesSessionsAsync = ref.watch(classesLatestSessionsProvider);
     final allStudentsAsync = ref.watch(studentsStreamProvider);
-
-    // For Last Session: We need `commonSessionsProvider` or similar.
-    // `attendanceSessionsProvider` usually depends on `selectedClassId`.
-    // We need a way to get the *absolute latest* session across all classes.
-    // Let's assume `attendanceRepository.getAllSessions()` exists or we use `sessionsStreamProvider`.
-    // Checking `AttendanceRepository`...
-    // If not available, we might need to add a provider.
-    // For now, let's try to find a provider that gives us all sessions.
-    // `ref.watch(allSessionsProvider)`? (Defining it below if needed).
-
-    // Assuming we have these providers, let's build the UI.
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Last Session (Top Priority)
-        Consumer(
-          builder: (context, ref, _) {
-            // We need a specific provider for "Latest Session".
-            // Since I can't easily modify the controller in this step without context,
-            // I'll assume we can fetch it or I'll add a helper provider in this file.
-            final lastSessionAsync = ref.watch(latestSessionProvider);
+        // 1. Class Awareness (Latest Sessions)
+        classesSessionsAsync.when(
+          data: (sessions) {
+            final activeSessions = sessions.where((s) => s.hasSession).toList();
+            if (activeSessions.isEmpty) return const SizedBox.shrink();
 
-            return lastSessionAsync.when(
-              data: (data) {
-                if (data == null) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: LastSessionCard(
-                    session: data.session,
-                    className: data.className,
-                    attendanceRate: data.attendanceRate,
-                  ),
-                );
-              },
-              loading: () =>
-                  const SizedBox.shrink(), // Don't show anything while loading to avoid glitch
-              error: (_, __) => const SizedBox.shrink(),
+            return Container(
+              height: 140,
+              margin: const EdgeInsets.only(bottom: 24),
+              child: PageView.builder(
+                controller: PageController(viewportFraction: 0.92),
+                padEnds: false,
+                itemCount: activeSessions.length,
+                itemBuilder: (context, index) {
+                  final session = activeSessions[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: LastSessionCard(sessionStatus: session),
+                  );
+                },
+              ),
             );
           },
+          loading: () => const SizedBox(
+            height: 140,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
         ),
 
         // 2. Global At Risk
@@ -841,14 +828,14 @@ class _InsightsSection extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, s) {
-            print('DEBUG: At Risk Error: $e');
-            return Text('Error: $e');
-          },
+          loading: () => const SizedBox(
+            height: 200,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
         ),
 
-        // 3. Upcoming Birthdays (Global)
+        // 3. Upcoming Birthdays
         allStudentsAsync.when(
           data: (students) {
             if (students.isEmpty) return const SizedBox.shrink();
@@ -861,46 +848,3 @@ class _InsightsSection extends ConsumerWidget {
     );
   }
 }
-
-// --- Helper Providers (Define here for now or move to controllers) ---
-
-// A simple DTO for the latest session info
-class InternalSessionData {
-  final AttendanceSession session;
-  final String className;
-  final double attendanceRate;
-
-  InternalSessionData(this.session, this.className, this.attendanceRate);
-}
-
-// Provider to get the absolute latest session across all classes
-final latestSessionProvider = FutureProvider<InternalSessionData?>((ref) async {
-  final db = ref.watch(appDatabaseProvider);
-
-  // 1. Get all sessions
-  final sessions = await db.select(db.attendanceSessions).get();
-  if (sessions.isEmpty) return null;
-
-  // 2. Sort by date desc
-  sessions.sort((a, b) => b.date.compareTo(a.date));
-  final latest = sessions.first;
-
-  // 3. Get Class Name
-  final cls = await (db.select(
-    db.classes,
-  )..where((tbl) => tbl.id.equals(latest.classId))).getSingleOrNull();
-  final className = cls?.name ?? 'Unknown Class';
-
-  // 4. Calculate Stats
-  // Get all records for this session
-  final records = await (db.select(
-    db.attendanceRecords,
-  )..where((tbl) => tbl.sessionId.equals(latest.id))).get();
-  final total = records.length;
-  final present = records
-      .where((r) => r.status == 'present' || r.status == 'late')
-      .length;
-  final rate = total == 0 ? 0.0 : present / total;
-
-  return InternalSessionData(latest, className, rate);
-});

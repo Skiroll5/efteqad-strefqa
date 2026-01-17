@@ -91,6 +91,7 @@ class StatisticsRepository {
               student: student,
               consecutiveAbsences: sessions.length, // Or just 'threshold'+
               className: (await _getClassName(classId)) ?? 'Unknown Class',
+              phoneNumber: student.phone,
             ),
           );
         }
@@ -174,11 +175,13 @@ class AtRiskStudent {
   final Student student;
   final String className;
   final int consecutiveAbsences;
+  final String? phoneNumber;
 
   AtRiskStudent({
     required this.student,
     required this.className,
     required this.consecutiveAbsences,
+    this.phoneNumber,
   });
 }
 

@@ -123,6 +123,11 @@ class StatisticsRepository {
       }
     }
 
+    // Sort by attendance percentage (lowest first = most at risk)
+    atRiskList.sort(
+      (a, b) => a.attendancePercentage.compareTo(b.attendancePercentage),
+    );
+
     return atRiskList;
   }
 

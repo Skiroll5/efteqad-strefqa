@@ -474,4 +474,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discard => 'Discard Changes';
+
+  @override
+  String get consecutiveAbsences => 'Consecutive';
 }

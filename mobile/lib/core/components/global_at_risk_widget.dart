@@ -108,7 +108,7 @@ class GlobalAtRiskWidget extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 180,
+          height: 200,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -143,10 +143,8 @@ class _GlobalAtRiskItem extends ConsumerWidget {
 
   Future<void> _openWhatsApp(WidgetRef ref, String phoneNumber) async {
     var cleanNumber = phoneNumber.replaceAll(RegExp(r'\D'), '');
-
     final repo = ref.read(homeInsightsRepositoryProvider);
     String message = await repo.getStudentWhatsAppMessage(item.student.id);
-
     message = message.replaceAll('{student_name}', item.student.name);
     message = message.replaceAll('{name}', item.student.name);
 
@@ -160,8 +158,8 @@ class _GlobalAtRiskItem extends ConsumerWidget {
   }
 
   Color _getPercentageColor(double percentage) {
-    if (percentage >= 80) return Colors.green;
-    if (percentage >= 60) return Colors.orange;
+    if (percentage >= 75) return const Color(0xFF25D366);
+    if (percentage >= 50) return Colors.amber;
     return AppColors.redPrimary;
   }
 
@@ -171,7 +169,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
     final percentColor = _getPercentageColor(item.attendancePercentage);
 
     return SizedBox(
-      width: 260,
+      width: 240,
       child: PremiumCard(
         padding: EdgeInsets.zero,
         child: InkWell(
@@ -182,23 +180,24 @@ class _GlobalAtRiskItem extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header: Avatar + Name + Class
+                // Top Row: Avatar + Info + Circular Progress
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Colored Avatar with gradient
+                    // Avatar with percentage color
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            AppColors.redPrimary.withValues(alpha: 0.8),
-                            AppColors.redPrimary,
+                            percentColor.withValues(alpha: 0.7),
+                            percentColor,
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
                         child: Text(
@@ -206,12 +205,13 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 16,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
+                    // Name + Class
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,35 +220,57 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                             item.student.name,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                              fontSize: 14,
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.class_rounded,
-                                size: 12,
-                                color: isDark ? Colors.white38 : Colors.black38,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  item.className,
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.black54,
-                                    fontSize: 12,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            item.className,
+                            style: TextStyle(
+                              color: isDark ? Colors.white54 : Colors.black54,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Circular Progress
+                    SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: 1.0,
+                            strokeWidth: 4,
+                            backgroundColor: Colors.transparent,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.06),
+                            ),
+                          ),
+                          CircularProgressIndicator(
+                            value: item.attendancePercentage / 100,
+                            strokeWidth: 4,
+                            backgroundColor: Colors.transparent,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              percentColor,
+                            ),
+                          ),
+                          Text(
+                            '${item.attendancePercentage.toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: percentColor,
+                            ),
                           ),
                         ],
                       ),
@@ -256,43 +278,96 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                   ],
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
-                // Stats Row: Percentage + Sessions + Consecutive
-                Row(
-                  children: [
-                    // Attendance Percentage
-                    Expanded(
-                      child: _StatBadge(
-                        icon: Icons.percent,
-                        value:
-                            '${item.attendancePercentage.toStringAsFixed(0)}%',
-                        color: percentColor,
-                        isDark: isDark,
+                // Stats Row in a subtle container
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      // Present count - left half
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline,
+                              size: 14,
+                              color: const Color(0xFF25D366),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${item.totalPresences}/${item.totalSessions}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              l10n?.present ?? 'present',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isDark ? Colors.white38 : Colors.black45,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Presences / Sessions
-                    Expanded(
-                      child: _StatBadge(
-                        icon: Icons.event_available_rounded,
-                        value: '${item.totalPresences}/${item.totalSessions}',
-                        color: Colors.blueGrey,
-                        isDark: isDark,
+                      // Vertical divider
+                      Container(
+                        width: 1,
+                        height: 24,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : Colors.black.withValues(alpha: 0.1),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Consecutive Absences
-                    Expanded(
-                      child: _StatBadge(
-                        icon: Icons.cancel_rounded,
-                        value: '${item.consecutiveAbsences}',
-                        color: AppColors.redPrimary,
-                        isDark: isDark,
-                        tooltip: l10n?.consecutiveAbsences ?? 'Consecutive',
+                      // Consecutive absences - right half
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 14,
+                              color: isDark
+                                  ? Colors.redAccent
+                                  : AppColors.redPrimary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${item.consecutiveAbsences}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.redAccent
+                                    : AppColors.redPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              l10n?.consecutiveAbsences ?? 'consecutive',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isDark ? Colors.white38 : Colors.black45,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 const Spacer(),
@@ -347,53 +422,6 @@ class _GlobalAtRiskItem extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StatBadge extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final Color color;
-  final bool isDark;
-  final String? tooltip;
-
-  const _StatBadge({
-    required this.icon,
-    required this.value,
-    required this.color,
-    required this.isDark,
-    this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }

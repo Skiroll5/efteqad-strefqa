@@ -979,6 +979,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard Changes'**
   String get discard;
+
+  /// No description provided for @consecutiveAbsences.
+  ///
+  /// In en, this message translates to:
+  /// **'Consecutive'**
+  String get consecutiveAbsences;
 }
 
 class _AppLocalizationsDelegate

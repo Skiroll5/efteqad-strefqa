@@ -471,4 +471,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get discard => 'تجاهل التغييرات';
+
+  @override
+  String get consecutiveAbsences => 'متتالي';
 }

@@ -153,5 +153,25 @@
   "deleteSessionConfirmTitle": "Delete Session?",
   "deleteSessionConfirmMessage": "Are you sure you want to delete this session? This action cannot be undone.",
   "typeMessageHint": "Type your message...",
-  "messageSaved": "Message saved"
+  "messageSaved": "Message saved",
+  "viewAll": "View All",
+  "takeAttendance": "Take Attendance",
+  "newAttendance": "New Attendance",
+  "changeDateTime": "Change Date & Time",
+  "noStudentsInClass": "No students in this class",
+  "attendancePresentCount": "{present} of {total} present",
+  "@attendancePresentCount": {
+    "placeholders": {
+        "present": {},
+        "total": {}
+    }
+  },
+  "tapToMark": "Tap students to mark attendance",
+  "markAll": "Mark All",
+  "clearAll": "Clear All",
+  "sessionNote": "Session Note",
+  "sessionNoteHint": "Add any note about this session (optional)...",
+  "saving": "Saving...",
+  "saveAttendance": "Save Attendance",
+  "attendanceSaved": "Attendance saved!"
 }

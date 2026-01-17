@@ -134,161 +134,211 @@ class StudentListScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "${l10n?.students ?? 'Students'} (${students.length})",
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
-                            ),
-                          ),
-                          // Add Student Button
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.goldPrimary.withValues(alpha: 0.1)
-                                  : AppColors.goldPrimary.withValues(
-                                      alpha: 0.1,
+                                "${l10n?.students ?? 'Students'} (${students.length})",
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
+                                ),
+                              )
+                              .animate()
+                              .fade(delay: 200.ms)
+                              .slideY(begin: 0.2, curve: Curves.easeOut),
+                          Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () =>
+                                      _showAddStudentDialog(context, ref),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
                                     ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.add),
-                              color: isDark
-                                  ? AppColors.goldPrimary
-                                  : AppColors.goldDark,
-                              tooltip: l10n?.addNewStudent ?? 'Add Student',
-                              onPressed: () =>
-                                  _showAddStudentDialog(context, ref),
-                            ),
-                          ).animate().fade(delay: 300.ms).scale(),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppColors.goldPrimary.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : AppColors.goldPrimary.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppColors.goldPrimary.withValues(
+                                                alpha: 0.2,
+                                              )
+                                            : AppColors.goldPrimary.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.add,
+                                          size: 18,
+                                          color: isDark
+                                              ? AppColors.goldPrimary
+                                              : AppColors.goldDark,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          l10n?.addNewStudent ?? 'Add Student',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: isDark
+                                                ? AppColors.goldPrimary
+                                                : AppColors.goldDark,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .fade(delay: 200.ms)
+                              .slideY(begin: 0.2, curve: Curves.easeOut),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 6),
                       // Row 2: Sorting + Filter
                       Row(
-                        children: [
-                          // Sorting Chips
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E1E1E)
-                                  : Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: Row(
-                              children: [
-                                _buildSortChip(
-                                  context: context,
-                                  label: l10n?.name ?? 'Name',
-                                  isActive:
-                                      sortState.field == StudentSortField.name,
-                                  direction: sortState.direction,
-                                  isDark: isDark,
-                                  onTap: () {
-                                    final current = ref.read(
-                                      studentSortProvider,
-                                    );
-                                    ref
-                                        .read(studentSortProvider.notifier)
-                                        .state = current.copyWith(
-                                      field: StudentSortField.name,
-                                      direction:
-                                          current.field == StudentSortField.name
-                                          ? (current.direction ==
-                                                    SortDirection.asc
-                                                ? SortDirection.desc
-                                                : SortDirection.asc)
-                                          : SortDirection.asc,
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 4),
-                                _buildSortChip(
-                                  context: context,
-                                  label:
-                                      l10n?.attendancePercentage ??
-                                      'Attendance %',
-                                  isActive:
-                                      sortState.field ==
-                                      StudentSortField.percentage,
-                                  direction: sortState.direction,
-                                  isDark: isDark,
-                                  onTap: () {
-                                    final current = ref.read(
-                                      studentSortProvider,
-                                    );
-                                    ref
-                                        .read(studentSortProvider.notifier)
-                                        .state = current.copyWith(
-                                      field: StudentSortField.percentage,
-                                      direction:
-                                          current.field ==
-                                              StudentSortField.percentage
-                                          ? (current.direction ==
-                                                    SortDirection.asc
-                                                ? SortDirection.desc
-                                                : SortDirection.asc)
-                                          : SortDirection.desc,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Filter Toggle
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final filterMode = ref.watch(
-                                studentFilterProvider,
-                              );
-                              final isFiltered =
-                                  filterMode == StudentFilterMode.atRiskOnly;
-                              return Container(
+                            children: [
+                              // Sorting Chips
+                              Container(
                                 decoration: BoxDecoration(
-                                  color: isFiltered
-                                      ? AppColors.redPrimary.withValues(
-                                          alpha: 0.1,
-                                        )
-                                      : (isDark
-                                            ? const Color(0xFF1E1E1E)
-                                            : Colors.grey.shade100),
+                                  color: isDark
+                                      ? const Color(0xFF1E1E1E)
+                                      : Colors.grey.shade100,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: isFiltered
-                                      ? Border.all(
-                                          color: AppColors.redPrimary,
-                                          width: 1,
-                                        )
-                                      : null,
                                 ),
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.warning_amber_rounded,
-                                    color: isFiltered
-                                        ? AppColors.redPrimary
-                                        : (isDark
-                                              ? Colors.grey.shade600
-                                              : Colors.grey.shade400),
-                                    size: 20,
-                                  ),
-                                  tooltip: isFiltered
-                                      ? 'Show All'
-                                      : 'At Risk Only',
-                                  onPressed: () {
-                                    ref
-                                        .read(studentFilterProvider.notifier)
-                                        .state = isFiltered
-                                        ? StudentFilterMode.all
-                                        : StudentFilterMode.atRiskOnly;
-                                  },
+                                padding: const EdgeInsets.all(4),
+                                child: Row(
+                                  children: [
+                                    _buildSortChip(
+                                      context: context,
+                                      label: l10n?.name ?? 'Name',
+                                      isActive:
+                                          sortState.field ==
+                                          StudentSortField.name,
+                                      direction: sortState.direction,
+                                      isDark: isDark,
+                                      onTap: () {
+                                        final current = ref.read(
+                                          studentSortProvider,
+                                        );
+                                        ref
+                                            .read(studentSortProvider.notifier)
+                                            .state = current.copyWith(
+                                          field: StudentSortField.name,
+                                          direction:
+                                              current.field ==
+                                                  StudentSortField.name
+                                              ? (current.direction ==
+                                                        SortDirection.asc
+                                                    ? SortDirection.desc
+                                                    : SortDirection.asc)
+                                              : SortDirection.asc,
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 4),
+                                    _buildSortChip(
+                                      context: context,
+                                      label:
+                                          l10n?.attendancePercentage ??
+                                          'Attendance %',
+                                      isActive:
+                                          sortState.field ==
+                                          StudentSortField.percentage,
+                                      direction: sortState.direction,
+                                      isDark: isDark,
+                                      onTap: () {
+                                        final current = ref.read(
+                                          studentSortProvider,
+                                        );
+                                        ref
+                                            .read(studentSortProvider.notifier)
+                                            .state = current.copyWith(
+                                          field: StudentSortField.percentage,
+                                          direction:
+                                              current.field ==
+                                                  StudentSortField.percentage
+                                              ? (current.direction ==
+                                                        SortDirection.asc
+                                                    ? SortDirection.desc
+                                                    : SortDirection.asc)
+                                              : SortDirection.desc,
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Filter Toggle
+                              Consumer(
+                                builder: (context, ref, child) {
+                                  final filterMode = ref.watch(
+                                    studentFilterProvider,
+                                  );
+                                  final isFiltered =
+                                      filterMode ==
+                                      StudentFilterMode.atRiskOnly;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: isFiltered
+                                          ? AppColors.redPrimary.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : (isDark
+                                                ? const Color(0xFF1E1E1E)
+                                                : Colors.grey.shade100),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: isFiltered
+                                          ? Border.all(
+                                              color: AppColors.redPrimary,
+                                              width: 1,
+                                            )
+                                          : null,
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: isFiltered
+                                            ? AppColors.redPrimary
+                                            : (isDark
+                                                  ? Colors.grey.shade600
+                                                  : Colors.grey.shade400),
+                                        size: 20,
+                                      ),
+                                      tooltip: isFiltered
+                                          ? 'Show All'
+                                          : 'At Risk Only',
+                                      onPressed: () {
+                                        ref
+                                            .read(
+                                              studentFilterProvider.notifier,
+                                            )
+                                            .state = isFiltered
+                                            ? StudentFilterMode.all
+                                            : StudentFilterMode.atRiskOnly;
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          )
+                          .animate()
+                          .fade(delay: 250.ms)
+                          .slideY(begin: 0.2, curve: Curves.easeOut),
                     ],
                   ),
                 ),
@@ -474,19 +524,26 @@ class StudentListScreen extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Icon(Icons.cake, size: 18, color: AppColors.goldPrimary),
-              const SizedBox(width: 8),
-              Text(
-                l10n?.upcomingBirthdays ?? "Upcoming Birthdays",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
+          child:
+              Row(
+                    children: [
+                      Icon(Icons.cake, size: 18, color: AppColors.goldPrimary),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n?.upcomingBirthdays ?? "Upcoming Birthdays",
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                            ),
+                      ),
+                    ],
+                  )
+                  .animate()
+                  .fade(delay: 100.ms)
+                  .slideY(begin: 0.2, curve: Curves.easeOut),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -667,7 +724,7 @@ class StudentListScreen extends ConsumerWidget {
                     ),
                   )
                   .animate()
-                  .fade(delay: (index * 100).ms)
+                  .fade(delay: (index * 50).ms)
                   .slideX(begin: 0.1, end: 0);
             },
           ),
@@ -690,35 +747,83 @@ class StudentListScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                l10n?.attendance ?? "Attendance",
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.goldPrimary.withValues(alpha: 0.1)
-                      : AppColors.goldPrimary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.add),
-                  color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
-                  onPressed: () {
-                    if (classId != null) {
-                      context.push('/attendance/new');
-                    }
-                  },
-                ),
-              ).animate().fade(delay: 300.ms).scale(),
-            ],
-          ),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n?.attendance ?? "Attendance",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade600,
+                    ),
+                  ),
+                  Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            if (classId != null) {
+                              context.push('/attendance/new');
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.goldPrimary.withValues(alpha: 0.1)
+                                  : AppColors.goldPrimary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.goldPrimary.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : AppColors.goldPrimary.withValues(
+                                        alpha: 0.3,
+                                      ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.add,
+                                  size: 18,
+                                  color: isDark
+                                      ? AppColors.goldPrimary
+                                      : AppColors.goldDark,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  l10n?.newAttendance ?? 'New Attendance',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? AppColors.goldPrimary
+                                        : AppColors.goldDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                      .animate()
+                      .fade(delay: 200.ms)
+                      .slideY(begin: 0.2, curve: Curves.easeOut),
+                ],
+              )
+              .animate()
+              .fade(delay: 150.ms)
+              .slideY(begin: 0.2, curve: Curves.easeOut),
           const SizedBox(height: 12),
           // Recent Sessions List (Horizontal or Vertical condensed)
           if (sessions.isEmpty)
@@ -737,215 +842,299 @@ class StudentListScreen extends ConsumerWidget {
               ),
             )
           else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: sessions.length > 3
-                  ? 3
-                  : sessions.length, // Show max 3 recent
-              itemBuilder: (context, index) {
-                // Determine sorted recent
-                final sortedSessions = List.from(sessions)
-                  ..sort((a, b) => b.date.compareTo(a.date));
-                final session = sortedSessions[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () async {
-                        await Future.delayed(const Duration(milliseconds: 150));
-                        if (context.mounted) {
-                          context.push('/attendance/${session.id}');
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      splashColor: AppColors.goldPrimary.withValues(
-                        alpha: 0.15,
-                      ),
-                      highlightColor: AppColors.goldPrimary.withValues(
-                        alpha: 0.08,
-                      ),
-                      child: Ink(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.grey.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white10
-                                : Colors.grey.shade200,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            // Date Box
-                            Container(
-                              width: 52,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.goldPrimary.withValues(
-                                        alpha: 0.15,
-                                      )
-                                    : AppColors.goldPrimary.withValues(
-                                        alpha: 0.12,
-                                      ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    session.date.day.toString(),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: AppColors.goldDark,
-                                    ),
+            Column(
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: sessions.length > 3 ? 4 : sessions.length,
+                  itemBuilder: (context, index) {
+                    if (sessions.length > 3 && index == 3) {
+                      return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => context.push('/attendance'),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
                                   ),
-                                  Text(
-                                    _getMonthAbbr(session.date.month),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.goldPrimary,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppColors.goldPrimary.withValues(
+                                              alpha: 0.3,
+                                            )
+                                          : AppColors.goldPrimary.withValues(
+                                              alpha: 0.5,
+                                            ),
                                     ),
+                                    borderRadius: BorderRadius.circular(14),
+                                    color: isDark
+                                        ? AppColors.goldPrimary.withValues(
+                                            alpha: 0.1,
+                                          )
+                                        : AppColors.goldPrimary.withValues(
+                                            alpha: 0.05,
+                                          ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Info
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${DateFormat('EEEE', Localizations.localeOf(context).languageCode).format(session.date)} - ${DateFormat('HH:mm', 'en').format(session.date)}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        l10n?.viewAll ?? 'View All',
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: isDark
-                                              ? Colors.grey.shade400
-                                              : Colors.grey.shade600,
+                                              ? AppColors.goldPrimary
+                                              : AppColors.goldDark,
                                         ),
-                                  ),
-                                  if (session.note != null &&
-                                      session.note!.isNotEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 4),
-                                      child: Text(
-                                        session.note!,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              fontStyle: FontStyle.italic,
-                                              color: isDark
-                                                  ? Colors.grey.shade500
-                                                  : Colors.grey.shade500,
-                                            ),
                                       ),
-                                    ),
-                                ],
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.arrow_forward_rounded,
+                                        size: 16,
+                                        color: isDark
+                                            ? AppColors.goldPrimary
+                                            : AppColors.goldDark,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                            // Percentage Badge + Chevron
-                            Consumer(
-                              builder: (context, ref, child) {
-                                final recordsAsync = ref.watch(
-                                  sessionRecordsWithStudentsProvider(
-                                    session.id,
-                                  ),
+                          )
+                          .animate()
+                          .fade(delay: (150 + index * 50).ms)
+                          .slideY(begin: 0.1, end: 0);
+                    }
+
+                    // Determine sorted recent
+                    final sortedSessions = List.from(sessions)
+                      ..sort((a, b) => b.date.compareTo(a.date));
+                    final session = sortedSessions[index];
+                    return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                await Future.delayed(
+                                  const Duration(milliseconds: 150),
                                 );
-                                return recordsAsync.when(
-                                  data: (records) {
-                                    final presentCount = records
-                                        .where(
-                                          (r) => r.record?.status == 'PRESENT',
-                                        )
-                                        .length;
-                                    // Fix: Only count students with records (exclude new arrivals)
-                                    final total = records
-                                        .where((r) => r.record != null)
-                                        .length;
-                                    final percentage = total > 0
-                                        ? (presentCount / total * 100).toInt()
-                                        : 0;
-                                    final percentageColor = percentage >= 80
-                                        ? AppColors.goldPrimary
-                                        : percentage >= 50
-                                        ? Colors.orange
-                                        : AppColors.redPrimary;
-                                    return Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: percentageColor.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '$percentage%',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: percentageColor,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Icon(
-                                          Icons.chevron_right,
-                                          size: 20,
-                                          color: isDark
-                                              ? Colors.white30
-                                              : Colors.grey.shade400,
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                  loading: () => Icon(
-                                    Icons.chevron_right,
-                                    size: 20,
-                                    color: isDark
-                                        ? Colors.white30
-                                        : Colors.grey.shade400,
-                                  ),
-                                  error: (_, __) => Icon(
-                                    Icons.chevron_right,
-                                    size: 20,
-                                    color: isDark
-                                        ? Colors.white30
-                                        : Colors.grey.shade400,
-                                  ),
-                                );
+                                if (context.mounted) {
+                                  context.push('/attendance/${session.id}');
+                                }
                               },
+                              borderRadius: BorderRadius.circular(14),
+                              splashColor: AppColors.goldPrimary.withValues(
+                                alpha: 0.15,
+                              ),
+                              highlightColor: AppColors.goldPrimary.withValues(
+                                alpha: 0.08,
+                              ),
+                              child: Ink(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.grey.withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.grey.shade200,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Date Box
+                                    Container(
+                                      width: 52,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppColors.goldPrimary.withValues(
+                                                alpha: 0.15,
+                                              )
+                                            : AppColors.goldPrimary.withValues(
+                                                alpha: 0.12,
+                                              ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            session.date.day.toString(),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: AppColors.goldDark,
+                                            ),
+                                          ),
+                                          Text(
+                                            _getMonthAbbr(session.date.month),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.goldPrimary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Info
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '${DateFormat('EEEE', Localizations.localeOf(context).languageCode).format(session.date)} - ${DateFormat('HH:mm', 'en').format(session.date)}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark
+                                                      ? Colors.grey.shade400
+                                                      : Colors.grey.shade600,
+                                                ),
+                                          ),
+                                          if (session.note != null &&
+                                              session.note!.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 4,
+                                              ),
+                                              child: Text(
+                                                session.note!,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      fontStyle:
+                                                          FontStyle.italic,
+                                                      color: isDark
+                                                          ? Colors.grey.shade500
+                                                          : Colors
+                                                                .grey
+                                                                .shade500,
+                                                    ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Percentage Badge + Chevron
+                                    Consumer(
+                                      builder: (context, ref, child) {
+                                        final recordsAsync = ref.watch(
+                                          sessionRecordsWithStudentsProvider(
+                                            session.id,
+                                          ),
+                                        );
+                                        return recordsAsync.when(
+                                          data: (records) {
+                                            final presentCount = records
+                                                .where(
+                                                  (r) =>
+                                                      r.record?.status ==
+                                                      'PRESENT',
+                                                )
+                                                .length;
+                                            // Fix: Only count students with records (exclude new arrivals)
+                                            final total = records
+                                                .where((r) => r.record != null)
+                                                .length;
+                                            final percentage = total > 0
+                                                ? (presentCount / total * 100)
+                                                      .toInt()
+                                                : 0;
+                                            final percentageColor =
+                                                percentage >= 80
+                                                ? AppColors.goldPrimary
+                                                : percentage >= 50
+                                                ? Colors.orange
+                                                : AppColors.redPrimary;
+                                            return Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: percentageColor
+                                                        .withValues(
+                                                          alpha: 0.15,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    '$percentage%',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: percentageColor,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Icon(
+                                                  Icons.chevron_right,
+                                                  size: 20,
+                                                  color: isDark
+                                                      ? Colors.white30
+                                                      : Colors.grey.shade400,
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                          loading: () => Icon(
+                                            Icons.chevron_right,
+                                            size: 20,
+                                            color: isDark
+                                                ? Colors.white30
+                                                : Colors.grey.shade400,
+                                          ),
+                                          error: (_, __) => Icon(
+                                            Icons.chevron_right,
+                                            size: 20,
+                                            color: isDark
+                                                ? Colors.white30
+                                                : Colors.grey.shade400,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
+                          ),
+                        )
+                        .animate()
+                        .fade(delay: (150 + index * 50).ms)
+                        .slideY(begin: 0.1, end: 0);
+                  },
+                ),
+              ],
             ),
         ],
       ),
@@ -991,7 +1180,9 @@ class StudentListScreen extends ConsumerWidget {
     final isAtRisk = stats != null && stats.totalRecords > 0 && isCritical;
 
     return PremiumCard(
-      delay: index * 0.05,
+      // Optimize: Only stagger the first 12 items.
+      // Items scrolling into view later should appear almost instantly (0.1s).
+      delay: index < 12 ? (0.2 + (index * 0.05)) : 0.1,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       onTap: () => context.push('/students/${student.id}'),
       child: Row(

@@ -122,5 +122,19 @@
   "deleteSessionConfirmTitle": "حذف الحصة؟",
   "deleteSessionConfirmMessage": "هل أنت متأكد أنك تريد حذف هذه الحصة؟ لا يمكن التراجع عن هذا الإجراء.",
   "typeMessageHint": "اكتب رسالتك...",
-  "messageSaved": "تم حفظ الرسالة"
+  "messageSaved": "تم حفظ الرسالة",
+  "viewAll": "عرض الكل",
+  "takeAttendance": "تسجيل الغياب",
+  "newAttendance": "حصة جديدة",
+  "changeDateTime": "تغيير التاريخ والوقت",
+  "noStudentsInClass": "لا يوجد طلاب في هذا الفصل",
+  "attendancePresentCount": "حضور {present} من {total}",
+  "tapToMark": "اضغط على الطالب لتسجيل الحضور",
+  "markAll": "تحديد الكل",
+  "clearAll": "الغاء الكل",
+  "sessionNote": "ملاحظة الحصة",
+  "sessionNoteHint": "أضف ملاحظة (اختياري)...",
+  "saving": "جاري الحفظ...",
+  "saveAttendance": "حفظ الغياب",
+  "attendanceSaved": "تم حفظ الغياب!"
 }

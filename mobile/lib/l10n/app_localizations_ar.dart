@@ -374,4 +374,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get messageSaved => 'تم حفظ الرسالة';
+
+  @override
+  String get viewAll => 'عرض الكل';
+
+  @override
+  String get takeAttendance => 'تسجيل الغياب';
+
+  @override
+  String get newAttendance => 'حصة جديدة';
+
+  @override
+  String get changeDateTime => 'تغيير التاريخ والوقت';
+
+  @override
+  String get noStudentsInClass => 'لا يوجد طلاب في هذا الفصل';
+
+  @override
+  String attendancePresentCount(Object present, Object total) {
+    return 'حضور $present من $total';
+  }
+
+  @override
+  String get tapToMark => 'اضغط على الطالب لتسجيل الحضور';
+
+  @override
+  String get markAll => 'تحديد الكل';
+
+  @override
+  String get clearAll => 'الغاء الكل';
+
+  @override
+  String get sessionNote => 'ملاحظة الحصة';
+
+  @override
+  String get sessionNoteHint => 'أضف ملاحظة (اختياري)...';
+
+  @override
+  String get saving => 'جاري الحفظ...';
+
+  @override
+  String get saveAttendance => 'حفظ الغياب';
+
+  @override
+  String get attendanceSaved => 'تم حفظ الغياب!';
 }

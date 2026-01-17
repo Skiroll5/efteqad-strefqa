@@ -377,4 +377,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageSaved => 'Message saved';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get takeAttendance => 'Take Attendance';
+
+  @override
+  String get newAttendance => 'New Attendance';
+
+  @override
+  String get changeDateTime => 'Change Date & Time';
+
+  @override
+  String get noStudentsInClass => 'No students in this class';
+
+  @override
+  String attendancePresentCount(Object present, Object total) {
+    return '$present of $total present';
+  }
+
+  @override
+  String get tapToMark => 'Tap students to mark attendance';
+
+  @override
+  String get markAll => 'Mark All';
+
+  @override
+  String get clearAll => 'Clear All';
+
+  @override
+  String get sessionNote => 'Session Note';
+
+  @override
+  String get sessionNoteHint => 'Add any note about this session (optional)...';
+
+  @override
+  String get saving => 'Saving...';
+
+  @override
+  String get saveAttendance => 'Save Attendance';
+
+  @override
+  String get attendanceSaved => 'Attendance saved!';
 }

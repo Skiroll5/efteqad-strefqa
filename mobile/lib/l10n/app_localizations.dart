@@ -793,6 +793,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Message saved'**
   String get messageSaved;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @takeAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Attendance'**
+  String get takeAttendance;
+
+  /// No description provided for @newAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'New Attendance'**
+  String get newAttendance;
+
+  /// No description provided for @changeDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Date & Time'**
+  String get changeDateTime;
+
+  /// No description provided for @noStudentsInClass.
+  ///
+  /// In en, this message translates to:
+  /// **'No students in this class'**
+  String get noStudentsInClass;
+
+  /// No description provided for @attendancePresentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{present} of {total} present'**
+  String attendancePresentCount(Object present, Object total);
+
+  /// No description provided for @tapToMark.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap students to mark attendance'**
+  String get tapToMark;
+
+  /// No description provided for @markAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark All'**
+  String get markAll;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get clearAll;
+
+  /// No description provided for @sessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Note'**
+  String get sessionNote;
+
+  /// No description provided for @sessionNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add any note about this session (optional)...'**
+  String get sessionNoteHint;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get saving;
+
+  /// No description provided for @saveAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Attendance'**
+  String get saveAttendance;
+
+  /// No description provided for @attendanceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance saved!'**
+  String get attendanceSaved;
 }
 
 class _AppLocalizationsDelegate

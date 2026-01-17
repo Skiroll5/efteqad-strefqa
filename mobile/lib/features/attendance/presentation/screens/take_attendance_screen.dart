@@ -8,6 +8,7 @@ import '../../../../core/components/premium_card.dart';
 import '../../data/attendance_controller.dart';
 import '../../../students/data/students_controller.dart';
 import '../../../classes/data/classes_controller.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class TakeAttendanceScreen extends ConsumerStatefulWidget {
   const TakeAttendanceScreen({super.key});
@@ -30,6 +31,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
     final classesAsync = ref.watch(classesStreamProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     // Get class name
     String? className;
@@ -48,62 +50,10 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              DateFormat('EEE, MMM d • HH:mm').format(_selectedDate),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              className ?? 'New Attendance',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
+        title: Text(
+          className ?? (l10n?.newAttendance ?? 'New Attendance'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        actions: [
-          // Date & Time Picker
-          IconButton(
-            icon: Icon(
-              Icons.edit_calendar,
-              color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
-            ),
-            tooltip: 'Change Date & Time',
-            onPressed: () async {
-              final pickedDate = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate,
-                firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
-              );
-              if (pickedDate != null) {
-                if (context.mounted) {
-                  final pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(_selectedDate),
-                  );
-
-                  if (pickedTime != null) {
-                    setState(() {
-                      _selectedDate = DateTime(
-                        pickedDate.year,
-                        pickedDate.month,
-                        pickedDate.day,
-                        pickedTime.hour,
-                        pickedTime.minute,
-                      );
-                    });
-                  }
-                }
-              }
-            },
-          ),
-        ],
       ),
       body: studentsAsync.when(
         data: (students) {
@@ -121,7 +71,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No students in this class',
+                    l10n?.noStudentsInClass ?? 'No students in this class',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: isDark
                           ? AppColors.textSecondaryDark
@@ -146,12 +96,12 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [
-                            AppColors.goldPrimary.withOpacity(0.15),
-                            AppColors.goldDark.withOpacity(0.1),
+                            AppColors.goldPrimary.withValues(alpha: 0.15),
+                            AppColors.goldDark.withValues(alpha: 0.1),
                           ]
                         : [
-                            AppColors.goldPrimary.withOpacity(0.08),
-                            AppColors.goldLight.withOpacity(0.05),
+                            AppColors.goldPrimary.withValues(alpha: 0.08),
+                            AppColors.goldLight.withValues(alpha: 0.05),
                           ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
@@ -186,7 +136,8 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: isDark
-                                    ? AppColors.goldPrimary
+                                    ? Colors
+                                          .white // Better contrast in dark mode
                                     : AppColors.goldDark,
                               ),
                             ),
@@ -200,13 +151,19 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '$presentCount of $totalStudents present',
+                            l10n?.attendancePresentCount(
+                                  presentCount,
+                                  totalStudents,
+                                ) ??
+                                '$presentCount of $totalStudents present',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : null,
                             ),
                           ),
                           Text(
-                            'Tap students to mark attendance',
+                            l10n?.tapToMark ??
+                                'Tap students to mark attendance',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: isDark
                                   ? AppColors.textSecondaryDark
@@ -230,8 +187,8 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                       },
                       child: Text(
                         students.every((s) => _attendance[s.id] == true)
-                            ? 'Clear'
-                            : 'All',
+                            ? (l10n?.clearAll ?? 'Clear')
+                            : (l10n?.markAll ?? 'All'),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: isDark
@@ -243,6 +200,125 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                   ],
                 ),
               ).animate().fade().slideY(begin: -0.1, end: 0),
+
+              // Date & Time Picker (Button/Field Style)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: InkWell(
+                  onTap: _pickDate,
+                  borderRadius: BorderRadius.circular(12),
+                  child: IgnorePointer(
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        // labelText removed as per request
+                        prefixIcon: Icon(
+                          Icons.calendar_month,
+                          color: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.goldDark,
+                        ),
+                        suffixIcon: Icon(
+                          Icons.edit,
+                          size: 18,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.grey.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                      ),
+                      child: Builder(
+                        builder: (context) {
+                          final localeCode = Localizations.localeOf(
+                            context,
+                          ).languageCode;
+                          String dateStr;
+                          final year = DateFormat(
+                            'yyyy',
+                            'en',
+                          ).format(_selectedDate);
+                          if (localeCode == 'ar') {
+                            final dayNum = DateFormat(
+                              'd',
+                              'en',
+                            ).format(_selectedDate);
+                            final dayName = DateFormat(
+                              'EEE',
+                              'ar',
+                            ).format(_selectedDate);
+                            final monthName = DateFormat(
+                              'MMM',
+                              'ar',
+                            ).format(_selectedDate);
+                            final time = DateFormat(
+                              'HH:mm',
+                              'en',
+                            ).format(_selectedDate);
+                            dateStr =
+                                '$dayName, $dayNum $monthName $year • $time';
+                          } else {
+                            dateStr = DateFormat(
+                              'EEE, MMM d, yyyy • HH:mm',
+                              localeCode,
+                            ).format(_selectedDate);
+                          }
+                          return Text(
+                            dateStr,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Inline Note Field
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: TextField(
+                  controller: _noteController,
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    hintText:
+                        l10n?.sessionNoteHint ??
+                        'Add any notes about this session...',
+                    prefixIcon: Icon(
+                      Icons.edit_note,
+                      color: isDark
+                          ? AppColors.goldPrimary
+                          : AppColors.goldDark,
+                    ),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.grey.withValues(alpha: 0.05),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ).animate().fade(delay: 100.ms),
 
               // Student List
               Expanded(
@@ -344,7 +420,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
       ),
-      // Bottom Action Bar
+      // Bottom Action Bar - Just Save Button
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -358,151 +434,36 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
               ),
             ],
           ),
-          child: Row(
-            children: [
-              // Note Button
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showNoteSheet(context),
-                  icon: Icon(
-                    _noteController.text.isNotEmpty
-                        ? Icons.note
-                        : Icons.note_add_outlined,
-                    size: 20,
-                  ),
-                  label: Text(
-                    _noteController.text.isNotEmpty ? 'Edit Note' : 'Add Note',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isSaving ? null : _saveAttendance,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.check, size: 20),
+              label: Text(
+                _isSaving
+                    ? (l10n?.saving ?? 'Saving...')
+                    : (l10n?.saveAttendance ?? 'Save Attendance'),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark
+                    ? AppColors.goldPrimary
+                    : AppColors.goldPrimary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Save Button
-              Expanded(
-                flex: 2,
-                child: ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _saveAttendance,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.save, size: 20),
-                  label: Text(_isSaving ? 'Saving...' : 'Save Attendance'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.goldPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showNoteSheet(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(
-                'Session Note',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _noteController,
-                autofocus: true,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Add any notes about this session...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.goldPrimary
-                          : AppColors.goldPrimary,
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {});
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.goldPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Done',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
+            ),
           ),
         ),
       ),
@@ -511,10 +472,12 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
 
   void _saveAttendance() async {
     final selectedClassId = ref.read(selectedClassIdProvider);
+    final l10n = AppLocalizations.of(context);
+
     if (selectedClassId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No class selected')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No class selected')),
+      ); // Should be impossible in flow, but kept safe.
       return;
     }
 
@@ -533,7 +496,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
       if (session != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Attendance saved!'),
+            content: Text(l10n?.attendanceSaved ?? 'Attendance saved!'),
             backgroundColor: AppColors.goldPrimary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -542,6 +505,33 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
           ),
         );
         context.pop();
+      }
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (pickedDate != null && mounted) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_selectedDate),
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
       }
     }
   }

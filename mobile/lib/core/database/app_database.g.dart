@@ -55,6 +55,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _whatsappTemplateMeta = const VerificationMeta(
+    'whatsappTemplate',
+  );
+  @override
+  late final GeneratedColumn<String> whatsappTemplate = GeneratedColumn<String>(
+    'whatsapp_template',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -125,6 +136,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     name,
     role,
     classId,
+    whatsappTemplate,
     isActive,
     createdAt,
     updatedAt,
@@ -176,6 +188,15 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       context.handle(
         _classIdMeta,
         classId.isAcceptableOrUnknown(data['class_id']!, _classIdMeta),
+      );
+    }
+    if (data.containsKey('whatsapp_template')) {
+      context.handle(
+        _whatsappTemplateMeta,
+        whatsappTemplate.isAcceptableOrUnknown(
+          data['whatsapp_template']!,
+          _whatsappTemplateMeta,
+        ),
       );
     }
     if (data.containsKey('is_active')) {
@@ -241,6 +262,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}class_id'],
       ),
+      whatsappTemplate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}whatsapp_template'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -276,6 +301,7 @@ class User extends DataClass implements Insertable<User> {
   final String name;
   final String role;
   final String? classId;
+  final String? whatsappTemplate;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -287,6 +313,7 @@ class User extends DataClass implements Insertable<User> {
     required this.name,
     required this.role,
     this.classId,
+    this.whatsappTemplate,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
@@ -302,6 +329,9 @@ class User extends DataClass implements Insertable<User> {
     map['role'] = Variable<String>(role);
     if (!nullToAbsent || classId != null) {
       map['class_id'] = Variable<String>(classId);
+    }
+    if (!nullToAbsent || whatsappTemplate != null) {
+      map['whatsapp_template'] = Variable<String>(whatsappTemplate);
     }
     map['is_active'] = Variable<bool>(isActive);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -322,6 +352,9 @@ class User extends DataClass implements Insertable<User> {
       classId: classId == null && nullToAbsent
           ? const Value.absent()
           : Value(classId),
+      whatsappTemplate: whatsappTemplate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(whatsappTemplate),
       isActive: Value(isActive),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -343,6 +376,7 @@ class User extends DataClass implements Insertable<User> {
       name: serializer.fromJson<String>(json['name']),
       role: serializer.fromJson<String>(json['role']),
       classId: serializer.fromJson<String?>(json['classId']),
+      whatsappTemplate: serializer.fromJson<String?>(json['whatsappTemplate']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -359,6 +393,7 @@ class User extends DataClass implements Insertable<User> {
       'name': serializer.toJson<String>(name),
       'role': serializer.toJson<String>(role),
       'classId': serializer.toJson<String?>(classId),
+      'whatsappTemplate': serializer.toJson<String?>(whatsappTemplate),
       'isActive': serializer.toJson<bool>(isActive),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -373,6 +408,7 @@ class User extends DataClass implements Insertable<User> {
     String? name,
     String? role,
     Value<String?> classId = const Value.absent(),
+    Value<String?> whatsappTemplate = const Value.absent(),
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -384,6 +420,9 @@ class User extends DataClass implements Insertable<User> {
     name: name ?? this.name,
     role: role ?? this.role,
     classId: classId.present ? classId.value : this.classId,
+    whatsappTemplate: whatsappTemplate.present
+        ? whatsappTemplate.value
+        : this.whatsappTemplate,
     isActive: isActive ?? this.isActive,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -397,6 +436,9 @@ class User extends DataClass implements Insertable<User> {
       name: data.name.present ? data.name.value : this.name,
       role: data.role.present ? data.role.value : this.role,
       classId: data.classId.present ? data.classId.value : this.classId,
+      whatsappTemplate: data.whatsappTemplate.present
+          ? data.whatsappTemplate.value
+          : this.whatsappTemplate,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -413,6 +455,7 @@ class User extends DataClass implements Insertable<User> {
           ..write('name: $name, ')
           ..write('role: $role, ')
           ..write('classId: $classId, ')
+          ..write('whatsappTemplate: $whatsappTemplate, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -429,6 +472,7 @@ class User extends DataClass implements Insertable<User> {
     name,
     role,
     classId,
+    whatsappTemplate,
     isActive,
     createdAt,
     updatedAt,
@@ -444,6 +488,7 @@ class User extends DataClass implements Insertable<User> {
           other.name == this.name &&
           other.role == this.role &&
           other.classId == this.classId &&
+          other.whatsappTemplate == this.whatsappTemplate &&
           other.isActive == this.isActive &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -457,6 +502,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String> name;
   final Value<String> role;
   final Value<String?> classId;
+  final Value<String?> whatsappTemplate;
   final Value<bool> isActive;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -469,6 +515,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.name = const Value.absent(),
     this.role = const Value.absent(),
     this.classId = const Value.absent(),
+    this.whatsappTemplate = const Value.absent(),
     this.isActive = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -482,6 +529,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     required String name,
     required String role,
     this.classId = const Value.absent(),
+    this.whatsappTemplate = const Value.absent(),
     this.isActive = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -500,6 +548,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<String>? name,
     Expression<String>? role,
     Expression<String>? classId,
+    Expression<String>? whatsappTemplate,
     Expression<bool>? isActive,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -513,6 +562,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (name != null) 'name': name,
       if (role != null) 'role': role,
       if (classId != null) 'class_id': classId,
+      if (whatsappTemplate != null) 'whatsapp_template': whatsappTemplate,
       if (isActive != null) 'is_active': isActive,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -528,6 +578,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String>? name,
     Value<String>? role,
     Value<String?>? classId,
+    Value<String?>? whatsappTemplate,
     Value<bool>? isActive,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -541,6 +592,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       name: name ?? this.name,
       role: role ?? this.role,
       classId: classId ?? this.classId,
+      whatsappTemplate: whatsappTemplate ?? this.whatsappTemplate,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -567,6 +619,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     }
     if (classId.present) {
       map['class_id'] = Variable<String>(classId.value);
+    }
+    if (whatsappTemplate.present) {
+      map['whatsapp_template'] = Variable<String>(whatsappTemplate.value);
     }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
@@ -597,6 +652,7 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('name: $name, ')
           ..write('role: $role, ')
           ..write('classId: $classId, ')
+          ..write('whatsappTemplate: $whatsappTemplate, ')
           ..write('isActive: $isActive, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -3194,9 +3250,9 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
   late final GeneratedColumn<String> authorId = GeneratedColumn<String>(
     'author_id',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES users (id)',
     ),
@@ -3301,6 +3357,8 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         _authorIdMeta,
         authorId.isAcceptableOrUnknown(data['author_id']!, _authorIdMeta),
       );
+    } else if (isInserting) {
+      context.missing(_authorIdMeta);
     }
     if (data.containsKey('content')) {
       context.handle(
@@ -3358,7 +3416,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
       authorId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}author_id'],
-      ),
+      )!,
       content: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}content'],
@@ -3391,7 +3449,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
 class Note extends DataClass implements Insertable<Note> {
   final String id;
   final String studentId;
-  final String? authorId;
+  final String authorId;
   final String content;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -3400,7 +3458,7 @@ class Note extends DataClass implements Insertable<Note> {
   const Note({
     required this.id,
     required this.studentId,
-    this.authorId,
+    required this.authorId,
     required this.content,
     required this.createdAt,
     required this.updatedAt,
@@ -3412,9 +3470,7 @@ class Note extends DataClass implements Insertable<Note> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['student_id'] = Variable<String>(studentId);
-    if (!nullToAbsent || authorId != null) {
-      map['author_id'] = Variable<String>(authorId);
-    }
+    map['author_id'] = Variable<String>(authorId);
     map['content'] = Variable<String>(content);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -3429,9 +3485,7 @@ class Note extends DataClass implements Insertable<Note> {
     return NotesCompanion(
       id: Value(id),
       studentId: Value(studentId),
-      authorId: authorId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(authorId),
+      authorId: Value(authorId),
       content: Value(content),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -3450,7 +3504,7 @@ class Note extends DataClass implements Insertable<Note> {
     return Note(
       id: serializer.fromJson<String>(json['id']),
       studentId: serializer.fromJson<String>(json['studentId']),
-      authorId: serializer.fromJson<String?>(json['authorId']),
+      authorId: serializer.fromJson<String>(json['authorId']),
       content: serializer.fromJson<String>(json['content']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -3464,7 +3518,7 @@ class Note extends DataClass implements Insertable<Note> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'studentId': serializer.toJson<String>(studentId),
-      'authorId': serializer.toJson<String?>(authorId),
+      'authorId': serializer.toJson<String>(authorId),
       'content': serializer.toJson<String>(content),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -3476,7 +3530,7 @@ class Note extends DataClass implements Insertable<Note> {
   Note copyWith({
     String? id,
     String? studentId,
-    Value<String?> authorId = const Value.absent(),
+    String? authorId,
     String? content,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -3485,7 +3539,7 @@ class Note extends DataClass implements Insertable<Note> {
   }) => Note(
     id: id ?? this.id,
     studentId: studentId ?? this.studentId,
-    authorId: authorId.present ? authorId.value : this.authorId,
+    authorId: authorId ?? this.authorId,
     content: content ?? this.content,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -3548,7 +3602,7 @@ class Note extends DataClass implements Insertable<Note> {
 class NotesCompanion extends UpdateCompanion<Note> {
   final Value<String> id;
   final Value<String> studentId;
-  final Value<String?> authorId;
+  final Value<String> authorId;
   final Value<String> content;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -3569,7 +3623,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
   NotesCompanion.insert({
     required String id,
     required String studentId,
-    this.authorId = const Value.absent(),
+    required String authorId,
     required String content,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -3578,6 +3632,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        studentId = Value(studentId),
+       authorId = Value(authorId),
        content = Value(content),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
@@ -3608,7 +3663,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
   NotesCompanion copyWith({
     Value<String>? id,
     Value<String>? studentId,
-    Value<String?>? authorId,
+    Value<String>? authorId,
     Value<String>? content,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -3679,6 +3734,403 @@ class NotesCompanion extends UpdateCompanion<Note> {
   }
 }
 
+class $UserStudentPreferencesTable extends UserStudentPreferences
+    with TableInfo<$UserStudentPreferencesTable, UserStudentPreference> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserStudentPreferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<String> studentId = GeneratedColumn<String>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES students (id)',
+    ),
+  );
+  static const VerificationMeta _customWhatsappMessageMeta =
+      const VerificationMeta('customWhatsappMessage');
+  @override
+  late final GeneratedColumn<String> customWhatsappMessage =
+      GeneratedColumn<String>(
+        'custom_whatsapp_message',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    userId,
+    studentId,
+    customWhatsappMessage,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_student_preferences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserStudentPreference> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('custom_whatsapp_message')) {
+      context.handle(
+        _customWhatsappMessageMeta,
+        customWhatsappMessage.isAcceptableOrUnknown(
+          data['custom_whatsapp_message']!,
+          _customWhatsappMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, studentId};
+  @override
+  UserStudentPreference map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserStudentPreference(
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}student_id'],
+      )!,
+      customWhatsappMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}custom_whatsapp_message'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserStudentPreferencesTable createAlias(String alias) {
+    return $UserStudentPreferencesTable(attachedDatabase, alias);
+  }
+}
+
+class UserStudentPreference extends DataClass
+    implements Insertable<UserStudentPreference> {
+  final String userId;
+  final String studentId;
+  final String? customWhatsappMessage;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const UserStudentPreference({
+    required this.userId,
+    required this.studentId,
+    this.customWhatsappMessage,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['student_id'] = Variable<String>(studentId);
+    if (!nullToAbsent || customWhatsappMessage != null) {
+      map['custom_whatsapp_message'] = Variable<String>(customWhatsappMessage);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  UserStudentPreferencesCompanion toCompanion(bool nullToAbsent) {
+    return UserStudentPreferencesCompanion(
+      userId: Value(userId),
+      studentId: Value(studentId),
+      customWhatsappMessage: customWhatsappMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customWhatsappMessage),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory UserStudentPreference.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserStudentPreference(
+      userId: serializer.fromJson<String>(json['userId']),
+      studentId: serializer.fromJson<String>(json['studentId']),
+      customWhatsappMessage: serializer.fromJson<String?>(
+        json['customWhatsappMessage'],
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'studentId': serializer.toJson<String>(studentId),
+      'customWhatsappMessage': serializer.toJson<String?>(
+        customWhatsappMessage,
+      ),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  UserStudentPreference copyWith({
+    String? userId,
+    String? studentId,
+    Value<String?> customWhatsappMessage = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => UserStudentPreference(
+    userId: userId ?? this.userId,
+    studentId: studentId ?? this.studentId,
+    customWhatsappMessage: customWhatsappMessage.present
+        ? customWhatsappMessage.value
+        : this.customWhatsappMessage,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  UserStudentPreference copyWithCompanion(
+    UserStudentPreferencesCompanion data,
+  ) {
+    return UserStudentPreference(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      customWhatsappMessage: data.customWhatsappMessage.present
+          ? data.customWhatsappMessage.value
+          : this.customWhatsappMessage,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserStudentPreference(')
+          ..write('userId: $userId, ')
+          ..write('studentId: $studentId, ')
+          ..write('customWhatsappMessage: $customWhatsappMessage, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    userId,
+    studentId,
+    customWhatsappMessage,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserStudentPreference &&
+          other.userId == this.userId &&
+          other.studentId == this.studentId &&
+          other.customWhatsappMessage == this.customWhatsappMessage &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class UserStudentPreferencesCompanion
+    extends UpdateCompanion<UserStudentPreference> {
+  final Value<String> userId;
+  final Value<String> studentId;
+  final Value<String?> customWhatsappMessage;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const UserStudentPreferencesCompanion({
+    this.userId = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.customWhatsappMessage = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserStudentPreferencesCompanion.insert({
+    required String userId,
+    required String studentId,
+    this.customWhatsappMessage = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       studentId = Value(studentId),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<UserStudentPreference> custom({
+    Expression<String>? userId,
+    Expression<String>? studentId,
+    Expression<String>? customWhatsappMessage,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (studentId != null) 'student_id': studentId,
+      if (customWhatsappMessage != null)
+        'custom_whatsapp_message': customWhatsappMessage,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserStudentPreferencesCompanion copyWith({
+    Value<String>? userId,
+    Value<String>? studentId,
+    Value<String?>? customWhatsappMessage,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return UserStudentPreferencesCompanion(
+      userId: userId ?? this.userId,
+      studentId: studentId ?? this.studentId,
+      customWhatsappMessage:
+          customWhatsappMessage ?? this.customWhatsappMessage,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<String>(studentId.value);
+    }
+    if (customWhatsappMessage.present) {
+      map['custom_whatsapp_message'] = Variable<String>(
+        customWhatsappMessage.value,
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserStudentPreferencesCompanion(')
+          ..write('userId: $userId, ')
+          ..write('studentId: $studentId, ')
+          ..write('customWhatsappMessage: $customWhatsappMessage, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3691,6 +4143,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $AttendanceRecordsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $NotesTable notes = $NotesTable(this);
+  late final $UserStudentPreferencesTable userStudentPreferences =
+      $UserStudentPreferencesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3703,6 +4157,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     attendanceRecords,
     syncQueue,
     notes,
+    userStudentPreferences,
   ];
 }
 
@@ -3713,6 +4168,7 @@ typedef $$UsersTableCreateCompanionBuilder =
       required String name,
       required String role,
       Value<String?> classId,
+      Value<String?> whatsappTemplate,
       Value<bool> isActive,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -3727,6 +4183,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> role,
       Value<String?> classId,
+      Value<String?> whatsappTemplate,
       Value<bool> isActive,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -3753,6 +4210,34 @@ final class $$UsersTableReferences
     ).filter((f) => f.authorId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_notesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $UserStudentPreferencesTable,
+    List<UserStudentPreference>
+  >
+  _userStudentPreferencesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.userStudentPreferences,
+        aliasName: $_aliasNameGenerator(
+          db.users.id,
+          db.userStudentPreferences.userId,
+        ),
+      );
+
+  $$UserStudentPreferencesTableProcessedTableManager
+  get userStudentPreferencesRefs {
+    final manager = $$UserStudentPreferencesTableTableManager(
+      $_db,
+      $_db.userStudentPreferences,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _userStudentPreferencesRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3789,6 +4274,11 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get classId => $composableBuilder(
     column: $table.classId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get whatsappTemplate => $composableBuilder(
+    column: $table.whatsappTemplate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3841,6 +4331,32 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     );
     return f(composer);
   }
+
+  Expression<bool> userStudentPreferencesRefs(
+    Expression<bool> Function($$UserStudentPreferencesTableFilterComposer f) f,
+  ) {
+    final $$UserStudentPreferencesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.userStudentPreferences,
+          getReferencedColumn: (t) => t.userId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$UserStudentPreferencesTableFilterComposer(
+                $db: $db,
+                $table: $db.userStudentPreferences,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$UsersTableOrderingComposer
@@ -3874,6 +4390,11 @@ class $$UsersTableOrderingComposer
 
   ColumnOrderings<String> get classId => $composableBuilder(
     column: $table.classId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get whatsappTemplate => $composableBuilder(
+    column: $table.whatsappTemplate,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3927,6 +4448,11 @@ class $$UsersTableAnnotationComposer
   GeneratedColumn<String> get classId =>
       $composableBuilder(column: $table.classId, builder: (column) => column);
 
+  GeneratedColumn<String> get whatsappTemplate => $composableBuilder(
+    column: $table.whatsappTemplate,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -3966,6 +4492,32 @@ class $$UsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> userStudentPreferencesRefs<T extends Object>(
+    Expression<T> Function($$UserStudentPreferencesTableAnnotationComposer a) f,
+  ) {
+    final $$UserStudentPreferencesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.userStudentPreferences,
+          getReferencedColumn: (t) => t.userId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$UserStudentPreferencesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.userStudentPreferences,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -3981,7 +4533,10 @@ class $$UsersTableTableManager
           $$UsersTableUpdateCompanionBuilder,
           (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function({bool notesRefs})
+          PrefetchHooks Function({
+            bool notesRefs,
+            bool userStudentPreferencesRefs,
+          })
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -4001,6 +4556,7 @@ class $$UsersTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> role = const Value.absent(),
                 Value<String?> classId = const Value.absent(),
+                Value<String?> whatsappTemplate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -4013,6 +4569,7 @@ class $$UsersTableTableManager
                 name: name,
                 role: role,
                 classId: classId,
+                whatsappTemplate: whatsappTemplate,
                 isActive: isActive,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -4027,6 +4584,7 @@ class $$UsersTableTableManager
                 required String name,
                 required String role,
                 Value<String?> classId = const Value.absent(),
+                Value<String?> whatsappTemplate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -4039,6 +4597,7 @@ class $$UsersTableTableManager
                 name: name,
                 role: role,
                 classId: classId,
+                whatsappTemplate: whatsappTemplate,
                 isActive: isActive,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -4052,29 +4611,55 @@ class $$UsersTableTableManager
                     (e.readTable(table), $$UsersTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({notesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (notesRefs) db.notes],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (notesRefs)
-                    await $_getPrefetchedData<User, $UsersTable, Note>(
-                      currentTable: table,
-                      referencedTable: $$UsersTableReferences._notesRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$UsersTableReferences(db, table, p0).notesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.authorId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({notesRefs = false, userStudentPreferencesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (notesRefs) db.notes,
+                    if (userStudentPreferencesRefs) db.userStudentPreferences,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (notesRefs)
+                        await $_getPrefetchedData<User, $UsersTable, Note>(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._notesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(db, table, p0).notesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.authorId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (userStudentPreferencesRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          UserStudentPreference
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._userStudentPreferencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).userStudentPreferencesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4091,7 +4676,7 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableUpdateCompanionBuilder,
       (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function({bool notesRefs})
+      PrefetchHooks Function({bool notesRefs, bool userStudentPreferencesRefs})
     >;
 typedef $$StudentsTableCreateCompanionBuilder =
     StudentsCompanion Function({
@@ -4164,6 +4749,34 @@ final class $$StudentsTableReferences
     ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_notesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $UserStudentPreferencesTable,
+    List<UserStudentPreference>
+  >
+  _userStudentPreferencesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.userStudentPreferences,
+        aliasName: $_aliasNameGenerator(
+          db.students.id,
+          db.userStudentPreferences.studentId,
+        ),
+      );
+
+  $$UserStudentPreferencesTableProcessedTableManager
+  get userStudentPreferencesRefs {
+    final manager = $$UserStudentPreferencesTableTableManager(
+      $_db,
+      $_db.userStudentPreferences,
+    ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _userStudentPreferencesRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4276,6 +4889,32 @@ class $$StudentsTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> userStudentPreferencesRefs(
+    Expression<bool> Function($$UserStudentPreferencesTableFilterComposer f) f,
+  ) {
+    final $$UserStudentPreferencesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.userStudentPreferences,
+          getReferencedColumn: (t) => t.studentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$UserStudentPreferencesTableFilterComposer(
+                $db: $db,
+                $table: $db.userStudentPreferences,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -4429,6 +5068,32 @@ class $$StudentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> userStudentPreferencesRefs<T extends Object>(
+    Expression<T> Function($$UserStudentPreferencesTableAnnotationComposer a) f,
+  ) {
+    final $$UserStudentPreferencesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.userStudentPreferences,
+          getReferencedColumn: (t) => t.studentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$UserStudentPreferencesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.userStudentPreferences,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$StudentsTableTableManager
@@ -4444,7 +5109,11 @@ class $$StudentsTableTableManager
           $$StudentsTableUpdateCompanionBuilder,
           (Student, $$StudentsTableReferences),
           Student,
-          PrefetchHooks Function({bool attendanceRecordsRefs, bool notesRefs})
+          PrefetchHooks Function({
+            bool attendanceRecordsRefs,
+            bool notesRefs,
+            bool userStudentPreferencesRefs,
+          })
         > {
   $$StudentsTableTableManager(_$AppDatabase db, $StudentsTable table)
     : super(
@@ -4518,12 +5187,17 @@ class $$StudentsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({attendanceRecordsRefs = false, notesRefs = false}) {
+              ({
+                attendanceRecordsRefs = false,
+                notesRefs = false,
+                userStudentPreferencesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (attendanceRecordsRefs) db.attendanceRecords,
                     if (notesRefs) db.notes,
+                    if (userStudentPreferencesRefs) db.userStudentPreferences,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4570,6 +5244,27 @@ class $$StudentsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (userStudentPreferencesRefs)
+                        await $_getPrefetchedData<
+                          Student,
+                          $StudentsTable,
+                          UserStudentPreference
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StudentsTableReferences
+                              ._userStudentPreferencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StudentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).userStudentPreferencesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4590,7 +5285,11 @@ typedef $$StudentsTableProcessedTableManager =
       $$StudentsTableUpdateCompanionBuilder,
       (Student, $$StudentsTableReferences),
       Student,
-      PrefetchHooks Function({bool attendanceRecordsRefs, bool notesRefs})
+      PrefetchHooks Function({
+        bool attendanceRecordsRefs,
+        bool notesRefs,
+        bool userStudentPreferencesRefs,
+      })
     >;
 typedef $$ClassesTableCreateCompanionBuilder =
     ClassesCompanion Function({
@@ -6155,7 +6854,7 @@ typedef $$NotesTableCreateCompanionBuilder =
     NotesCompanion Function({
       required String id,
       required String studentId,
-      Value<String?> authorId,
+      required String authorId,
       required String content,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -6167,7 +6866,7 @@ typedef $$NotesTableUpdateCompanionBuilder =
     NotesCompanion Function({
       Value<String> id,
       Value<String> studentId,
-      Value<String?> authorId,
+      Value<String> authorId,
       Value<String> content,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -6201,9 +6900,9 @@ final class $$NotesTableReferences
     $_aliasNameGenerator(db.notes.authorId, db.users.id),
   );
 
-  $$UsersTableProcessedTableManager? get authorId {
-    final $_column = $_itemColumn<String>('author_id');
-    if ($_column == null) return null;
+  $$UsersTableProcessedTableManager get authorId {
+    final $_column = $_itemColumn<String>('author_id')!;
+
     final manager = $$UsersTableTableManager(
       $_db,
       $_db.users,
@@ -6491,7 +7190,7 @@ class $$NotesTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> studentId = const Value.absent(),
-                Value<String?> authorId = const Value.absent(),
+                Value<String> authorId = const Value.absent(),
                 Value<String> content = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6513,7 +7212,7 @@ class $$NotesTableTableManager
               ({
                 required String id,
                 required String studentId,
-                Value<String?> authorId = const Value.absent(),
+                required String authorId,
                 required String content,
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -6609,6 +7308,441 @@ typedef $$NotesTableProcessedTableManager =
       Note,
       PrefetchHooks Function({bool studentId, bool authorId})
     >;
+typedef $$UserStudentPreferencesTableCreateCompanionBuilder =
+    UserStudentPreferencesCompanion Function({
+      required String userId,
+      required String studentId,
+      Value<String?> customWhatsappMessage,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$UserStudentPreferencesTableUpdateCompanionBuilder =
+    UserStudentPreferencesCompanion Function({
+      Value<String> userId,
+      Value<String> studentId,
+      Value<String?> customWhatsappMessage,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$UserStudentPreferencesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $UserStudentPreferencesTable,
+          UserStudentPreference
+        > {
+  $$UserStudentPreferencesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.userStudentPreferences.userId, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $StudentsTable _studentIdTable(_$AppDatabase db) =>
+      db.students.createAlias(
+        $_aliasNameGenerator(
+          db.userStudentPreferences.studentId,
+          db.students.id,
+        ),
+      );
+
+  $$StudentsTableProcessedTableManager get studentId {
+    final $_column = $_itemColumn<String>('student_id')!;
+
+    final manager = $$StudentsTableTableManager(
+      $_db,
+      $_db.students,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$UserStudentPreferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserStudentPreferencesTable> {
+  $$UserStudentPreferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get customWhatsappMessage => $composableBuilder(
+    column: $table.customWhatsappMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableFilterComposer get studentId {
+    final $$StudentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableFilterComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$UserStudentPreferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserStudentPreferencesTable> {
+  $$UserStudentPreferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get customWhatsappMessage => $composableBuilder(
+    column: $table.customWhatsappMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableOrderingComposer get studentId {
+    final $$StudentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$UserStudentPreferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserStudentPreferencesTable> {
+  $$UserStudentPreferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get customWhatsappMessage => $composableBuilder(
+    column: $table.customWhatsappMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableAnnotationComposer get studentId {
+    final $$StudentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$UserStudentPreferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserStudentPreferencesTable,
+          UserStudentPreference,
+          $$UserStudentPreferencesTableFilterComposer,
+          $$UserStudentPreferencesTableOrderingComposer,
+          $$UserStudentPreferencesTableAnnotationComposer,
+          $$UserStudentPreferencesTableCreateCompanionBuilder,
+          $$UserStudentPreferencesTableUpdateCompanionBuilder,
+          (UserStudentPreference, $$UserStudentPreferencesTableReferences),
+          UserStudentPreference,
+          PrefetchHooks Function({bool userId, bool studentId})
+        > {
+  $$UserStudentPreferencesTableTableManager(
+    _$AppDatabase db,
+    $UserStudentPreferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserStudentPreferencesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$UserStudentPreferencesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$UserStudentPreferencesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<String> studentId = const Value.absent(),
+                Value<String?> customWhatsappMessage = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UserStudentPreferencesCompanion(
+                userId: userId,
+                studentId: studentId,
+                customWhatsappMessage: customWhatsappMessage,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required String studentId,
+                Value<String?> customWhatsappMessage = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => UserStudentPreferencesCompanion.insert(
+                userId: userId,
+                studentId: studentId,
+                customWhatsappMessage: customWhatsappMessage,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$UserStudentPreferencesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false, studentId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable:
+                                    $$UserStudentPreferencesTableReferences
+                                        ._userIdTable(db),
+                                referencedColumn:
+                                    $$UserStudentPreferencesTableReferences
+                                        ._userIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (studentId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.studentId,
+                                referencedTable:
+                                    $$UserStudentPreferencesTableReferences
+                                        ._studentIdTable(db),
+                                referencedColumn:
+                                    $$UserStudentPreferencesTableReferences
+                                        ._studentIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$UserStudentPreferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserStudentPreferencesTable,
+      UserStudentPreference,
+      $$UserStudentPreferencesTableFilterComposer,
+      $$UserStudentPreferencesTableOrderingComposer,
+      $$UserStudentPreferencesTableAnnotationComposer,
+      $$UserStudentPreferencesTableCreateCompanionBuilder,
+      $$UserStudentPreferencesTableUpdateCompanionBuilder,
+      (UserStudentPreference, $$UserStudentPreferencesTableReferences),
+      UserStudentPreference,
+      PrefetchHooks Function({bool userId, bool studentId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6627,4 +7761,9 @@ class $AppDatabaseManager {
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$NotesTableTableManager get notes =>
       $$NotesTableTableManager(_db, _db.notes);
+  $$UserStudentPreferencesTableTableManager get userStudentPreferences =>
+      $$UserStudentPreferencesTableTableManager(
+        _db,
+        _db.userStudentPreferences,
+      );
 }

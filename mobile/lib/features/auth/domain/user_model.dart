@@ -6,6 +6,8 @@ class User {
   final bool isActive;
   final String? classId;
   final String? whatsappTemplate;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   User({
     required this.id,
@@ -15,6 +17,8 @@ class User {
     required this.isActive,
     this.classId,
     this.whatsappTemplate,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -26,6 +30,12 @@ class User {
       isActive: json['isActive'] ?? false,
       classId: json['classId'],
       whatsappTemplate: json['whatsappTemplate'],
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'])
+          : null,
     );
   }
 
@@ -38,10 +48,12 @@ class User {
       'isActive': isActive,
       'classId': classId,
       'whatsappTemplate': whatsappTemplate,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
-  User copyWith({String? name, String? whatsappTemplate}) {
+  User copyWith({String? name, String? whatsappTemplate, DateTime? updatedAt}) {
     return User(
       id: id,
       email: email,
@@ -50,6 +62,8 @@ class User {
       isActive: isActive,
       classId: classId,
       whatsappTemplate: whatsappTemplate ?? this.whatsappTemplate,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

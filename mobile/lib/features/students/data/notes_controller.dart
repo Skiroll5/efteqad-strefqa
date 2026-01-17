@@ -9,13 +9,11 @@ final notesRepositoryProvider = Provider((ref) {
   return NotesRepository(db);
 });
 
-final studentNotesProvider = StreamProvider.family<List<Note>, String>((
-  ref,
-  studentId,
-) {
-  final repo = ref.watch(notesRepositoryProvider);
-  return repo.watchNotesForStudent(studentId);
-});
+final studentNotesProvider =
+    StreamProvider.family<List<NoteWithAuthor>, String>((ref, studentId) {
+      final repo = ref.watch(notesRepositoryProvider);
+      return repo.watchNotesForStudent(studentId);
+    });
 
 final notesControllerProvider =
     StateNotifierProvider<NotesController, AsyncValue<void>>((ref) {
@@ -35,6 +33,26 @@ class NotesController extends StateNotifier<AsyncValue<void>> {
       if (user == null) throw Exception('User not logged in');
 
       await _repo.addNote(studentId, content, user.id);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateNote(String noteId, String content) async {
+    state = const AsyncLoading();
+    try {
+      await _repo.updateNote(noteId, content);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> deleteNote(String noteId) async {
+    state = const AsyncLoading();
+    try {
+      await _repo.deleteNote(noteId);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);

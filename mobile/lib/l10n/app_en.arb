@@ -128,6 +128,9 @@
   "noUpcomingBirthdays": "No upcoming birthdays",
   "attendanceDetails": "Attendance Details",
   "attendanceRate": "Attendance Rate",
+  "showMore": "Read More",
+  "showLess": "Show Less",
+  "deleteWarning": "Are you sure you want to delete this?",
   "noAttendanceRecords": "No attendance records",
   "sortBy": "Sort by",
   "attendancePercentage": "Attendance",
@@ -182,5 +185,6 @@
   "defaultAttendanceNoteDesc": "Set the default note for new sessions",
   "editSessionNote": "Edit Session Note",
   "defaultNoteHint": "Enter default note...",
-  "status": "Status"
+  "status": "Status",
+  "unknown": "Unknown"
 }

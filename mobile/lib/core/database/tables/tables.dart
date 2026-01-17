@@ -8,6 +8,7 @@ class Users extends Table {
   TextColumn get name => text()();
   TextColumn get role => text()();
   TextColumn get classId => text().nullable()();
+  TextColumn get whatsappTemplate => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(false))();
 
   // Sync Fields
@@ -88,6 +89,7 @@ class AttendanceRecords extends Table {
 class Notes extends Table {
   TextColumn get id => text()();
   TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get authorId => text().references(Users, #id)();
   TextColumn get content => text()();
 
   // Sync Fields
@@ -108,4 +110,16 @@ class SyncQueue extends Table {
   TextColumn get operation => text()(); // 'CREATE', 'UPDATE', 'DELETE'
   TextColumn get payload => text()(); // JSON String
   DateTimeColumn get createdAt => dateTime()();
+}
+
+class UserStudentPreferences extends Table {
+  TextColumn get userId => text().references(Users, #id)();
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get customWhatsappMessage => text().nullable()();
+
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {userId, studentId};
 }

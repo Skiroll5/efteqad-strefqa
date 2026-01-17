@@ -325,6 +325,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceRate => 'Attendance Rate';
 
   @override
+  String get showMore => 'Read More';
+
+  @override
+  String get showLess => 'Show Less';
+
+  @override
+  String get deleteWarning => 'Are you sure you want to delete this?';
+
+  @override
   String get noAttendanceRecords => 'No attendance records';
 
   @override
@@ -449,4 +458,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get status => 'Status';
+
+  @override
+  String get unknown => 'Unknown';
 }

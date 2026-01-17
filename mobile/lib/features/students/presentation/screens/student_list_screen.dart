@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mobile/features/attendance/data/attendance_controller.dart';
 import 'package:mobile/features/attendance/data/attendance_repository.dart';
-import 'package:intl/intl.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/database/app_database.dart';

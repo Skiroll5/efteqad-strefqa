@@ -76,7 +76,7 @@ class AttendanceSessionCard extends ConsumerWidget {
                   : Colors.grey.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? Colors.white10 : Colors.grey.shade200,
+                color: isDark ? Colors.white30 : Colors.grey.shade400,
               ),
             ),
             child: Row(
@@ -190,7 +190,7 @@ class AttendanceSessionCard extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            subtitle!,
+                            subtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodySmall
@@ -209,7 +209,7 @@ class AttendanceSessionCard extends ConsumerWidget {
                 Icon(
                   Icons.chevron_right,
                   size: 20,
-                  color: isDark ? Colors.white30 : Colors.grey.shade400,
+                  color: isDark ? Colors.white70 : Colors.grey.shade400,
                 ),
               ],
             ),

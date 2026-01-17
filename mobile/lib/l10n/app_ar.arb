@@ -107,6 +107,9 @@
   "resetWarning": "سيتم حذف جميع سجلات الغياب المحلية وفرض مزامنة كاملة من الخادم. استخدمه فقط إذا تم مسح البيانات على الخادم.",
   "attendanceDetails": "تفاصيل الغياب",
   "attendanceRate": "نسبة الحضور",
+  "showMore": "قراءة المزيد",
+  "showLess": "إخفاء",
+  "deleteWarning": "هل أنت متأكد من الحذف؟",
   "noAttendanceRecords": "لا توجد سجلات غياب",
   "sortBy": "رتب حسب",
   "attendancePercentage": "نسبة الحضور",
@@ -145,5 +148,6 @@
   "defaultAttendanceNoteDesc": "تعيين الملاحظة الافتراضية للحصص الجديدة",
   "editSessionNote": "تعديل ملاحظة الحصة",
   "defaultNoteHint": "أدخل الملاحظة الافتراضية...",
-  "status": "الحالة"
+  "status": "الحالة",
+  "unknown": "مجهول"
 }

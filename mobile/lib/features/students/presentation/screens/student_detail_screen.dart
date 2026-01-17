@@ -11,10 +11,11 @@ import 'package:mobile/l10n/app_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../data/students_controller.dart';
 import '../../data/notes_controller.dart';
+import '../../data/notes_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart' as intl;
 import '../../../attendance/data/attendance_controller.dart';
-import '../../../attendance/data/attendance_repository.dart';
+import 'package:mobile/features/attendance/data/attendance_repository.dart';
 import '../../../auth/data/auth_controller.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
@@ -304,13 +305,54 @@ class StudentDetailScreen extends ConsumerWidget {
                       end: 0,
                       delay: 400.ms,
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.add_circle,
-                        color: AppColors.goldPrimary,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () =>
+                            _showAddNoteDialog(context, ref, student.id),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.goldPrimary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.goldPrimary.withValues(alpha: 0.2)
+                                  : AppColors.goldPrimary.withValues(
+                                      alpha: 0.3,
+                                    ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.add,
+                                size: 18,
+                                color: isDark
+                                    ? AppColors.goldPrimary
+                                    : AppColors.goldDark,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                l10n?.addNote ?? 'Add Note',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: isDark
+                                      ? AppColors.goldPrimary
+                                      : AppColors.goldDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      onPressed: () => _showAddNoteDialog(context, ref),
-                    ).animate().scale(delay: 450.ms),
+                    ).animate().fade(delay: 450.ms).slideX(begin: 0.1, end: 0),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -337,36 +379,16 @@ class StudentDetailScreen extends ConsumerWidget {
                         return Column(
                           children: notes.asMap().entries.map((entry) {
                             final index = entry.key;
-                            final note = entry.value;
-                            return PremiumCard(
-                              delay: 0.5 + (index * 0.05),
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: CircleAvatar(
-                                  backgroundColor: AppColors.goldPrimary
-                                      .withValues(alpha: 0.1),
-                                  child: const Icon(
-                                    Icons.note,
-                                    color: AppColors.goldDark,
-                                    size: 18,
-                                  ),
-                                ),
-                                title: Text(
-                                  note.content,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  note.createdAt.toString().split(' ')[0],
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ),
-                            );
+                            final noteItem = entry.value;
+                            return _NoteItem(
+                                  // Using GlobalKey to maintain state if reordered, though list order is stable
+                                  // key: ValueKey(noteItem.note.id),
+                                  noteItem: noteItem,
+                                  studentId: studentId,
+                                )
+                                .animate(delay: (0.5 + (index * 0.05)).seconds)
+                                .fade()
+                                .slideX();
                           }).toList(),
                         );
                       },
@@ -1148,11 +1170,15 @@ class StudentDetailScreen extends ConsumerWidget {
 
   // --- Dialogs (Refactored to look cleaner) ---
 
-  void _showAddNoteDialog(BuildContext context, WidgetRef ref) {
-    final noteController = TextEditingController();
+  void _showAddNoteDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String studentId,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final noteController = TextEditingController(); // Renamed to match usage
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
 
     showModalBottomSheet(
       context: context,
@@ -1172,55 +1198,31 @@ class StudentDetailScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
               Text(
-                l10n?.addNote ?? 'Add Note',
+                l10n.addNote,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                l10n?.addNoteCaption ??
-                    'Add a visitation note for this student',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               TextField(
                 controller: noteController,
                 autofocus: true,
                 maxLines: 3,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
-                  hintText:
-                      l10n?.whatHappened ?? 'What happened during the visit?',
-                  prefixIcon: Icon(
-                    Icons.note_outlined,
-                    color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
+                  hintText: l10n.whatHappened,
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white30 : Colors.black38,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: isDark
-                          ? AppColors.goldPrimary
-                          : AppColors.goldPrimary,
-                      width: 2,
+                      color: isDark ? Colors.white24 : Colors.black12,
                     ),
                   ),
                 ),
@@ -1232,44 +1234,36 @@ class StudentDetailScreen extends ConsumerWidget {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        foregroundColor: isDark
+                            ? Colors.white70
+                            : Colors.black87,
+                        side: BorderSide(
+                          color: isDark ? Colors.white24 : Colors.black12,
                         ),
                       ),
-                      child: Text(l10n?.cancel ?? 'Cancel'),
+                      child: Text(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () async {
+                      onPressed: () {
                         if (noteController.text.isNotEmpty) {
-                          await ref
+                          ref
                               .read(notesControllerProvider.notifier)
                               .addNote(studentId, noteController.text);
                           if (context.mounted) Navigator.pop(context);
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark
-                            ? AppColors.goldPrimary
-                            : AppColors.goldPrimary,
+                        backgroundColor: AppColors.goldPrimary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
-                      child: Text(
-                        l10n?.addNote ?? 'Add Note',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: Text(l10n.save),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -1763,5 +1757,537 @@ class StudentDetailScreen extends ConsumerWidget {
     }
 
     return phone;
+  }
+}
+
+class _NoteItem extends ConsumerStatefulWidget {
+  final NoteWithAuthor noteItem;
+  final String studentId;
+
+  const _NoteItem({required this.noteItem, required this.studentId});
+
+  @override
+  ConsumerState<_NoteItem> createState() => _NoteItemState();
+}
+
+class _NoteItemState extends ConsumerState<_NoteItem> {
+  bool isExpanded = false;
+
+  TextDirection _getTextDirection(String text) {
+    // Find the first letter character (ignoring symbols and numbers)
+    // Arabic range: \u0600-\u06FF, Latin letters: a-zA-Z
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+      // Check if Arabic letter
+      if (RegExp(r'[\u0600-\u06FF]').hasMatch(char)) {
+        return TextDirection.rtl;
+      }
+      // Check if Latin letter
+      if (RegExp(r'[a-zA-Z]').hasMatch(char)) {
+        return TextDirection.ltr;
+      }
+      // Continue if symbol/number/space
+    }
+    // Default to LTR if no letters found
+    return TextDirection.ltr;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    final note = widget.noteItem.note;
+    final authorName = widget.noteItem.authorName;
+
+    final currentUserState = ref.watch(authControllerProvider);
+    final currentUser = currentUserState.value;
+    final canEdit =
+        currentUser != null &&
+        (currentUser.role == 'ADMIN' || currentUser.id == note.authorId);
+
+    // Format Date: dd/MM/yyyy • hh:mm a (Force Latin numerals with 'en')
+    final date = note.createdAt;
+    final datePart = intl.DateFormat('dd/MM/yyyy', 'en').format(date);
+    final timePart = intl.DateFormat('hh:mm', 'en').format(date);
+    final amPm = intl.DateFormat('a', 'en').format(date);
+
+    // Manual AM/PM translation
+    String localizedAmPm = amPm;
+    if (l10n.localeName == 'ar') {
+      localizedAmPm = amPm == 'AM' ? 'ص' : 'م';
+    }
+
+    final formattedDate = '$datePart • $timePart $localizedAmPm';
+    final contentDirection = _getTextDirection(note.content);
+
+    // Premium Card Design
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF1A1A1A), const Color(0xFF252525)]
+              : [Colors.white, const Color(0xFFFAFAFA)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? AppColors.goldPrimary.withValues(alpha: 0.15)
+              : AppColors.goldPrimary.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with gold accent strip
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.03)
+                    : Colors.grey.withValues(alpha: 0.03),
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark
+                        ? AppColors.goldPrimary.withValues(alpha: 0.1)
+                        : AppColors.goldPrimary.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Author Avatar with gold ring
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.goldPrimary, AppColors.goldDark],
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: isDark
+                          ? const Color(0xFF1A1A1A)
+                          : Colors.white,
+                      child: Text(
+                        authorName?.isNotEmpty == true
+                            ? authorName![0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.goldPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Author Name & Date
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          authorName ?? l10n.unknown,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 12,
+                              color: isDark
+                                  ? Colors.grey.shade500
+                                  : Colors.grey.shade500,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              formattedDate,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? Colors.grey.shade500
+                                    : Colors.grey.shade600,
+                                fontSize: 11,
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Action Menu
+                  if (canEdit)
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      offset: const Offset(-8, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                      elevation: 12,
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.more_vert_rounded,
+                          size: 18,
+                          color: isDark ? Colors.white70 : Colors.grey.shade700,
+                        ),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _showEditNoteDialog(context, l10n, isDark);
+                        } else if (value == 'delete') {
+                          _showDeleteNoteDialog(context, l10n, isDark);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          height: 44,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.goldPrimary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.edit_rounded,
+                                  size: 16,
+                                  color: AppColors.goldPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                l10n.edit,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          height: 44,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.red.shade400.withValues(
+                                          alpha: 0.15,
+                                        )
+                                      : AppColors.redPrimary.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.delete_rounded,
+                                  size: 16,
+                                  color: isDark
+                                      ? const Color(0xFFFF6B6B)
+                                      : AppColors.redPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                l10n.delete,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isDark
+                                      ? const Color(0xFFFF6B6B)
+                                      : AppColors.redPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+
+            // Content Section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final span = TextSpan(
+                    text: note.content,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.85)
+                          : Colors.black87,
+                      height: 1.6,
+                      fontSize: 14,
+                    ),
+                  );
+                  final tp = TextPainter(
+                    text: span,
+                    textAlign: TextAlign.left,
+                    textDirection: contentDirection,
+                    maxLines: 4,
+                  );
+                  tp.layout(maxWidth: constraints.maxWidth);
+
+                  if (tp.didExceedMaxLines) {
+                    return Column(
+                      crossAxisAlignment: contentDirection == TextDirection.rtl
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            note.content,
+                            maxLines: isExpanded ? null : 4,
+                            overflow: isExpanded ? null : TextOverflow.ellipsis,
+                            textDirection: contentDirection,
+                            textAlign: contentDirection == TextDirection.rtl
+                                ? TextAlign.right
+                                : TextAlign.left,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.85)
+                                  : Colors.black87,
+                              height: 1.6,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isExpanded = !isExpanded;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.goldPrimary.withValues(alpha: 0.15),
+                                  AppColors.goldPrimary.withValues(alpha: 0.08),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isExpanded
+                                      ? Icons.expand_less_rounded
+                                      : Icons.expand_more_rounded,
+                                  size: 16,
+                                  color: AppColors.goldPrimary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isExpanded ? l10n.showLess : l10n.showMore,
+                                  style: TextStyle(
+                                    color: AppColors.goldPrimary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        note.content,
+                        textDirection: contentDirection,
+                        textAlign: contentDirection == TextDirection.rtl
+                            ? TextAlign.right
+                            : TextAlign.left,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.85)
+                              : Colors.black87,
+                          height: 1.6,
+                          fontSize: 14,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditNoteDialog(
+    BuildContext context,
+    AppLocalizations? l10n,
+    bool isDark,
+  ) {
+    final controller = TextEditingController(
+      text: widget.noteItem.note.content,
+    );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n?.edit ?? 'Edit Note',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: l10n?.whatHappened ?? 'What happened?',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(l10n?.cancel ?? 'Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (controller.text.isNotEmpty) {
+                          await ref
+                              .read(notesControllerProvider.notifier)
+                              .updateNote(
+                                widget.noteItem.note.id,
+                                controller.text,
+                              );
+                          if (context.mounted) Navigator.pop(context);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.goldPrimary,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(l10n?.save ?? 'Save'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteNoteDialog(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          l10n.delete,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+        ),
+        content: Text(
+          l10n.deleteWarning,
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              l10n.cancel,
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ref
+                  .read(notesControllerProvider.notifier)
+                  .deleteNote(widget.noteItem.note.id);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: Text(
+              l10n.delete,
+              style: const TextStyle(color: AppColors.redPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

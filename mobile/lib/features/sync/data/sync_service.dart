@@ -257,6 +257,12 @@ class SyncService {
       final changes = data['changes'];
 
       await _db.transaction(() async {
+        // Sync Users first (for foreign keys)
+        if (changes['users'] != null) {
+          for (var u in changes['users']) {
+            await _upsertUser(u);
+          }
+        }
         if (changes['students'] != null) {
           for (var s in changes['students']) {
             await _studentsRepo.upsertStudentFromSync(s);
@@ -335,6 +341,7 @@ class SyncService {
     final entity = NotesCompanion(
       id: Value(data['id']),
       studentId: Value(data['studentId']),
+      authorId: Value(data['authorId']),
       content: Value(data['content']),
       createdAt: Value(DateTime.parse(data['createdAt'])),
       updatedAt: Value(DateTime.parse(data['updatedAt'])),
@@ -344,6 +351,25 @@ class SyncService {
       ),
     );
     await _db.into(_db.notes).insertOnConflictUpdate(entity);
+  }
+
+  Future<void> _upsertUser(Map<String, dynamic> data) async {
+    final entity = UsersCompanion(
+      id: Value(data['id']),
+      email: Value(data['email']),
+      name: Value(data['name']),
+      role: Value(data['role']),
+      classId: Value(data['classId']),
+      whatsappTemplate: Value(data['whatsappTemplate']),
+      isActive: Value(data['isActive'] ?? false),
+      createdAt: Value(DateTime.parse(data['createdAt'])),
+      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      isDeleted: Value(data['isDeleted'] ?? false),
+      deletedAt: Value(
+        data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
+      ),
+    );
+    await _db.into(_db.users).insertOnConflictUpdate(entity);
   }
 
   Future<String?> _getToken() async {

@@ -1,18 +1,21 @@
 import 'dart:convert';
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/database/app_database.dart' hide User;
 import '../data/auth_repository.dart';
 import '../domain/user_model.dart';
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<User?>>((ref) {
-      return AuthController(ref);
+      return AuthController(ref, ref.watch(appDatabaseProvider));
     });
 
 class AuthController extends StateNotifier<AsyncValue<User?>> {
   final Ref _ref;
+  final AppDatabase _db;
 
-  AuthController(this._ref) : super(const AsyncValue.loading()) {
+  AuthController(this._ref, this._db) : super(const AsyncValue.loading()) {
     _checkAuthStatus();
   }
 
@@ -48,6 +51,9 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
       await prefs.setString('token', token);
       await prefs.setString('user_data', jsonEncode(user.toJson()));
 
+      // Upsert user to local DB so joins work immediately
+      await _upsertUserLocal(user);
+
       state = AsyncValue.data(user);
       return true;
     } catch (e, st) {
@@ -81,9 +87,12 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_data', jsonEncode(updatedUser.toJson()));
 
+      // Upsert user to local DB
+      await _upsertUserLocal(updatedUser);
+
       state = AsyncValue.data(updatedUser);
       return true;
-    } catch (e, st) {
+    } catch (e) {
       // Don't change state to error, just return false or rethrow?
       // Better to show snackbar in UI, but here we can keep state as data(oldUser)
       // or set error. Setting error might replace the UI with error screen which is bad.
@@ -97,5 +106,24 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     await prefs.remove('token');
     await prefs.remove('user_data');
     state = const AsyncValue.data(null);
+  }
+
+  Future<void> _upsertUserLocal(User user) async {
+    await _db
+        .into(_db.users)
+        .insertOnConflictUpdate(
+          UsersCompanion(
+            id: Value(user.id),
+            email: Value(user.email),
+            name: Value(user.name),
+            role: Value(user.role),
+            classId: Value(user.classId),
+            whatsappTemplate: Value(user.whatsappTemplate),
+            isActive: Value(user.isActive),
+            createdAt: Value(user.createdAt ?? DateTime.now()),
+            updatedAt: Value(user.updatedAt ?? DateTime.now()),
+            isDeleted: const Value(false),
+          ),
+        );
   }
 }

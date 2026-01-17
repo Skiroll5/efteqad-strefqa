@@ -139,6 +139,23 @@ const handlePull = async (req: AuthRequest, res: Response) => {
         where: { updatedAt: { gt: sinceDate } },
     });
 
+    const users = await prisma.user.findMany({
+        where: { updatedAt: { gt: sinceDate } },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            classId: true,
+            whatsappTemplate: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+            isDeleted: true,
+        }
+    });
+
     res.json({
         serverTimestamp,
         changes: {
@@ -147,6 +164,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
             attendance,
             notes,
             classes,
+            users,
         },
     });
 };
@@ -158,6 +176,7 @@ const mapEntityToModel = (type: string): string | null => {
         case 'ATTENDANCE': return 'attendanceRecord';
         case 'NOTE': return 'note';
         case 'CLASS': return 'class';
+        case 'USER': return 'user';
         default: return null;
     }
 };

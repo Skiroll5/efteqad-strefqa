@@ -323,6 +323,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attendanceRate => 'نسبة الحضور';
 
   @override
+  String get showMore => 'قراءة المزيد';
+
+  @override
+  String get showLess => 'إخفاء';
+
+  @override
+  String get deleteWarning => 'هل أنت متأكد من الحذف؟';
+
+  @override
   String get noAttendanceRecords => 'لا توجد سجلات غياب';
 
   @override
@@ -446,4 +455,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get status => 'الحالة';
+
+  @override
+  String get unknown => 'مجهول';
 }

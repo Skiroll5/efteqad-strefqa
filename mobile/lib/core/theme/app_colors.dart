@@ -12,7 +12,7 @@ class AppColors {
   static const Color blueLight = Color(0xFF335C85);
 
   // Deep Red (Martyrdom/Coptic Ribbon)
-  static const Color redPrimary = Color(0xFF800000);
+  static const Color redPrimary = Color(0xFFC0392B);
   static const Color redAccent = Color(0xFFA52A2A);
   static const Color redLight = Color(
     0xFFFF5252,

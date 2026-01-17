@@ -160,63 +160,117 @@ class StudentDetailScreen extends ConsumerWidget {
 
                 const SizedBox(height: 12),
 
-                // WhatsApp Button
+                // WhatsApp Button Group
                 if (student.phone != null && student.phone!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () =>
-                                _showWhatsAppDialog(context, ref, student),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: isDark
-                                  ? Colors.white
-                                  : Colors.black87,
-                              side: BorderSide(
-                                color: isDark
-                                    ? Colors.white24
-                                    : Colors.grey.shade300,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF25D366,
+                              ).withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                            icon: const Icon(Icons.edit_note, size: 20),
-                            label: Text(l10n?.whatsappCustomize ?? 'Customize'),
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              final customMessageAsync = ref.read(
-                                studentCustomMessageProvider(studentId),
-                              );
-                              final customMessage = customMessageAsync.value;
-                              String message =
-                                  customMessage ??
-                                  _buildTemplateMessage(ref, student);
-                              await _launchWhatsApp(context, student, message);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF25D366),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Main WhatsApp Button
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                final customMessageAsync = ref.read(
+                                  studentCustomMessageProvider(studentId),
+                                );
+                                final customMessage = customMessageAsync.value;
+                                String message =
+                                    customMessage ??
+                                    _buildTemplateMessage(ref, student);
+                                await _launchWhatsApp(
+                                  context,
+                                  student,
+                                  message,
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadiusDirectional.only(
+                                    topStart: Radius.circular(12),
+                                    bottomStart: Radius.circular(12),
+                                  ),
+                                ),
+                                elevation: 0,
                               ),
+                              icon: const FaIcon(
+                                FontAwesomeIcons.whatsapp,
+                                size: 20,
+                              ),
+                              label: Text(l10n?.whatsappButton ?? 'WhatsApp'),
                             ),
-                            icon: const FaIcon(
-                              FontAwesomeIcons.whatsapp,
-                              size: 20,
+                            // Divider line
+                            Container(
+                              width: 1,
+                              height: 48,
+                              color: Colors.white.withValues(alpha: 0.3),
                             ),
-                            label: Text(l10n?.whatsappButton ?? 'WhatsApp'),
-                          ),
+                            // Customize Icon Button
+                            Builder(
+                              builder: (context) {
+                                final isRtl =
+                                    Directionality.of(context) ==
+                                    TextDirection.rtl;
+                                final borderRadius = BorderRadius.only(
+                                  topLeft: isRtl
+                                      ? const Radius.circular(12)
+                                      : Radius.zero,
+                                  bottomLeft: isRtl
+                                      ? const Radius.circular(12)
+                                      : Radius.zero,
+                                  topRight: isRtl
+                                      ? Radius.zero
+                                      : const Radius.circular(12),
+                                  bottomRight: isRtl
+                                      ? Radius.zero
+                                      : const Radius.circular(12),
+                                );
+                                return Material(
+                                  color: const Color(0xFF25D366),
+                                  borderRadius: borderRadius,
+                                  child: InkWell(
+                                    onTap: () => _showWhatsAppDialog(
+                                      context,
+                                      ref,
+                                      student,
+                                    ),
+                                    borderRadius: borderRadius,
+                                    child: Container(
+                                      width: 48,
+                                      height: 48,
+                                      alignment: Alignment.center,
+                                      child: const FaIcon(
+                                        FontAwesomeIcons.penToSquare,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ).animate().fade().slideY(begin: 0.2, end: 0, delay: 200.ms),
 
@@ -985,7 +1039,7 @@ class StudentDetailScreen extends ConsumerWidget {
         PremiumCard(
           delay: 0.4,
           child: Padding(
-            padding: const EdgeInsets.all(12), // Reduced padding
+            padding: const EdgeInsets.all(8), // Compact padding
             child: Column(
               children: grouped.entries.map((entry) {
                 final dateStr = entry.key; // yyyy-MM
@@ -1061,76 +1115,124 @@ class StudentDetailScreen extends ConsumerWidget {
 
                             Color color;
                             Color textColor;
+                            Color? textShadowColor;
                             BoxBorder? border;
+                            List<Color>? gradientColors;
+                            List<BoxShadow>? shadows;
 
                             if (isPresent) {
-                              color = Colors.green;
-                              textColor = Colors.white;
-                            } else if (isAbsent) {
-                              color = AppColors.redPrimary;
-                              textColor = Colors.white;
-                            } else {
-                              // Excused / Other -> Outline
+                              // WhatsApp green - consistent with page theme
+                              gradientColors = [
+                                const Color(0xFF25D366),
+                                const Color(0xFF4ADE80),
+                              ];
                               color = Colors.transparent;
-                              textColor = Colors.orange;
+                              textColor = Colors.white;
+                              textShadowColor = const Color(
+                                0xFF1A9E4C,
+                              ); // Darker WhatsApp green
+                              shadows = [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF25D366,
+                                  ).withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ];
+                            } else if (isAbsent) {
+                              // AppColors.redPrimary - same as delete student button
+                              gradientColors = [
+                                AppColors.redPrimary,
+                                const Color(0xFFD35D52), // Lighter shade
+                              ];
+                              color = Colors.transparent;
+                              textColor = Colors.white;
+                              textShadowColor = const Color(
+                                0xFFB02A37,
+                              ); // Darker red
+                              shadows = [
+                                BoxShadow(
+                                  color: AppColors.redPrimary.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ];
+                            } else {
+                              // Excused / Other - Premium amber outline
+                              gradientColors = null;
+                              color = isDark
+                                  ? Colors.amber.withValues(alpha: 0.1)
+                                  : Colors.amber.withValues(alpha: 0.08);
+                              textColor = Colors.amber;
+                              textShadowColor =
+                                  null; // No shadow for outline style
                               border = Border.all(
-                                color: Colors.orange,
-                                width: 1.5,
+                                color: Colors.amber,
+                                width: 2,
                               );
+                              shadows = [
+                                BoxShadow(
+                                  color: Colors.amber.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ];
                             }
 
                             final dayStr = intl.DateFormat(
                               'd',
                             ).format(item.session.date);
 
-                            return Material(
-                              color: Colors.transparent,
-                              child: Ink(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  shape: BoxShape.circle,
-                                  border:
-                                      border ??
-                                      Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AttendanceDetailScreen(
+                                          sessionId: item.session.id,
+                                          highlightStudentId: studentId,
                                         ),
-                                        width: 1,
-                                      ),
-                                  boxShadow: color == Colors.transparent
-                                      ? null
-                                      : [
-                                          BoxShadow(
-                                            color: color.withValues(alpha: 0.4),
-                                            blurRadius: 2,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: 26,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: gradientColors == null ? color : null,
+                                  gradient: gradientColors != null
+                                      ? LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: gradientColors,
+                                        )
+                                      : null,
+                                  shape: BoxShape.circle,
+                                  border: border,
+                                  boxShadow: shadows,
                                 ),
-                                child: InkWell(
-                                  customBorder: const CircleBorder(),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            AttendanceDetailScreen(
-                                              sessionId: item.session.id,
-                                              highlightStudentId: studentId,
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                  child: Center(
-                                    child: Text(
-                                      dayStr,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: textColor,
-                                      ),
+                                child: Center(
+                                  child: Text(
+                                    dayStr,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: textColor,
+                                      shadows: textShadowColor != null
+                                          ? [
+                                              Shadow(
+                                                color: textShadowColor,
+                                                blurRadius: 2,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ]
+                                          : null,
                                     ),
                                   ),
                                 ),
@@ -1139,22 +1241,53 @@ class StudentDetailScreen extends ConsumerWidget {
                           }).toList(),
                         ),
                       ),
-                      // Rate
-                      const SizedBox(width: 8),
+                      // Circular Progress Rate
+                      const SizedBox(width: 12),
                       SizedBox(
-                        width: 32,
-                        child: Text(
-                          "$monthRate%",
-                          textAlign: TextAlign.end,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: monthRate >= 75
-                                ? Colors.green
-                                : (monthRate >= 50
-                                      ? Colors.orange
-                                      : AppColors.redPrimary),
-                          ),
+                        width: 36,
+                        height: 36,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Background circle
+                            CircularProgressIndicator(
+                              value: 1.0,
+                              strokeWidth: 3,
+                              backgroundColor: Colors.transparent,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isDark
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.08),
+                              ),
+                            ),
+                            // Progress circle
+                            CircularProgressIndicator(
+                              value: monthRate / 100,
+                              strokeWidth: 3,
+                              backgroundColor: Colors.transparent,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                monthRate >= 75
+                                    ? const Color(0xFF25D366) // WhatsApp green
+                                    : (monthRate >= 50
+                                          ? Colors.amber
+                                          : AppColors
+                                                .redPrimary), // Same as delete button
+                              ),
+                            ),
+                            // Percentage text
+                            Text(
+                              "$monthRate",
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: monthRate >= 75
+                                    ? const Color(0xFF25D366)
+                                    : (monthRate >= 50
+                                          ? Colors.amber
+                                          : AppColors.redPrimary),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

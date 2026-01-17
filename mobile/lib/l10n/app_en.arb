@@ -190,5 +190,6 @@
   "unknown": "Unknown",
   "discardChanges": "Discard Changes?",
   "discardChangesMessage": "You have unsaved changes. Are you sure you want to discard them?",
-  "discard": "Discard Changes"
+  "discard": "Discard Changes",
+  "consecutiveAbsences": "Consecutive"
 }

@@ -45,9 +45,10 @@ class StatisticsRepository {
     for (var entry in studentsByClass.entries) {
       final classId = entry.key;
       final classStudents = entry.value;
+      final className = (await _getClassName(classId)) ?? 'Unknown Class';
 
-      // Get last [threshold] sessions for this class
-      final sessions =
+      // Get last [threshold] sessions for this class (for consecutive check)
+      final recentSessions =
           await (_db.select(_db.attendanceSessions)
                 ..where(
                   (t) => t.classId.equals(classId) & t.isDeleted.equals(false),
@@ -59,39 +60,63 @@ class StatisticsRepository {
                 ..limit(threshold))
               .get();
 
-      // If not enough sessions to judge, skip (or assume mostly at risk if 0 sessions? No, can't judge)
-      if (sessions.isEmpty) continue;
+      // If not enough sessions to judge, skip
+      if (recentSessions.isEmpty) continue;
 
-      final sessionIds = sessions.map((s) => s.id).toList();
+      final recentSessionIds = recentSessions.map((s) => s.id).toList();
 
-      // For the students in this class, check their attendance in these sessions
+      // Get ALL sessions for this class (for total stats)
+      final allSessions =
+          await (_db.select(_db.attendanceSessions)..where(
+                (t) => t.classId.equals(classId) & t.isDeleted.equals(false),
+              ))
+              .get();
+      final allSessionIds = allSessions.map((s) => s.id).toList();
+
+      // For each student in this class, check attendance
       for (var student in classStudents) {
-        // Count how many times they were PRESENT in these specific sessions
-        final presentCountQuery = _db.select(_db.attendanceRecords)
-          ..where(
-            (t) =>
-                t.studentId.equals(student.id) &
-                t.sessionId.isIn(sessionIds) &
-                t.status.equals('PRESENT') &
-                t.isDeleted.equals(false),
-          );
+        // Check consecutive absences in recent sessions
+        final recentPresentRecords =
+            await (_db.select(_db.attendanceRecords)..where(
+                  (t) =>
+                      t.studentId.equals(student.id) &
+                      t.sessionId.isIn(recentSessionIds) &
+                      t.status.equals('PRESENT') &
+                      t.isDeleted.equals(false),
+                ))
+                .get();
 
-        final presentRecords = await presentCountQuery.get();
+        // Only add to at-risk list if they missed all recent sessions
+        if (recentPresentRecords.isEmpty) {
+          // Get ALL attendance records for this student (to calculate total stats)
+          // Only count sessions where student has a record (was enrolled at that time)
+          final allStudentRecords =
+              await (_db.select(_db.attendanceRecords)..where(
+                    (t) =>
+                        t.studentId.equals(student.id) &
+                        t.sessionId.isIn(allSessionIds) &
+                        t.isDeleted.equals(false),
+                  ))
+                  .get();
 
-        // If they were NOT present in ANY of the last [threshold] sessions
-        // (i.e. presentCount == 0), they are at risk.
-        // Even if there are fewer than [threshold] sessions total (e.g. only 2 sessions exist),
-        // if they missed all of them, they are effectively at risk for the duration of the class so far.
-        // But strict "consecutive" usually implies the full window.
-        // Let's go with: if they have 0 present records in the fetched sessions.
+          // Total sessions = sessions where student has ANY record
+          final totalSessions = allStudentRecords.length;
+          final totalPresences = allStudentRecords
+              .where((r) => r.status == 'PRESENT')
+              .length;
+          final attendancePercentage = totalSessions > 0
+              ? (totalPresences / totalSessions) * 100
+              : 0.0;
 
-        if (presentRecords.isEmpty) {
           atRiskList.add(
             AtRiskStudent(
               student: student,
-              consecutiveAbsences: sessions.length, // Or just 'threshold'+
-              className: (await _getClassName(classId)) ?? 'Unknown Class',
+              consecutiveAbsences: recentSessions.length,
+              className: className,
               phoneNumber: student.phone,
+              totalPresences: totalPresences,
+              totalSessions: totalSessions,
+              attendancePercentage: attendancePercentage,
             ),
           );
         }
@@ -176,12 +201,18 @@ class AtRiskStudent {
   final String className;
   final int consecutiveAbsences;
   final String? phoneNumber;
+  final int totalPresences;
+  final int totalSessions;
+  final double attendancePercentage;
 
   AtRiskStudent({
     required this.student,
     required this.className,
     required this.consecutiveAbsences,
     this.phoneNumber,
+    this.totalPresences = 0,
+    this.totalSessions = 0,
+    this.attendancePercentage = 0.0,
   });
 }
 

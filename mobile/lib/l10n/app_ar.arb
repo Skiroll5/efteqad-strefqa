@@ -153,5 +153,6 @@
   "discardChanges": "تجاهل التغييرات؟",
   "discardChangesMessage": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد تجاهل هذه التغييرات؟",
   "discard": "تجاهل التغييرات",
-  "lastSession": "آخر حصة"
+  "lastSession": "آخر حصة",
+  "consecutiveAbsences": "متتالي"
 }

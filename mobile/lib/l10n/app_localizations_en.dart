@@ -313,6 +313,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.';
 
   @override
+  String get lastSession => 'Last Session';
+
+  @override
   String get attendanceSessions => 'Attendance Sessions';
 
   @override

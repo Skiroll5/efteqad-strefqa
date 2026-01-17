@@ -674,6 +674,12 @@ abstract class AppLocalizations {
   /// **'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.'**
   String get resetWarning;
 
+  /// No description provided for @lastSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Session'**
+  String get lastSession;
+
   /// No description provided for @attendanceSessions.
   ///
   /// In en, this message translates to:

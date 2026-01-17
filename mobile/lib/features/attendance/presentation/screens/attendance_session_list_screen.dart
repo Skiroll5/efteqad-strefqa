@@ -93,9 +93,12 @@ class AttendanceSessionListScreen extends ConsumerWidget {
                       ..sort((a, b) => b.date.compareTo(a.date));
                     final session = sortedSessions[index];
                     return AttendanceSessionCard(
-                      session: session,
-                      isDark: isDark,
-                    );
+                          session: session,
+                          isDark: isDark,
+                        )
+                        .animate()
+                        .fade(duration: 400.ms, delay: (index * 50).ms)
+                        .slideY(begin: 0.1, end: 0, curve: Curves.easeOut);
                   },
                 );
               },

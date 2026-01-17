@@ -16,6 +16,7 @@ import '../../../../features/auth/data/auth_controller.dart';
 import '../../../../features/settings/data/settings_controller.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
+import 'package:mobile/features/attendance/presentation/widgets/attendance_session_card.dart';
 
 enum StudentSortField { name, percentage }
 
@@ -51,11 +52,31 @@ final studentFilterProvider = StateProvider<StudentFilterMode>((ref) {
   return StudentFilterMode.all;
 });
 
-class StudentListScreen extends ConsumerWidget {
+class StudentListScreen extends ConsumerStatefulWidget {
   const StudentListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StudentListScreen> createState() => _StudentListScreenState();
+}
+
+class _StudentListScreenState extends ConsumerState<StudentListScreen> {
+  bool _allowAnimation = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Disable animation after initial load
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _allowAnimation = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final studentsAsync = ref.watch(classStudentsProvider);
     final selectedClassId = ref.watch(selectedClassIdProvider);
     final classesAsync = ref.watch(classesStreamProvider);
@@ -517,7 +538,7 @@ class StudentListScreen extends ConsumerWidget {
       return nextA.compareTo(nextB);
     });
 
-    if (upcomingBirthdays.isEmpty) return const SizedBox.shrink();
+    // if (upcomingBirthdays.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -546,189 +567,204 @@ class StudentListScreen extends ConsumerWidget {
                   .slideY(begin: 0.2, curve: Curves.easeOut),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 85,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
+        if (upcomingBirthdays.isEmpty)
+          Container(
+            height: 60,
+            alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: upcomingBirthdays.length,
-            itemBuilder: (context, index) {
-              final student = upcomingBirthdays[index];
-              final b = student.birthdate!;
+            child: Text(
+              l10n?.noUpcomingBirthdays ?? "No upcoming birthdays",
+              style: TextStyle(
+                color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ).animate().fade(delay: 150.ms)
+        else
+          SizedBox(
+            height: 85,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: upcomingBirthdays.length,
+              itemBuilder: (context, index) {
+                final student = upcomingBirthdays[index];
+                final b = student.birthdate!;
 
-              // Calculate days
-              var nextB = DateTime(now.year, b.month, b.day);
-              if (nextB.isBefore(now.subtract(const Duration(days: 1)))) {
-                nextB = DateTime(now.year + 1, b.month, b.day);
-              }
-              final diff = nextB.difference(now).inDays;
-              final isToday = diff == 0;
+                // Calculate days
+                var nextB = DateTime(now.year, b.month, b.day);
+                if (nextB.isBefore(now.subtract(const Duration(days: 1)))) {
+                  nextB = DateTime(now.year + 1, b.month, b.day);
+                }
+                final diff = nextB.difference(now).inDays;
+                final isToday = diff == 0;
 
-              return Container(
-                    width: 155,
-                    margin: const EdgeInsets.only(right: 12),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () async {
-                          await Future.delayed(
-                            const Duration(milliseconds: 150),
-                          );
-                          if (context.mounted) {
-                            context.push('/students/${student.id}');
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        splashColor: AppColors.goldPrimary.withValues(
-                          alpha: 0.2,
-                        ),
-                        highlightColor: AppColors.goldPrimary.withValues(
-                          alpha: 0.1,
-                        ),
-                        child: Ink(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
+                return Container(
+                      width: 155,
+                      margin: const EdgeInsets.only(right: 12),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () async {
+                            await Future.delayed(
+                              const Duration(milliseconds: 150),
+                            );
+                            if (context.mounted) {
+                              context.push('/students/${student.id}');
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          splashColor: AppColors.goldPrimary.withValues(
+                            alpha: 0.2,
                           ),
-                          decoration: BoxDecoration(
-                            gradient: isToday
-                                ? LinearGradient(
-                                    colors: [
-                                      AppColors.goldPrimary.withValues(
-                                        alpha: 0.25,
-                                      ),
-                                      AppColors.goldDark.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  )
-                                : null,
-                            color: isToday
-                                ? null
-                                : (isDark
-                                      ? Colors.white.withValues(alpha: 0.05)
-                                      : Colors.grey.withValues(alpha: 0.08)),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isToday
-                                  ? AppColors.goldPrimary.withValues(alpha: 0.6)
-                                  : (isDark
-                                        ? Colors.white10
-                                        : Colors.grey.shade200),
-                              width: isToday ? 1.5 : 1,
+                          highlightColor: AppColors.goldPrimary.withValues(
+                            alpha: 0.1,
+                          ),
+                          child: Ink(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              // Date Box
-                              Container(
-                                width: 44,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: isToday
-                                      ? AppColors.goldPrimary
-                                      : (isDark
-                                            ? AppColors.goldPrimary.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : AppColors.goldPrimary.withValues(
-                                                alpha: 0.12,
-                                              )),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      b.day.toString(),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: isToday
-                                            ? Colors.white
-                                            : AppColors.goldDark,
-                                      ),
-                                    ),
-                                    Text(
-                                      _getMonthAbbr(b.month),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: isToday
-                                            ? Colors.white70
-                                            : AppColors.goldPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              // Name & countdown
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      student.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: isDark
-                                                ? Colors.grey.shade400
-                                                : Colors.grey.shade600,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        if (isToday)
-                                          const Text(
-                                            "🎉 ",
-                                            style: TextStyle(fontSize: 11),
-                                          ),
-                                        Flexible(
-                                          child: Text(
-                                            isToday
-                                                ? (l10n?.today ?? "Today!")
-                                                : (l10n?.daysLeft(diff) ??
-                                                      "$diff days"),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: isToday
-                                                  ? (isDark
-                                                        ? Colors.white70
-                                                        : AppColors.goldDark)
-                                                  : AppColors.goldPrimary,
-                                            ),
-                                          ),
+                            decoration: BoxDecoration(
+                              gradient: isToday
+                                  ? LinearGradient(
+                                      colors: [
+                                        AppColors.goldPrimary.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        AppColors.goldDark.withValues(
+                                          alpha: 0.15,
                                         ),
                                       ],
-                                    ),
-                                  ],
-                                ),
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    )
+                                  : null,
+                              color: isToday
+                                  ? null
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.grey.withValues(alpha: 0.08)),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isToday
+                                    ? AppColors.goldPrimary.withValues(
+                                        alpha: 0.6,
+                                      )
+                                    : (isDark
+                                          ? Colors.white10
+                                          : Colors.grey.shade200),
+                                width: isToday ? 1.5 : 1,
                               ),
-                            ],
+                            ),
+                            child: Row(
+                              children: [
+                                // Date Box
+                                Container(
+                                  width: 44,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: isToday
+                                        ? AppColors.goldPrimary
+                                        : (isDark
+                                              ? AppColors.goldPrimary
+                                                    .withValues(alpha: 0.15)
+                                              : AppColors.goldPrimary
+                                                    .withValues(alpha: 0.12)),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        b.day.toString(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: isToday
+                                              ? Colors.white
+                                              : AppColors.goldDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        _getMonthAbbr(b.month),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: isToday
+                                              ? Colors.white70
+                                              : AppColors.goldPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                // Name & countdown
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        student.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: isDark
+                                                  ? Colors.grey.shade400
+                                                  : Colors.grey.shade600,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          if (isToday)
+                                            const Text(
+                                              "🎉 ",
+                                              style: TextStyle(fontSize: 11),
+                                            ),
+                                          Flexible(
+                                            child: Text(
+                                              isToday
+                                                  ? (l10n?.today ?? "Today!")
+                                                  : (l10n?.daysLeft(diff) ??
+                                                        "$diff days"),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: isToday
+                                                    ? (isDark
+                                                          ? Colors.white70
+                                                          : AppColors.goldDark)
+                                                    : AppColors.goldPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                  .animate()
-                  .fade(delay: (index * 50).ms)
-                  .slideX(begin: 0.1, end: 0);
-            },
+                    )
+                    .animate()
+                    .fade(delay: (index * 50).ms)
+                    .slideX(begin: 0.1, end: 0);
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -741,6 +777,13 @@ class StudentListScreen extends ConsumerWidget {
     AppLocalizations? l10n,
     String? classId,
   ) {
+    // Sort sessions by date descending
+    final sortedSessions = List.of(sessions)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    // Take top 3
+    final recentSessions = sortedSessions.take(3).toList();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -759,13 +802,13 @@ class StudentListScreen extends ConsumerWidget {
                           : Colors.grey.shade600,
                     ),
                   ),
+                  // Header Button: Now "View All" (Swapped)
                   Material(
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            if (classId != null) {
-                              context.push('/attendance/new');
-                            }
+                            // Navigate to Attendance List
+                            context.push('/attendance');
                           },
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
@@ -793,16 +836,8 @@ class StudentListScreen extends ConsumerWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  Icons.add,
-                                  size: 18,
-                                  color: isDark
-                                      ? AppColors.goldPrimary
-                                      : AppColors.goldDark,
-                                ),
-                                const SizedBox(width: 6),
                                 Text(
-                                  l10n?.newAttendance ?? 'New Attendance',
+                                  l10n?.viewAll ?? 'View All',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
@@ -810,6 +845,14 @@ class StudentListScreen extends ConsumerWidget {
                                         ? AppColors.goldPrimary
                                         : AppColors.goldDark,
                                   ),
+                                ),
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 16,
+                                  color: isDark
+                                      ? AppColors.goldPrimary
+                                      : AppColors.goldDark,
                                 ),
                               ],
                             ),
@@ -824,11 +867,14 @@ class StudentListScreen extends ConsumerWidget {
               .animate()
               .fade(delay: 150.ms)
               .slideY(begin: 0.2, curve: Curves.easeOut),
+
           const SizedBox(height: 12),
-          // Recent Sessions List (Horizontal or Vertical condensed)
+
+          // Recent Sessions List
           if (sessions.isEmpty)
             Container(
               padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 12),
               width: double.infinity,
               decoration: BoxDecoration(
                 color: isDark
@@ -836,306 +882,77 @@ class StudentListScreen extends ConsumerWidget {
                     : Colors.grey.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 "No sessions yet.",
                 textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                ),
               ),
             )
           else
             Column(
-              children: [
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: sessions.length > 3 ? 4 : sessions.length,
-                  itemBuilder: (context, index) {
-                    if (sessions.length > 3 && index == 3) {
-                      return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: () => context.push('/attendance'),
-                                borderRadius: BorderRadius.circular(14),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: isDark
-                                          ? AppColors.goldPrimary.withValues(
-                                              alpha: 0.3,
-                                            )
-                                          : AppColors.goldPrimary.withValues(
-                                              alpha: 0.5,
-                                            ),
-                                    ),
-                                    borderRadius: BorderRadius.circular(14),
-                                    color: isDark
-                                        ? AppColors.goldPrimary.withValues(
-                                            alpha: 0.1,
-                                          )
-                                        : AppColors.goldPrimary.withValues(
-                                            alpha: 0.05,
-                                          ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        l10n?.viewAll ?? 'View All',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark
-                                              ? AppColors.goldPrimary
-                                              : AppColors.goldDark,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Icon(
-                                        Icons.arrow_forward_rounded,
-                                        size: 16,
-                                        color: isDark
-                                            ? AppColors.goldPrimary
-                                            : AppColors.goldDark,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                          .animate()
-                          .fade(delay: (150 + index * 50).ms)
-                          .slideY(begin: 0.1, end: 0);
-                    }
-
-                    // Determine sorted recent
-                    final sortedSessions = List.from(sessions)
-                      ..sort((a, b) => b.date.compareTo(a.date));
-                    final session = sortedSessions[index];
-                    return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () async {
-                                await Future.delayed(
-                                  const Duration(milliseconds: 150),
-                                );
-                                if (context.mounted) {
-                                  context.push('/attendance/${session.id}');
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(14),
-                              splashColor: AppColors.goldPrimary.withValues(
-                                alpha: 0.15,
-                              ),
-                              highlightColor: AppColors.goldPrimary.withValues(
-                                alpha: 0.08,
-                              ),
-                              child: Ink(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.05)
-                                      : Colors.grey.withValues(alpha: 0.06),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white10
-                                        : Colors.grey.shade200,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Date Box
-                                    Container(
-                                      width: 52,
-                                      height: 56,
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? AppColors.goldPrimary.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : AppColors.goldPrimary.withValues(
-                                                alpha: 0.12,
-                                              ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            session.date.day.toString(),
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: AppColors.goldDark,
-                                            ),
-                                          ),
-                                          Text(
-                                            _getMonthAbbr(session.date.month),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.goldPrimary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    // Info
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '${DateFormat('EEEE', Localizations.localeOf(context).languageCode).format(session.date)} - ${DateFormat('HH:mm', 'en').format(session.date)}',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: isDark
-                                                      ? Colors.grey.shade400
-                                                      : Colors.grey.shade600,
-                                                ),
-                                          ),
-                                          if (session.note != null &&
-                                              session.note!.isNotEmpty)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 4,
-                                              ),
-                                              child: Text(
-                                                session.note!,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
-                                                      fontStyle:
-                                                          FontStyle.italic,
-                                                      color: isDark
-                                                          ? Colors.grey.shade500
-                                                          : Colors
-                                                                .grey
-                                                                .shade500,
-                                                    ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                    // Percentage Badge + Chevron
-                                    Consumer(
-                                      builder: (context, ref, child) {
-                                        final recordsAsync = ref.watch(
-                                          sessionRecordsWithStudentsProvider(
-                                            session.id,
-                                          ),
-                                        );
-                                        return recordsAsync.when(
-                                          data: (records) {
-                                            final presentCount = records
-                                                .where(
-                                                  (r) =>
-                                                      r.record?.status ==
-                                                      'PRESENT',
-                                                )
-                                                .length;
-                                            // Fix: Only count students with records (exclude new arrivals)
-                                            final total = records
-                                                .where((r) => r.record != null)
-                                                .length;
-                                            final percentage = total > 0
-                                                ? (presentCount / total * 100)
-                                                      .toInt()
-                                                : 0;
-                                            final percentageColor =
-                                                percentage >= 80
-                                                ? AppColors.goldPrimary
-                                                : percentage >= 50
-                                                ? Colors.orange
-                                                : AppColors.redPrimary;
-                                            return Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: percentageColor
-                                                        .withValues(
-                                                          alpha: 0.15,
-                                                        ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    '$percentage%',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: percentageColor,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Icon(
-                                                  Icons.chevron_right,
-                                                  size: 20,
-                                                  color: isDark
-                                                      ? Colors.white30
-                                                      : Colors.grey.shade400,
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                          loading: () => Icon(
-                                            Icons.chevron_right,
-                                            size: 20,
-                                            color: isDark
-                                                ? Colors.white30
-                                                : Colors.grey.shade400,
-                                          ),
-                                          error: (_, __) => Icon(
-                                            Icons.chevron_right,
-                                            size: 20,
-                                            color: isDark
-                                                ? Colors.white30
-                                                : Colors.grey.shade400,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                        .animate()
-                        .fade(delay: (150 + index * 50).ms)
-                        .slideY(begin: 0.1, end: 0);
-                  },
-                ),
-              ],
+              children: recentSessions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final session = entry.value;
+                return AttendanceSessionCard(session: session, isDark: isDark)
+                    .animate()
+                    .fade(duration: 400.ms, delay: (100 + index * 50).ms)
+                    .slideX(begin: 0.1, end: 0, curve: Curves.easeOut);
+              }).toList(),
             ),
+
+          // Footer Button: Now "New Attendance" (Swapped)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (classId != null) {
+                    context.push('/attendance/new');
+                  }
+                },
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.goldPrimary.withValues(alpha: 0.3)
+                          : AppColors.goldPrimary.withValues(alpha: 0.5),
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    color: isDark
+                        ? AppColors.goldPrimary.withValues(alpha: 0.1)
+                        : AppColors.goldPrimary.withValues(alpha: 0.05),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add,
+                        size: 18,
+                        color: isDark
+                            ? AppColors.goldPrimary
+                            : AppColors.goldDark,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n?.newAttendance ?? 'New Attendance',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.goldDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0),
         ],
       ),
     );
@@ -1180,6 +997,7 @@ class StudentListScreen extends ConsumerWidget {
     final isAtRisk = stats != null && stats.totalRecords > 0 && isCritical;
 
     return PremiumCard(
+      enableAnimation: _allowAnimation,
       // Optimize: Only stagger the first 12 items.
       // Items scrolling into view later should appear almost instantly (0.1s).
       delay: index < 12 ? (0.2 + (index * 0.05)) : 0.1,

@@ -82,3 +82,29 @@ class StatisticsSettingsController extends StateNotifier<int> {
     await prefs.setInt('atRiskThreshold', value);
   }
 }
+
+// --- Default Note Controller ---
+final defaultNoteProvider =
+    StateNotifierProvider<DefaultNoteController, String>((ref) {
+      return DefaultNoteController();
+    });
+
+class DefaultNoteController extends StateNotifier<String> {
+  DefaultNoteController() : super('مدارس الأحد') {
+    _loadNote();
+  }
+
+  Future<void> _loadNote() async {
+    final prefs = await SharedPreferences.getInstance();
+    final val = prefs.getString('defaultAttendanceNote');
+    if (val != null) {
+      state = val;
+    }
+  }
+
+  Future<void> setNote(String value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('defaultAttendanceNote', value);
+  }
+}

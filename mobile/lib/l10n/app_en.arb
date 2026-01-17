@@ -124,6 +124,8 @@
   "resetSyncData": "Reset Sync & Data",
   "confirmReset": "Confirm Reset",
   "resetWarning": "This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.",
+  "attendanceSessions": "Attendance Sessions",
+  "noUpcomingBirthdays": "No upcoming birthdays",
   "attendanceDetails": "Attendance Details",
   "attendanceRate": "Attendance Rate",
   "noAttendanceRecords": "No attendance records",
@@ -131,6 +133,8 @@
   "attendancePercentage": "Attendance",
   "sortAscending": "Ascending",
   "sortDescending": "Descending",
+  "sortByName": "Name",
+  "sortByStatus": "Status",
   "absencesTotal": "{count} Absences (Total)",
   "@absencesTotal": {
     "placeholders": {
@@ -170,8 +174,13 @@
   "markAll": "Mark All",
   "clearAll": "Clear All",
   "sessionNote": "Session Note",
-  "sessionNoteHint": "Add any note about this session (optional)...",
+  "sessionNoteHint": "Add any note about this session...",
   "saving": "Saving...",
   "saveAttendance": "Save Attendance",
-  "attendanceSaved": "Attendance saved!"
+  "attendanceSaved": "Attendance saved!",
+  "defaultAttendanceNote": "Default Attendance Note",
+  "defaultAttendanceNoteDesc": "Set the default note for new sessions",
+  "editSessionNote": "Edit Session Note",
+  "defaultNoteHint": "Enter default note...",
+  "status": "Status"
 }

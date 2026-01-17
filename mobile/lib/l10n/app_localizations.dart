@@ -674,6 +674,18 @@ abstract class AppLocalizations {
   /// **'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.'**
   String get resetWarning;
 
+  /// No description provided for @attendanceSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance Sessions'**
+  String get attendanceSessions;
+
+  /// No description provided for @noUpcomingBirthdays.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming birthdays'**
+  String get noUpcomingBirthdays;
+
   /// No description provided for @attendanceDetails.
   ///
   /// In en, this message translates to:
@@ -715,6 +727,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Descending'**
   String get sortDescending;
+
+  /// No description provided for @sortByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sortByName;
+
+  /// No description provided for @sortByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get sortByStatus;
 
   /// No description provided for @absencesTotal.
   ///
@@ -857,7 +881,7 @@ abstract class AppLocalizations {
   /// No description provided for @sessionNoteHint.
   ///
   /// In en, this message translates to:
-  /// **'Add any note about this session (optional)...'**
+  /// **'Add any note about this session...'**
   String get sessionNoteHint;
 
   /// No description provided for @saving.
@@ -877,6 +901,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attendance saved!'**
   String get attendanceSaved;
+
+  /// No description provided for @defaultAttendanceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Attendance Note'**
+  String get defaultAttendanceNote;
+
+  /// No description provided for @defaultAttendanceNoteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the default note for new sessions'**
+  String get defaultAttendanceNoteDesc;
+
+  /// No description provided for @editSessionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Session Note'**
+  String get editSessionNote;
+
+  /// No description provided for @defaultNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter default note...'**
+  String get defaultNoteHint;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
 }
 
 class _AppLocalizationsDelegate

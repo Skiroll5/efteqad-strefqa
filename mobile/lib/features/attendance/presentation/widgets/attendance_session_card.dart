@@ -18,6 +18,42 @@ class AttendanceSessionCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final localeCode = Localizations.localeOf(context).languageCode;
+
+    String fixLocalization(String input) {
+      // 1. Force Latin numbers
+      const eastern = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+      const western = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      var result = input;
+      for (int i = 0; i < eastern.length; i++) {
+        result = result.replaceAll(eastern[i], western[i]);
+      }
+
+      // 2. Use Arabic comma if Arabic
+      if (localeCode.startsWith('ar')) {
+        result = result.replaceAll(',', '،');
+      }
+      return result;
+    }
+
+    final datePart = fixLocalization(
+      DateFormat.yMMMEd(localeCode).format(session.date),
+    );
+    final timePart = fixLocalization(
+      DateFormat.jm(localeCode).format(session.date),
+    );
+
+    final String title;
+    final String? subtitle;
+
+    if (session.note != null && session.note!.isNotEmpty) {
+      title = session.note!;
+      subtitle = '$datePart • $timePart';
+    } else {
+      title = '$datePart • $timePart';
+      subtitle = null;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       child: Material(
@@ -45,81 +81,13 @@ class AttendanceSessionCard extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                // Date Box
-                Container(
-                  width: 52,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.goldPrimary.withValues(alpha: 0.15)
-                        : AppColors.goldPrimary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        session.date.day.toString(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: AppColors.goldDark,
-                        ),
-                      ),
-                      Text(
-                        DateFormat.MMM().format(session.date).toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.goldPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${DateFormat('EEEE', Localizations.localeOf(context).languageCode).format(session.date)} - ${DateFormat('HH:mm', 'en').format(session.date)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
-                            ),
-                      ),
-                      if (session.note != null && session.note!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            session.note!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                  color: isDark
-                                      ? Colors.grey.shade500
-                                      : Colors.grey.shade500,
-                                ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                // Percentage Badge + Chevron
+                // Percentage Box (Previously Date Box)
                 Consumer(
                   builder: (context, ref, child) {
                     final recordsAsync = ref.watch(
                       sessionRecordsWithStudentsProvider(session.id),
                     );
+
                     return recordsAsync.when(
                       data: (records) {
                         final presentCount = records
@@ -131,55 +99,117 @@ class AttendanceSessionCard extends ConsumerWidget {
                         final percentage = total > 0
                             ? (presentCount / total * 100).toInt()
                             : 0;
-                        final percentageColor = percentage >= 80
-                            ? AppColors.goldPrimary
+                        final percentageColor = percentage >= 75
+                            ? (isDark ? Colors.green.shade400 : Colors.green)
                             : percentage >= 50
                             ? Colors.orange
-                            : AppColors.redPrimary;
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: percentageColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '$percentage%',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: percentageColor,
+                            : (isDark
+                                  ? AppColors.redLight
+                                  : AppColors.redPrimary);
+
+                        return Container(
+                          width: 52,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: percentageColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: percentageColor.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: percentage.toString(),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: percentageColor,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: '%',
+                                      style: TextStyle(
+                                        fontSize: 12, // Smaller %
+                                        fontWeight: FontWeight.bold,
+                                        color: percentageColor,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 20,
-                              color: isDark
-                                  ? Colors.white30
-                                  : Colors.grey.shade400,
-                            ),
-                          ],
+                            ],
+                          ),
                         );
                       },
-                      loading: () => Icon(
-                        Icons.chevron_right,
-                        size: 20,
-                        color: isDark ? Colors.white30 : Colors.grey.shade400,
+                      loading: () => Container(
+                        width: 52,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
                       ),
-                      error: (_, __) => Icon(
-                        Icons.chevron_right,
-                        size: 20,
-                        color: isDark ? Colors.white30 : Colors.grey.shade400,
-                      ),
+                      error: (_, __) => const SizedBox(width: 52, height: 56),
                     );
                   },
+                ),
+                const SizedBox(width: 12),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                            ),
+                      ),
+                      if (subtitle != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            subtitle!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  // fontStyle: FontStyle.italic,
+                                  color: isDark
+                                      ? Colors.grey.shade500
+                                      : Colors.grey.shade500,
+                                ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // Chevron
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: isDark ? Colors.white30 : Colors.grey.shade400,
                 ),
               ],
             ),

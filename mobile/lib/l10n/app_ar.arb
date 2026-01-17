@@ -93,6 +93,8 @@
   "markAbsentPast": "تسجيل غياب للحصص السابقة",
   "markAbsentPastCaption": "سيتم تسجيل الطالب 'غائب' في جميع الحصص السابقة.",
   "sessionTime": "الوقت",
+  "attendanceSessions": "جلسات الحضور",
+  "noUpcomingBirthdays": "لا توجد أعياد ميلاد قادمة",
   "attendanceHistory": "سجل الحضور",
   "present": "حاضر",
   "absent": "غائب",
@@ -110,6 +112,8 @@
   "attendancePercentage": "نسبة الحضور",
   "sortAscending": "تصاعدي",
   "sortDescending": "تنازلي",
+  "sortByName": "الاسم",
+  "sortByStatus": "الحالة",
   "absencesTotal": "{count} غياب (كلي)",
   "consecutive": "{count} متتالية",
   "whatsappTemplate": "قالب واتساب",
@@ -133,8 +137,13 @@
   "markAll": "تحديد الكل",
   "clearAll": "الغاء الكل",
   "sessionNote": "ملاحظة الحصة",
-  "sessionNoteHint": "أضف ملاحظة (اختياري)...",
+  "sessionNoteHint": "أضف ملاحظة...",
   "saving": "جاري الحفظ...",
   "saveAttendance": "حفظ الغياب",
-  "attendanceSaved": "تم حفظ الغياب!"
+  "attendanceSaved": "تم حفظ الغياب!",
+  "defaultAttendanceNote": "ملاحظة الحصة الافتراضية",
+  "defaultAttendanceNoteDesc": "تعيين الملاحظة الافتراضية للحصص الجديدة",
+  "editSessionNote": "تعديل ملاحظة الحصة",
+  "defaultNoteHint": "أدخل الملاحظة الافتراضية...",
+  "status": "الحالة"
 }

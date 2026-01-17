@@ -18,6 +18,7 @@ import '../../../attendance/data/attendance_repository.dart';
 import '../../../auth/data/auth_controller.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
+import '../../../attendance/presentation/screens/attendance_detail_screen.dart';
 
 final studentCustomMessageProvider = FutureProvider.autoDispose
     .family<String?, String>((ref, studentId) async {
@@ -57,30 +58,36 @@ class StudentDetailScreen extends ConsumerWidget {
               children: [
                 // Avatar Section
                 Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.goldPrimary, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.goldPrimary.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.goldPrimary,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.goldPrimary.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppColors.goldPrimary,
-                    child: Text(
-                      student.name.substring(0, 1).toUpperCase(),
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: AppColors.goldPrimary,
+                        child: Text(
+                          student.name.substring(0, 1).toUpperCase(),
+                          style: theme.textTheme.displayMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
+                    )
+                    .animate()
+                    .scale(duration: 400.ms, curve: Curves.easeOutBack)
+                    .fade(duration: 400.ms),
                 const SizedBox(height: 16),
                 Text(
                   student.name,
@@ -91,7 +98,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         : AppColors.textPrimaryLight,
                   ),
                   textAlign: TextAlign.center,
-                ).animate().fade().slideY(begin: 0.1, end: 0, delay: 100.ms),
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 100.ms),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () async {
@@ -139,7 +146,6 @@ class StudentDetailScreen extends ConsumerWidget {
                             student.phone?.isNotEmpty == true
                                 ? _formatPhone(student.phone!)
                                 : (l10n?.noPhone ?? 'No Phone'),
-                            // textDirection already LTR by parent, but keeping explicit is fine
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: AppColors.goldDark,
                               fontWeight: FontWeight.bold,
@@ -149,84 +155,108 @@ class StudentDetailScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                ).animate().fade().slideY(begin: 0.1, end: 0, delay: 200.ms),
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 150.ms),
 
                 const SizedBox(height: 12),
 
                 // WhatsApp Button
                 if (student.phone != null && student.phone!.isNotEmpty)
-                  if (student.phone != null && student.phone!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () =>
-                                  _showWhatsAppDialog(context, ref, student),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: isDark
-                                    ? Colors.white
-                                    : Colors.black87,
-                                side: BorderSide(
-                                  color: isDark
-                                      ? Colors.white24
-                                      : Colors.grey.shade300,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () =>
+                                _showWhatsAppDialog(context, ref, student),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? Colors.white
+                                  : Colors.black87,
+                              side: BorderSide(
+                                color: isDark
+                                    ? Colors.white24
+                                    : Colors.grey.shade300,
                               ),
-                              icon: const Icon(Icons.edit_note, size: 20),
-                              label: Text(
-                                l10n?.whatsappCustomize ?? 'Customize',
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
+                            icon: const Icon(Icons.edit_note, size: 20),
+                            label: Text(l10n?.whatsappCustomize ?? 'Customize'),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                final customMessageAsync = ref.read(
-                                  studentCustomMessageProvider(studentId),
-                                );
-                                final customMessage = customMessageAsync.value;
-                                String message =
-                                    customMessage ??
-                                    _buildTemplateMessage(ref, student);
-                                await _launchWhatsApp(
-                                  context,
-                                  student,
-                                  message,
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF25D366),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final customMessageAsync = ref.read(
+                                studentCustomMessageProvider(studentId),
+                              );
+                              final customMessage = customMessageAsync.value;
+                              String message =
+                                  customMessage ??
+                                  _buildTemplateMessage(ref, student);
+                              await _launchWhatsApp(context, student, message);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF25D366),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              icon: const FaIcon(
-                                FontAwesomeIcons.whatsapp,
-                                size: 20,
-                              ),
-                              label: Text(l10n?.whatsappButton ?? 'WhatsApp'),
                             ),
+                            icon: const FaIcon(
+                              FontAwesomeIcons.whatsapp,
+                              size: 20,
+                            ),
+                            label: Text(l10n?.whatsappButton ?? 'WhatsApp'),
                           ),
-                        ],
-                      ),
-                    ).animate().fade().slideY(
-                      begin: 0.2,
-                      end: 0,
-                      delay: 250.ms,
+                        ),
+                      ],
                     ),
+                  ).animate().fade().slideY(begin: 0.2, end: 0, delay: 200.ms),
+
+                const SizedBox(height: 24),
+
+                // Edit/Delete Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showEditDialog(context, ref, student),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.goldPrimary,
+                          side: const BorderSide(color: AppColors.goldPrimary),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        label: Text(l10n?.edit ?? 'Edit'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showDeleteDialog(context, ref),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.redPrimary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        label: Text(l10n?.delete ?? 'Delete'),
+                      ),
+                    ),
+                  ],
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 220.ms),
 
                 const SizedBox(height: 16),
 
@@ -236,7 +266,7 @@ class StudentDetailScreen extends ConsumerWidget {
                   student,
                   l10n,
                   isDark,
-                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 300.ms),
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 250.ms),
 
                 const SizedBox(height: 12),
 
@@ -245,11 +275,11 @@ class StudentDetailScreen extends ConsumerWidget {
                   student,
                   l10n,
                   isDark,
-                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 350.ms),
+                ).animate().fade().slideY(begin: 0.2, end: 0, delay: 300.ms),
 
                 const SizedBox(height: 24),
 
-                // Attendance History Logic
+                // Attendance History Logic (No wrapper animation, handled internally)
                 if (historyAsync.valueOrNull != null &&
                     historyAsync.valueOrNull!.isNotEmpty)
                   _buildAttendanceHistory(
@@ -257,7 +287,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     historyAsync.value!,
                     isDark,
                     l10n,
-                  ).animate().fade().slideY(begin: 0.3, end: 0, delay: 400.ms),
+                  ),
 
                 const SizedBox(height: 24),
 
@@ -269,6 +299,10 @@ class StudentDetailScreen extends ConsumerWidget {
                       context,
                       l10n?.visitationNotes ?? "Visitation Notes",
                       isDark,
+                    ).animate().fade().slideX(
+                      begin: -0.1,
+                      end: 0,
+                      delay: 400.ms,
                     ),
                     IconButton(
                       icon: const Icon(
@@ -276,7 +310,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         color: AppColors.goldPrimary,
                       ),
                       onPressed: () => _showAddNoteDialog(context, ref),
-                    ).animate().scale(delay: 400.ms),
+                    ).animate().scale(delay: 450.ms),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -289,7 +323,7 @@ class StudentDetailScreen extends ConsumerWidget {
                       data: (notes) {
                         if (notes.isEmpty) {
                           return PremiumCard(
-                            delay: 0.4,
+                            delay: 0.5,
                             child: Center(
                               child: Padding(
                                 padding: EdgeInsets.all(16),
@@ -305,7 +339,7 @@ class StudentDetailScreen extends ConsumerWidget {
                             final index = entry.key;
                             final note = entry.value;
                             return PremiumCard(
-                              delay: 0.4 + (index * 0.1),
+                              delay: 0.5 + (index * 0.05),
                               margin: const EdgeInsets.only(bottom: 12),
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
@@ -342,47 +376,6 @@ class StudentDetailScreen extends ConsumerWidget {
                     );
                   },
                 ),
-
-                const SizedBox(height: 48),
-
-                // Edit/Delete Buttons
-                // Edit/Delete Buttons (Swapped & Styled)
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () =>
-                            _showEditDialog(context, ref, studentAsync.value!),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.goldPrimary,
-                          side: const BorderSide(color: AppColors.goldPrimary),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        icon: const Icon(Icons.edit_outlined),
-                        label: Text(l10n?.edit ?? 'Edit'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showDeleteDialog(context, ref),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.redPrimary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        icon: const Icon(Icons.delete_outline),
-                        label: Text(l10n?.delete ?? 'Delete'),
-                      ),
-                    ),
-                  ],
-                ).animate().fade().slideY(begin: 0.4, end: 0, delay: 500.ms),
 
                 // Add bottom padding for better scroll
                 const SizedBox(height: 100),
@@ -660,39 +653,45 @@ class StudentDetailScreen extends ConsumerWidget {
     AppLocalizations? l10n,
     bool isDark,
   ) {
-    if (student.birthdate == null) return const SizedBox.shrink();
-
+    final hasBirthday = student.birthdate != null;
     final now = DateTime.now();
-    final birthdate = student.birthdate!;
-    int age = (now.year - birthdate.year).toInt();
-    if (now.month < birthdate.month ||
-        (now.month == birthdate.month && now.day < birthdate.day)) {
-      age--;
-    }
 
-    // Localization for Age
-    final ageText = l10n?.yearsOld(age) ?? "$age years old";
+    String ageText = "--";
+    String nextBirthdayText = l10n?.notSet ?? "Not Set";
+    bool isToday = false;
 
-    // Next Birthday Calculation
-    DateTime nextBirthday = DateTime(now.year, birthdate.month, birthdate.day);
-    if (nextBirthday.isBefore(now.subtract(const Duration(days: 1)))) {
-      nextBirthday = DateTime(now.year + 1, birthdate.month, birthdate.day);
-    }
+    if (hasBirthday) {
+      final birthdate = student.birthdate!;
+      int age = (now.year - birthdate.year).toInt();
+      if (now.month < birthdate.month ||
+          (now.month == birthdate.month && now.day < birthdate.day)) {
+        age--;
+      }
+      ageText = l10n?.yearsOld(age) ?? "$age years old";
 
-    final difference = nextBirthday.difference(now);
-    final daysUntil = difference.inDays;
-    final months = daysUntil ~/ 30;
-    final days = daysUntil % 30;
+      DateTime nextBirthday = DateTime(
+        now.year,
+        birthdate.month,
+        birthdate.day,
+      );
+      if (nextBirthday.isBefore(now.subtract(const Duration(days: 1)))) {
+        nextBirthday = DateTime(now.year + 1, birthdate.month, birthdate.day);
+      }
 
-    String nextBirthdayText;
-    bool isToday = daysUntil == 0;
+      final difference = nextBirthday.difference(now);
+      final daysUntil = difference.inDays;
+      final months = daysUntil ~/ 30;
+      final days = daysUntil % 30;
 
-    if (isToday) {
-      nextBirthdayText = l10n?.todayIsBirthday ?? "Today is their birthday! 🎉";
-    } else {
-      nextBirthdayText =
-          l10n?.birthdayCountdown(months, days) ??
-          "In $months months, $days days";
+      isToday = daysUntil == 0;
+      if (isToday) {
+        nextBirthdayText =
+            l10n?.todayIsBirthday ?? "Today is their birthday! 🎉";
+      } else {
+        nextBirthdayText =
+            l10n?.birthdayCountdown(months, days) ??
+            "In $months months, $days days";
+      }
     }
 
     return Container(
@@ -720,7 +719,6 @@ class StudentDetailScreen extends ConsumerWidget {
       ),
       child: Stack(
         children: [
-          // Decorative Circle
           Positioned(
             top: -20,
             right: -20,
@@ -736,7 +734,6 @@ class StudentDetailScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    // Icon Container
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -745,13 +742,13 @@ class StudentDetailScreen extends ConsumerWidget {
                       ),
                       child: Icon(
                         Icons.cake,
-                        color: AppColors.goldPrimary,
+                        color: hasBirthday
+                            ? AppColors.goldPrimary
+                            : Colors.grey,
                         size: 28,
                       ),
                     ),
                     const SizedBox(width: 16),
-
-                    // Date & Age
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -768,75 +765,80 @@ class StudentDetailScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            student.birthdate?.toString().split(" ")[0] ?? "",
+                            hasBirthday
+                                ? intl.DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(student.birthdate!)
+                                : (l10n?.notSet ?? "Not Set"),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: hasBirthday ? 16 : 14,
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.black54
-                                  : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              ageText,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                          if (hasBirthday) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
                                 color: isDark
-                                    ? Colors.grey.shade300
-                                    : Colors.grey.shade700,
+                                    ? Colors.black54
+                                    : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                ageText,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.grey.shade300
+                                      : Colors.grey.shade700,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 16),
-                const Divider(height: 1),
-                const SizedBox(height: 16),
-
-                // Countdown Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n?.nextBirthday ?? "Next Birthday",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        nextBirthdayText,
-                        textAlign: TextAlign.end,
+                if (hasBirthday) ...[
+                  const SizedBox(height: 16),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n?.nextBirthday ?? "Next Birthday",
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: isToday
-                              ? AppColors.goldPrimary
-                              : (isDark ? Colors.white : Colors.black87),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      Flexible(
+                        child: Text(
+                          nextBirthdayText,
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: isToday
+                                ? AppColors.goldPrimary
+                                : (isDark ? Colors.white : Colors.black87),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -908,168 +910,238 @@ class StudentDetailScreen extends ConsumerWidget {
     bool isDark,
     AppLocalizations? l10n,
   ) {
-    // Group by Month
+    // 1. Sort History (Descending Date)
+    final sortedHistory = List<AttendanceRecordWithSession>.from(history);
+    sortedHistory.sort((a, b) => b.session.date.compareTo(a.session.date));
+
+    // 2. Group by "yyyy-MM"
     final grouped = <String, List<AttendanceRecordWithSession>>{};
-    for (var item in history) {
-      final key = intl.DateFormat('MMMM yyyy').format(item.session.date);
+    for (var item in sortedHistory) {
+      final key = intl.DateFormat('yyyy-MM').format(item.session.date);
       if (!grouped.containsKey(key)) grouped[key] = [];
       grouped[key]!.add(item);
     }
 
+    // 3. Stats
+    final totalPresent = history
+        .where((s) => s.record.status == 'PRESENT')
+        .length;
+    final totalSessions = history.length;
+    final overallRate = totalSessions == 0
+        ? 0
+        : ((totalPresent / totalSessions) * 100).round();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(
-          context,
-          l10n?.attendanceHistory ?? "Attendance History",
-          isDark,
-        ),
-        const SizedBox(height: 16),
-        ...grouped.entries.map((entry) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8, top: 4),
-                child: Text(
-                  entry.key,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
-                    fontSize: 14,
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader(
+              context,
+              l10n?.attendanceHistory ?? "Attendance History",
+              isDark,
+            ).animate().fade().slideX(delay: 350.ms),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                "$overallRate% ${l10n?.present ?? 'Present'}",
+                style: const TextStyle(
+                  color: AppColors.goldDark,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
-              ...entry.value.map((item) {
-                final status = item.record.status; // PRESENT, ABSENT, EXCUSED
-                final isPresent = status == 'PRESENT';
-                final isAbsent = status == 'ABSENT';
+            ).animate().scale(delay: 400.ms),
+          ],
+        ),
+        const SizedBox(height: 16),
+        PremiumCard(
+          delay: 0.4,
+          child: Padding(
+            padding: const EdgeInsets.all(12), // Reduced padding
+            child: Column(
+              children: grouped.entries.map((entry) {
+                final dateStr = entry.key; // yyyy-MM
+                final date = DateTime.parse("$dateStr-01");
 
-                Color statusColor;
-                IconData statusIcon;
-                String statusText;
+                // Localize month name but keep digits Latin if needed
+                final locale = Localizations.localeOf(context).toString();
+                final monthName = intl.DateFormat(
+                  'MMM',
+                  locale,
+                ).format(date); // Localized month
 
-                if (isPresent) {
-                  statusColor = Colors.green;
-                  statusIcon = Icons.check_circle;
-                  statusText = l10n?.present ?? "Present";
-                } else if (isAbsent) {
-                  statusColor = AppColors.redPrimary;
-                  statusIcon = Icons.cancel;
-                  statusText = l10n?.absent ?? "Absent";
-                } else {
-                  statusColor = Colors.orange;
-                  statusIcon = Icons.info;
-                  statusText = l10n?.excused ?? "Excused";
-                }
+                // Force Latin digits for Year: use 'en' locale
+                final yearName = intl.DateFormat(
+                  'yyyy',
+                  'en',
+                ).format(date); // 2025
 
-                return PremiumCard(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        // Date Box
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.black26
-                                : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                intl.DateFormat('dd').format(item.session.date),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
+                final sessions = entry.value;
+
+                // Reverse for Left-to-Right (Day 1 -> 30) visual flow
+                final visualSessions = sessions.reversed.toList();
+
+                final presentCount = sessions
+                    .where((s) => s.record.status == 'PRESENT')
+                    .length;
+                final totalMonth = sessions.length;
+                final monthRate = totalMonth == 0
+                    ? 0
+                    : ((presentCount / totalMonth) * 100).round();
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      // Month Label
+                      SizedBox(
+                        width: 48,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              monthName.toUpperCase(),
+                              maxLines: 1,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: isDark ? Colors.white70 : Colors.black54,
                               ),
-                              Text(
-                                intl.DateFormat(
-                                  'EEE',
-                                ).format(item.session.date).toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            ),
+                            Text(
+                              yearName,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
+                      ),
+                      const SizedBox(width: 8),
+                      // Dots Grid/Wrap
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: visualSessions.map((item) {
+                            final status = item.record.status;
+                            final isPresent = status == 'PRESENT';
+                            final isAbsent = status == 'ABSENT';
 
-                        // Time & Note
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                intl.DateFormat(
-                                  'hh:mm a',
-                                ).format(item.session.date),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                            Color color;
+                            Color textColor;
+                            BoxBorder? border;
+
+                            if (isPresent) {
+                              color = Colors.green;
+                              textColor = Colors.white;
+                            } else if (isAbsent) {
+                              color = AppColors.redPrimary;
+                              textColor = Colors.white;
+                            } else {
+                              // Excused / Other -> Outline
+                              color = Colors.transparent;
+                              textColor = Colors.orange;
+                              border = Border.all(
+                                color: Colors.orange,
+                                width: 1.5,
+                              );
+                            }
+
+                            final dayStr = intl.DateFormat(
+                              'd',
+                            ).format(item.session.date);
+
+                            return Material(
+                              color: Colors.transparent,
+                              child: Ink(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border:
+                                      border ??
+                                      Border.all(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        width: 1,
+                                      ),
+                                  boxShadow: color == Colors.transparent
+                                      ? null
+                                      : [
+                                          BoxShadow(
+                                            color: color.withValues(alpha: 0.4),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
                                 ),
-                              ),
-                              if (item.session.note != null &&
-                                  item.session.note!.isNotEmpty)
-                                Text(
-                                  item.session.note!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark
-                                        ? Colors.grey.shade400
-                                        : Colors.grey.shade600,
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            AttendanceDetailScreen(
+                                              sessionId: item.session.id,
+                                              highlightStudentId: studentId,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: Center(
+                                    child: Text(
+                                      dayStr,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
-                          ),
-                        ),
-
-                        // Status Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(statusIcon, size: 14, color: statusColor),
-                              const SizedBox(width: 4),
-                              Text(
-                                statusText,
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
                                 ),
                               ),
-                            ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      // Rate
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 32,
+                        child: Text(
+                          "$monthRate%",
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: monthRate >= 75
+                                ? Colors.green
+                                : (monthRate >= 50
+                                      ? Colors.orange
+                                      : AppColors.redPrimary),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
-              }),
-            ],
-          );
-        }),
+              }).toList(),
+            ),
+          ),
+        ),
       ],
     );
   }

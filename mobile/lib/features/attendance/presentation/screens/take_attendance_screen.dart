@@ -8,6 +8,7 @@ import '../../../../core/components/premium_card.dart';
 import '../../data/attendance_controller.dart';
 import '../../../students/data/students_controller.dart';
 import '../../../classes/data/classes_controller.dart';
+import '../../../settings/data/settings_controller.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class TakeAttendanceScreen extends ConsumerStatefulWidget {
@@ -20,9 +21,24 @@ class TakeAttendanceScreen extends ConsumerStatefulWidget {
 
 class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
   final Map<String, bool> _attendance = {};
-  final TextEditingController _noteController = TextEditingController();
+  late final TextEditingController _noteController;
   DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
+  bool _noteError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill with default note
+    final defaultNote = ref.read(defaultNoteProvider);
+    _noteController = TextEditingController(text: defaultNote);
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -247,6 +263,13 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                             'yyyy',
                             'en',
                           ).format(_selectedDate);
+                          final tempTime = DateTime(
+                            2000,
+                            1,
+                            1,
+                            _selectedDate.hour,
+                            _selectedDate.minute,
+                          );
                           if (localeCode == 'ar') {
                             final dayNum = DateFormat(
                               'd',
@@ -260,17 +283,26 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                               'MMM',
                               'ar',
                             ).format(_selectedDate);
-                            final time = DateFormat(
-                              'HH:mm',
+                            final timeNum = DateFormat(
+                              'h:mm',
                               'en',
-                            ).format(_selectedDate);
+                            ).format(tempTime);
+                            final period = _selectedDate.hour >= 12 ? 'م' : 'ص';
+                            final formattedTime = '$timeNum $period';
+
                             dateStr =
-                                '$dayName, $dayNum $monthName $year • $time';
+                                '$dayName, $dayNum $monthName $year • $formattedTime';
                           } else {
-                            dateStr = DateFormat(
-                              'EEE, MMM d, yyyy • HH:mm',
-                              localeCode,
-                            ).format(_selectedDate);
+                            final formattedTime = DateFormat(
+                              'h:mm a',
+                              'en',
+                            ).format(tempTime);
+                            dateStr =
+                                DateFormat(
+                                  'EEE, MMM d, yyyy',
+                                  localeCode,
+                                ).format(_selectedDate) +
+                                ' • $formattedTime';
                           }
                           return Text(
                             dateStr,
@@ -291,17 +323,21 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                   vertical: 4,
                 ),
                 child: TextField(
+                  onChanged: (value) {
+                    setState(() => _noteError = value.trim().isEmpty);
+                  },
                   controller: _noteController,
                   maxLines: null,
                   decoration: InputDecoration(
                     hintText:
-                        l10n?.sessionNoteHint ??
-                        'Add any notes about this session...',
+                        (l10n?.sessionNoteHint ?? 'Add session note...') + ' *',
                     prefixIcon: Icon(
                       Icons.edit_note,
-                      color: isDark
-                          ? AppColors.goldPrimary
-                          : AppColors.goldDark,
+                      color: _noteError
+                          ? Colors.redAccent
+                          : (isDark
+                                ? AppColors.goldPrimary
+                                : AppColors.goldDark),
                     ),
                     filled: true,
                     fillColor: isDark
@@ -310,6 +346,24 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: _noteError
+                          ? const BorderSide(
+                              color: Colors.redAccent,
+                              width: 1.5,
+                            )
+                          : BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: _noteError
+                          ? const BorderSide(
+                              color: Colors.redAccent,
+                              width: 1.5,
+                            )
+                          : BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -481,14 +535,28 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
       return;
     }
 
+    final noteContent = _noteController.text.trim();
+    if (noteContent.isEmpty) {
+      setState(() => _noteError = true);
+      return;
+    }
+
     setState(() => _isSaving = true);
+
+    // Ensure all students are included in the map (unselected = absent)
+    final allStudents = ref.read(classStudentsProvider).valueOrNull ?? [];
+    final completeAttendance = <String, bool>{};
+
+    for (final student in allStudents) {
+      completeAttendance[student.id] = _attendance[student.id] ?? false;
+    }
 
     final controller = ref.read(attendanceControllerProvider.notifier);
     final session = await controller.createSessionWithAttendance(
       classId: selectedClassId,
       date: _selectedDate,
       note: _noteController.text.isNotEmpty ? _noteController.text : null,
-      attendance: _attendance,
+      attendance: completeAttendance,
     );
 
     if (mounted) {

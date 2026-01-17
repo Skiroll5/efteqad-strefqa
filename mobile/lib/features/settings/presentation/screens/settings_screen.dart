@@ -147,6 +147,39 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ).animate().fade(delay: 100.ms),
 
+          // Default Attendance Note Card (New)
+          PremiumCard(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              children: [
+                Consumer(
+                  builder: (context, ref, child) {
+                    final defaultNote = ref.watch(defaultNoteProvider);
+                    return _SettingsTile(
+                      icon: Icons.edit_note,
+                      title:
+                          l10n?.defaultAttendanceNote ??
+                          'Default Attendance Note',
+                      subtitle: defaultNote.isNotEmpty
+                          ? defaultNote
+                          : (l10n?.defaultAttendanceNoteDesc ??
+                                'Set default note'),
+                      isDark: isDark,
+                      onTap: () =>
+                          _showDefaultNoteEditor(context, ref, defaultNote),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ).animate().fade(delay: 150.ms),
+
           // Language Card
           PremiumCard(
             margin: const EdgeInsets.only(bottom: 16),
@@ -537,6 +570,52 @@ class SettingsScreen extends ConsumerWidget {
               ref.read(localeProvider.notifier).setLocale(const Locale('ar'));
               Navigator.pop(context);
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDefaultNoteEditor(
+    BuildContext context,
+    WidgetRef ref,
+    String currentNote,
+  ) {
+    final controller = TextEditingController(text: currentNote);
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          l10n?.defaultAttendanceNote ?? 'Default Attendance Note',
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        ),
+        content: TextField(
+          controller: controller,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          decoration: InputDecoration(
+            hintText: l10n?.defaultNoteHint ?? 'Enter default note...',
+            filled: true,
+            fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n?.cancel ?? 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(defaultNoteProvider.notifier).setNote(controller.text);
+              Navigator.pop(context);
+            },
+            child: Text(l10n?.save ?? 'Save'),
           ),
         ],
       ),

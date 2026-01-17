@@ -311,6 +311,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم حذف جميع سجلات الغياب المحلية وفرض مزامنة كاملة من الخادم. استخدمه فقط إذا تم مسح البيانات على الخادم.';
 
   @override
+  String get attendanceSessions => 'جلسات الحضور';
+
+  @override
+  String get noUpcomingBirthdays => 'لا توجد أعياد ميلاد قادمة';
+
+  @override
   String get attendanceDetails => 'تفاصيل الغياب';
 
   @override
@@ -330,6 +336,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sortDescending => 'تنازلي';
+
+  @override
+  String get sortByName => 'الاسم';
+
+  @override
+  String get sortByStatus => 'الحالة';
 
   @override
   String absencesTotal(Object count) {
@@ -408,7 +420,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sessionNote => 'ملاحظة الحصة';
 
   @override
-  String get sessionNoteHint => 'أضف ملاحظة (اختياري)...';
+  String get sessionNoteHint => 'أضف ملاحظة...';
 
   @override
   String get saving => 'جاري الحفظ...';
@@ -418,4 +430,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attendanceSaved => 'تم حفظ الغياب!';
+
+  @override
+  String get defaultAttendanceNote => 'ملاحظة الحصة الافتراضية';
+
+  @override
+  String get defaultAttendanceNoteDesc =>
+      'تعيين الملاحظة الافتراضية للحصص الجديدة';
+
+  @override
+  String get editSessionNote => 'تعديل ملاحظة الحصة';
+
+  @override
+  String get defaultNoteHint => 'أدخل الملاحظة الافتراضية...';
+
+  @override
+  String get status => 'الحالة';
 }

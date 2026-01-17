@@ -13,6 +13,7 @@ class PremiumCard extends StatelessWidget {
   final bool isGlass;
   final double delay;
   final BoxBorder? border;
+  final bool enableAnimation;
 
   const PremiumCard({
     super.key,
@@ -24,6 +25,7 @@ class PremiumCard extends StatelessWidget {
     this.isGlass = false,
     this.delay = 0,
     this.border,
+    this.enableAnimation = true,
   });
 
   @override
@@ -72,18 +74,20 @@ class PremiumCard extends StatelessWidget {
       );
     }
 
-    Widget animatedCard = cardContent
-        .animate(delay: Duration(milliseconds: (delay * 1000).toInt()))
-        .fade(
-          duration: AppAnimations.defaultDuration,
-          curve: AppAnimations.defaultCurve,
-        )
-        .slideY(
-          begin: 0.1,
-          end: 0,
-          duration: AppAnimations.defaultDuration,
-          curve: AppAnimations.defaultCurve,
-        );
+    Widget animatedCard = enableAnimation
+        ? cardContent
+              .animate(delay: Duration(milliseconds: (delay * 1000).toInt()))
+              .fade(
+                duration: AppAnimations.defaultDuration,
+                curve: AppAnimations.defaultCurve,
+              )
+              .slideY(
+                begin: 0.1,
+                end: 0,
+                duration: AppAnimations.defaultDuration,
+                curve: AppAnimations.defaultCurve,
+              )
+        : cardContent;
 
     if (onTap != null) {
       return Padding(

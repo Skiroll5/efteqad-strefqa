@@ -313,6 +313,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'This will delete all local attendance data and force a full re-sync from the server. Use only if backend was cleared.';
 
   @override
+  String get attendanceSessions => 'Attendance Sessions';
+
+  @override
+  String get noUpcomingBirthdays => 'No upcoming birthdays';
+
+  @override
   String get attendanceDetails => 'Attendance Details';
 
   @override
@@ -332,6 +338,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sortDescending => 'Descending';
+
+  @override
+  String get sortByName => 'Name';
+
+  @override
+  String get sortByStatus => 'Status';
 
   @override
   String absencesTotal(Object count) {
@@ -411,7 +423,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionNote => 'Session Note';
 
   @override
-  String get sessionNoteHint => 'Add any note about this session (optional)...';
+  String get sessionNoteHint => 'Add any note about this session...';
 
   @override
   String get saving => 'Saving...';
@@ -421,4 +433,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceSaved => 'Attendance saved!';
+
+  @override
+  String get defaultAttendanceNote => 'Default Attendance Note';
+
+  @override
+  String get defaultAttendanceNoteDesc =>
+      'Set the default note for new sessions';
+
+  @override
+  String get editSessionNote => 'Edit Session Note';
+
+  @override
+  String get defaultNoteHint => 'Enter default note...';
+
+  @override
+  String get status => 'Status';
 }

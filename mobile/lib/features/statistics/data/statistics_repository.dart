@@ -115,8 +115,8 @@ class StatisticsRepository {
           // If no record, ignore this session (e.g. didn't join yet)
         }
 
-        // Condition: Consecutive >= threshold OR Percentage < 50%
-        if (currentConsecutive >= threshold || attendancePercentage < 50.0) {
+        // Condition: Consecutive >= threshold
+        if (currentConsecutive >= threshold) {
           atRiskList.add(
             AtRiskStudent(
               student: student,

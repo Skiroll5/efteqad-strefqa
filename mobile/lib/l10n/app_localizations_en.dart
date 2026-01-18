@@ -477,4 +477,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get consecutiveAbsences => 'Consecutive';
+
+  @override
+  String get successAddStudent => 'Student added successfully';
+
+  @override
+  String errorAddStudent(Object error) {
+    return 'Error adding student: $error';
+  }
+
+  @override
+  String errorGeneric(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get errorWhatsApp => 'Could not launch WhatsApp';
+
+  @override
+  String errorSave(Object error) {
+    return 'Error saving: $error';
+  }
+
+  @override
+  String get successSaveTemplate => 'Template saved successfully';
+
+  @override
+  String get errorSaveTemplate => 'Failed to save template';
+
+  @override
+  String get successResetData => 'Success: Local data reset and re-synced.';
+
+  @override
+  String errorResetData(Object error) {
+    return 'Error resetting data: $error';
+  }
+
+  @override
+  String get notificationSettings => 'Notification Settings';
+
+  @override
+  String get inactiveAfterDays => 'Inactive after (days)';
+
+  @override
+  String daysUnit(Object count) {
+    return '$count days';
+  }
+
+  @override
+  String get birthdayAlertTime => 'Birthday alert time';
+
+  @override
+  String get addNewClassTitle => 'Add New Class';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get manageClasses => 'Manage Classes';
+
+  @override
+  String get noClassesFoundAdd => 'No classes found. Add one!';
+
+  @override
+  String get noClassSelected => 'No class selected';
+
+  @override
+  String get userManagement => 'User Management';
+
+  @override
+  String get noPendingUsers => 'No pending users';
+
+  @override
+  String get activate => 'Activate';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get errorUpdateUser => 'Failed to update user';
+
+  @override
+  String get classManagement => 'Class Management';
+
+  @override
+  String get noClassesFound => 'No classes found';
+
+  @override
+  String managersForClass(Object className) {
+    return 'Managers: $className';
+  }
+
+  @override
+  String get removeManager => 'Remove Manager';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get noEligibleUsers => 'No eligible users';
+
+  @override
+  String get allUsersAreManagers => 'All eligible users are already managers';
+
+  @override
+  String get accessDenied => 'Access Denied';
+
+  @override
+  String get notEnoughData => 'Not enough data';
+
+  @override
+  String get genericError => 'Error';
+
+  @override
+  String get availablePlaceholders => 'Available placeholders:';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get emptyMessage => '(Empty message)';
+
+  @override
+  String whatsappMessageHint(Object firstname) {
+    return 'Hello $firstname, how are you?';
+  }
+
+  @override
+  String get notificationSettingsDesc => 'Manage push notifications';
+
+  @override
+  String get notesNotification => '📝 Notes';
+
+  @override
+  String get attendanceNotification => '📊 Attendance';
+
+  @override
+  String get birthdayNotification => '🎂 Birthday Reminders';
+
+  @override
+  String get inactiveNotification => '⚠️ Inactive Students';
+
+  @override
+  String get newUserNotification => '👤 New Registrations';
+
+  @override
+  String get morningTime => 'Morning (8:00 AM)';
+
+  @override
+  String get eveningTime => 'Evening before (8:00 PM)';
 }

@@ -542,7 +542,11 @@ class StudentDetailScreen extends ConsumerWidget {
                       },
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
-                      error: (e, s) => Text('Error: $e'),
+                      error: (e, s) => Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.errorGeneric(e.toString()),
+                      ),
                     );
                   },
                 ),
@@ -554,7 +558,9 @@ class StudentDetailScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e')),
+        error: (e, s) => Center(
+          child: Text(AppLocalizations.of(context)!.errorGeneric(e.toString())),
+        ),
       ),
     );
   }
@@ -615,7 +621,9 @@ class StudentDetailScreen extends ConsumerWidget {
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Could not launch WhatsApp')),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.errorWhatsApp),
+              ),
             );
           }
         }
@@ -626,9 +634,13 @@ class StudentDetailScreen extends ConsumerWidget {
         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       } catch (e2) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.errorGeneric(e.toString()),
+              ),
+            ),
+          );
         }
       }
     }
@@ -791,7 +803,11 @@ class StudentDetailScreen extends ConsumerWidget {
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error saving: $e')),
+                                  SnackBar(
+                                    content: Text(
+                                      context.l10n.errorSave(e.toString()),
+                                    ),
+                                  ),
                                 );
                               }
                             }

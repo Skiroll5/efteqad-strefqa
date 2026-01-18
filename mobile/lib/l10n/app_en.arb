@@ -191,5 +191,80 @@
   "discardChanges": "Discard Changes?",
   "discardChangesMessage": "You have unsaved changes. Are you sure you want to discard them?",
   "discard": "Discard Changes",
-  "consecutiveAbsences": "Consecutive"
+  "consecutiveAbsences": "Consecutive",
+  "successAddStudent": "Student added successfully",
+  "errorAddStudent": "Error adding student: {error}",
+  "@errorAddStudent": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorGeneric": "Error: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorWhatsApp": "Could not launch WhatsApp",
+  "errorSave": "Error saving: {error}",
+  "@errorSave": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "successSaveTemplate": "Template saved successfully",
+  "errorSaveTemplate": "Failed to save template",
+  "successResetData": "Success: Local data reset and re-synced.",
+  "errorResetData": "Error resetting data: {error}",
+  "@errorResetData": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "notificationSettings": "Notification Settings",
+  "inactiveAfterDays": "Inactive after (days)",
+  "daysUnit": "{count} days",
+  "@daysUnit": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "birthdayAlertTime": "Birthday alert time",
+  "addNewClassTitle": "Add New Class",
+  "add": "Add",
+  "manageClasses": "Manage Classes",
+  "noClassesFoundAdd": "No classes found. Add one!",
+  "noClassSelected": "No class selected",
+  "userManagement": "User Management",
+  "noPendingUsers": "No pending users",
+  "activate": "Activate",
+  "noUsersFound": "No users found",
+  "errorUpdateUser": "Failed to update user",
+  "classManagement": "Class Management",
+  "noClassesFound": "No classes found",
+  "managersForClass": "Managers: {className}",
+  "@managersForClass": {
+    "placeholders": {
+      "className": {}
+    }
+  },
+  "removeManager": "Remove Manager",
+  "remove": "Remove",
+  "noEligibleUsers": "No eligible users",
+  "allUsersAreManagers": "All eligible users are already managers",
+  "accessDenied": "Access Denied",
+  "notEnoughData": "Not enough data",
+  "genericError": "Error",
+  "availablePlaceholders": "Available placeholders:",
+  "preview": "Preview",
+  "emptyMessage": "(Empty message)",
+  "whatsappMessageHint": "Hello {firstname}, how are you?",
+  "notificationSettingsDesc": "Manage push notifications",
+  "notesNotification": "📝 Notes",
+  "attendanceNotification": "📊 Attendance",
+  "birthdayNotification": "🎂 Birthday Reminders",
+  "inactiveNotification": "⚠️ Inactive Students",
+  "newUserNotification": "👤 New Registrations",
+  "morningTime": "Morning (8:00 AM)",
+  "eveningTime": "Evening before (8:00 PM)"
 }

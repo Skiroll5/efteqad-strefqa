@@ -474,4 +474,154 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get consecutiveAbsences => 'متتالي';
+
+  @override
+  String get successAddStudent => 'تم إضافة الطالب بنجاح';
+
+  @override
+  String errorAddStudent(Object error) {
+    return 'خطأ في إضافة الطالب: $error';
+  }
+
+  @override
+  String errorGeneric(Object error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get errorWhatsApp => 'تعذر تشغيل واتساب';
+
+  @override
+  String errorSave(Object error) {
+    return 'خطأ في الحفظ: $error';
+  }
+
+  @override
+  String get successSaveTemplate => 'تم حفظ القالب بنجاح';
+
+  @override
+  String get errorSaveTemplate => 'فشل حفظ القالب';
+
+  @override
+  String get successResetData =>
+      'نجاح: تم إعادة تعيين البيانات المحلية وإعادة المزامنة.';
+
+  @override
+  String errorResetData(Object error) {
+    return 'خطأ في إعادة تعيين البيانات: $error';
+  }
+
+  @override
+  String get notificationSettings => 'إعدادات الإشعارات';
+
+  @override
+  String get inactiveAfterDays => 'غير نشط بعد (أيام)';
+
+  @override
+  String daysUnit(Object count) {
+    return '$count يوم';
+  }
+
+  @override
+  String get birthdayAlertTime => 'وقت تنبيه عيد الميلاد';
+
+  @override
+  String get addNewClassTitle => 'إضافة فصل جديد';
+
+  @override
+  String get add => 'إضافة';
+
+  @override
+  String get manageClasses => 'إدارة الفصول';
+
+  @override
+  String get noClassesFoundAdd => 'لا توجد فصول. أضف واحدًا!';
+
+  @override
+  String get noClassSelected => 'لم يتم اختيار فصل';
+
+  @override
+  String get userManagement => 'إدارة المستخدمين';
+
+  @override
+  String get noPendingUsers => 'لا يوجد مستخدمين قيد الانتظار';
+
+  @override
+  String get activate => 'تفعيل';
+
+  @override
+  String get noUsersFound => 'لا يوجد مستخدمين';
+
+  @override
+  String get errorUpdateUser => 'فشل تحديث بيانات المستخدم';
+
+  @override
+  String get classManagement => 'إدارة الفصول';
+
+  @override
+  String get noClassesFound => 'لا توجد فصول';
+
+  @override
+  String managersForClass(Object className) {
+    return 'مديري: $className';
+  }
+
+  @override
+  String get removeManager => 'إزالة المدير';
+
+  @override
+  String get remove => 'إزالة';
+
+  @override
+  String get noEligibleUsers => 'لا يوجد مستخدمين مؤهلين';
+
+  @override
+  String get allUsersAreManagers => 'جميع المستخدمين المؤهلين هم مديرون بالفعل';
+
+  @override
+  String get accessDenied => 'تم رفض الوصول';
+
+  @override
+  String get notEnoughData => 'لا توجد بيانات كافية';
+
+  @override
+  String get genericError => 'خطأ';
+
+  @override
+  String get availablePlaceholders => 'المتغيرات المتاحة:';
+
+  @override
+  String get preview => 'معاينة';
+
+  @override
+  String get emptyMessage => '(رسالة فارغة)';
+
+  @override
+  String whatsappMessageHint(Object firstname) {
+    return 'أهلاً $firstname، كيف حالك؟';
+  }
+
+  @override
+  String get notificationSettingsDesc => 'إدارة الإشعارات';
+
+  @override
+  String get notesNotification => '📝 الملاحظات';
+
+  @override
+  String get attendanceNotification => '📊 الغياب';
+
+  @override
+  String get birthdayNotification => '🎂 أعياد الميلاد';
+
+  @override
+  String get inactiveNotification => '⚠️ الطلاب غير النشطين';
+
+  @override
+  String get newUserNotification => '👤 تسجيلات جديدة';
+
+  @override
+  String get morningTime => 'صباحاً (8:00 ص)';
+
+  @override
+  String get eveningTime => 'مساءً (8:00 م)';
 }

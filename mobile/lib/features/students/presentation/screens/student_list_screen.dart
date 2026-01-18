@@ -502,7 +502,8 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(child: Text('Error: $err')),
+        error: (err, st) =>
+            Center(child: Text(context.l10n.errorGeneric(err.toString()))),
       ),
       // No bottom nav bar needed if actions are inline
     );
@@ -1352,7 +1353,11 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Student added successfully'),
+                                    content: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.successAddStudent,
+                                    ),
                                     backgroundColor: AppColors.goldPrimary,
                                   ),
                                 );
@@ -1364,7 +1369,11 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Error adding student: $e'),
+                                    content: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.errorAddStudent(e.toString()),
+                                    ),
                                     backgroundColor: AppColors.goldPrimary,
                                   ),
                                 );

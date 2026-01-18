@@ -985,6 +985,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Consecutive'**
   String get consecutiveAbsences;
+
+  /// No description provided for @successAddStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'Student added successfully'**
+  String get successAddStudent;
+
+  /// No description provided for @errorAddStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding student: {error}'**
+  String errorAddStudent(Object error);
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorGeneric(Object error);
+
+  /// No description provided for @errorWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not launch WhatsApp'**
+  String get errorWhatsApp;
+
+  /// No description provided for @errorSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving: {error}'**
+  String errorSave(Object error);
+
+  /// No description provided for @successSaveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved successfully'**
+  String get successSaveTemplate;
+
+  /// No description provided for @errorSaveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save template'**
+  String get errorSaveTemplate;
+
+  /// No description provided for @successResetData.
+  ///
+  /// In en, this message translates to:
+  /// **'Success: Local data reset and re-synced.'**
+  String get successResetData;
+
+  /// No description provided for @errorResetData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error resetting data: {error}'**
+  String errorResetData(Object error);
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Settings'**
+  String get notificationSettings;
+
+  /// No description provided for @inactiveAfterDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive after (days)'**
+  String get inactiveAfterDays;
+
+  /// No description provided for @daysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String daysUnit(Object count);
+
+  /// No description provided for @birthdayAlertTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday alert time'**
+  String get birthdayAlertTime;
+
+  /// No description provided for @addNewClassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Class'**
+  String get addNewClassTitle;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @manageClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Classes'**
+  String get manageClasses;
+
+  /// No description provided for @noClassesFoundAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes found. Add one!'**
+  String get noClassesFoundAdd;
+
+  /// No description provided for @noClassSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No class selected'**
+  String get noClassSelected;
+
+  /// No description provided for @userManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'User Management'**
+  String get userManagement;
+
+  /// No description provided for @noPendingUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending users'**
+  String get noPendingUsers;
+
+  /// No description provided for @activate.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get activate;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get noUsersFound;
+
+  /// No description provided for @errorUpdateUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update user'**
+  String get errorUpdateUser;
+
+  /// No description provided for @classManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Class Management'**
+  String get classManagement;
+
+  /// No description provided for @noClassesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No classes found'**
+  String get noClassesFound;
+
+  /// No description provided for @managersForClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Managers: {className}'**
+  String managersForClass(Object className);
+
+  /// No description provided for @removeManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Manager'**
+  String get removeManager;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @noEligibleUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No eligible users'**
+  String get noEligibleUsers;
+
+  /// No description provided for @allUsersAreManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'All eligible users are already managers'**
+  String get allUsersAreManagers;
+
+  /// No description provided for @accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Denied'**
+  String get accessDenied;
+
+  /// No description provided for @notEnoughData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data'**
+  String get notEnoughData;
+
+  /// No description provided for @genericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get genericError;
+
+  /// No description provided for @availablePlaceholders.
+  ///
+  /// In en, this message translates to:
+  /// **'Available placeholders:'**
+  String get availablePlaceholders;
+
+  /// No description provided for @preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get preview;
+
+  /// No description provided for @emptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'(Empty message)'**
+  String get emptyMessage;
+
+  /// No description provided for @whatsappMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello {firstname}, how are you?'**
+  String whatsappMessageHint(Object firstname);
+
+  /// No description provided for @notificationSettingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage push notifications'**
+  String get notificationSettingsDesc;
+
+  /// No description provided for @notesNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'📝 Notes'**
+  String get notesNotification;
+
+  /// No description provided for @attendanceNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'📊 Attendance'**
+  String get attendanceNotification;
+
+  /// No description provided for @birthdayNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'🎂 Birthday Reminders'**
+  String get birthdayNotification;
+
+  /// No description provided for @inactiveNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ Inactive Students'**
+  String get inactiveNotification;
+
+  /// No description provided for @newUserNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'👤 New Registrations'**
+  String get newUserNotification;
+
+  /// No description provided for @morningTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning (8:00 AM)'**
+  String get morningTime;
+
+  /// No description provided for @eveningTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening before (8:00 PM)'**
+  String get eveningTime;
 }
 
 class _AppLocalizationsDelegate

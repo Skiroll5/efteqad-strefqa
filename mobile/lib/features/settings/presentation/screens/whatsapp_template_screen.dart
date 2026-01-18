@@ -4,6 +4,8 @@ import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/features/auth/data/auth_controller.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import 'package:mobile/l10n/app_localizations.dart';
+
 class WhatsAppTemplateScreen extends ConsumerStatefulWidget {
   const WhatsAppTemplateScreen({super.key});
 
@@ -40,15 +42,15 @@ class _WhatsAppTemplateScreenState
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Template saved successfully'),
+          content: Text(AppLocalizations.of(context)!.successSaveTemplate),
           backgroundColor: AppColors.goldPrimary,
         ),
       );
       Navigator.pop(context);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to save template'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.errorSaveTemplate),
           backgroundColor: Colors.red,
         ),
       );
@@ -58,27 +60,29 @@ class _WhatsAppTemplateScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
+    // Preview logic remains same but localized if needed? Preview text is user input.
     final previewText = _controller.text
         .replaceAll('{firstname}', 'John')
         .replaceAll('{name}', 'John Doe')
         .replaceAll('{age}', '25');
 
     return Scaffold(
-      appBar: AppBar(title: const Text("WhatsApp Template")),
+      appBar: AppBar(title: Text(l10n!.whatsappTemplate)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Define the default message to send to students.",
+              l10n.whatsappTemplateDesc,
               style: TextStyle(
                 color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              "Available placeholders:",
+              l10n.availablePlaceholders,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : Colors.black,
@@ -98,7 +102,7 @@ class _WhatsAppTemplateScreenState
               controller: _controller,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: "Hello {firstname}, how are you?",
+                hintText: l10n.whatsappMessageHint('John'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -111,7 +115,7 @@ class _WhatsAppTemplateScreenState
             ),
             const SizedBox(height: 32),
             Text(
-              "Preview",
+              l10n.preview,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -132,7 +136,7 @@ class _WhatsAppTemplateScreenState
                 ],
               ),
               child: Text(
-                previewText.isEmpty ? "(Empty message)" : previewText,
+                previewText.isEmpty ? l10n.emptyMessage : previewText,
                 style: const TextStyle(color: Colors.black87, fontSize: 16),
               ),
             ).animate().fade().scale(),
@@ -158,9 +162,9 @@ class _WhatsAppTemplateScreenState
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        "Save Template",
-                        style: TextStyle(
+                    : Text(
+                        l10n.save,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

@@ -116,7 +116,75 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               // Insights Section
+              // Admin Panel Entry Point
               if (user?.role == 'ADMIN') ...[
+                PremiumCard(
+                  margin: EdgeInsets.zero,
+                  child: InkWell(
+                    onTap: () => context.push('/admin'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isDark
+                                    ? [
+                                        AppColors.goldPrimary,
+                                        AppColors.goldDark,
+                                      ]
+                                    : [
+                                        AppColors.goldPrimary,
+                                        AppColors.goldLight,
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.admin_panel_settings,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Admin Panel',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Manage users, classes & data',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: isDark
+                                ? AppColors.goldPrimary
+                                : AppColors.goldDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ).animate().fade().slideY(begin: -0.2, end: 0),
+                const SizedBox(height: 24),
+
                 const _InsightsSection(),
                 const SizedBox(height: 24),
               ],

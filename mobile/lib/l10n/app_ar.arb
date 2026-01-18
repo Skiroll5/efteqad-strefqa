@@ -154,5 +154,50 @@
   "discardChangesMessage": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد تجاهل هذه التغييرات؟",
   "discard": "تجاهل التغييرات",
   "lastSession": "آخر حصة",
-  "consecutiveAbsences": "متتالي"
+  "consecutiveAbsences": "متتالي",
+  "successAddStudent": "تم إضافة الطالب بنجاح",
+  "errorAddStudent": "خطأ في إضافة الطالب: {error}",
+  "errorGeneric": "خطأ: {error}",
+  "errorWhatsApp": "تعذر تشغيل واتساب",
+  "errorSave": "خطأ في الحفظ: {error}",
+  "successSaveTemplate": "تم حفظ القالب بنجاح",
+  "errorSaveTemplate": "فشل حفظ القالب",
+  "successResetData": "نجاح: تم إعادة تعيين البيانات المحلية وإعادة المزامنة.",
+  "errorResetData": "خطأ في إعادة تعيين البيانات: {error}",
+  "notificationSettings": "إعدادات الإشعارات",
+  "inactiveAfterDays": "غير نشط بعد (أيام)",
+  "daysUnit": "{count} يوم",
+  "birthdayAlertTime": "وقت تنبيه عيد الميلاد",
+  "addNewClassTitle": "إضافة فصل جديد",
+  "add": "إضافة",
+  "manageClasses": "إدارة الفصول",
+  "noClassesFoundAdd": "لا توجد فصول. أضف واحدًا!",
+  "noClassSelected": "لم يتم اختيار فصل",
+  "userManagement": "إدارة المستخدمين",
+  "noPendingUsers": "لا يوجد مستخدمين قيد الانتظار",
+  "activate": "تفعيل",
+  "noUsersFound": "لا يوجد مستخدمين",
+  "errorUpdateUser": "فشل تحديث بيانات المستخدم",
+  "classManagement": "إدارة الفصول",
+  "noClassesFound": "لا توجد فصول",
+  "managersForClass": "مديري: {className}",
+  "removeManager": "إزالة المدير",
+  "remove": "إزالة",
+  "noEligibleUsers": "لا يوجد مستخدمين مؤهلين",
+  "allUsersAreManagers": "جميع المستخدمين المؤهلين هم مديرون بالفعل",
+  "accessDenied": "تم رفض الوصول",
+  "notEnoughData": "لا توجد بيانات كافية",
+  "genericError": "خطأ",
+  "availablePlaceholders": "المتغيرات المتاحة:",
+  "preview": "معاينة",
+  "emptyMessage": "(رسالة فارغة)",
+  "whatsappMessageHint": "أهلاً {firstname}، كيف حالك؟",
+  "notificationSettingsDesc": "إدارة الإشعارات",
+  "notesNotification": "📝 الملاحظات",
+  "attendanceNotification": "📊 الغياب",
+  "birthdayNotification": "🎂 أعياد الميلاد",
+  "inactiveNotification": "⚠️ الطلاب غير النشطين",
+  "newUserNotification": "👤 تسجيلات جديدة",
+  "morningTime": "صباحاً (8:00 ص)",
+  "eveningTime": "مساءً (8:00 م)"
 }

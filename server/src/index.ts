@@ -6,6 +6,7 @@ import { Server } from 'socket.io';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import syncRoutes from './routes/syncRoutes';
+import classRoutes from './routes/classRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +30,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/sync', syncRoutes);
+app.use('/classes', classRoutes);
 
 app.get('/', (req, res) => {
     res.send('St. Refqa Efteqad API is running');

@@ -1,6 +1,15 @@
 
 import express from 'express';
-import { activateUser, listPendingUsers, updateProfile, saveStudentPreference, getStudentPreference } from '../controllers/userController';
+import {
+    activateUser,
+    listPendingUsers,
+    listAllUsers,
+    enableUser,
+    disableUser,
+    updateProfile,
+    saveStudentPreference,
+    getStudentPreference
+} from '../controllers/userController';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -13,7 +22,10 @@ router.get('/me/students/:studentId/preference', authenticateToken, getStudentPr
 // Admin only routes
 router.use(authenticateToken, requireAdmin);
 
-router.post('/activate', activateUser);
+router.get('/', listAllUsers);
 router.get('/pending', listPendingUsers);
+router.post('/activate', activateUser);
+router.post('/:id/enable', enableUser);
+router.post('/:id/disable', disableUser);
 
 export default router;

@@ -27,6 +27,10 @@ model User {
 
   notes     Note[]
   studentPreferences UserStudentPreference[]
+  managedClasses ClassManager[]
+
+  // FCM token for push notifications
+  fcmToken  String?
 
   @@map("users")
 }
@@ -104,6 +108,7 @@ model Class {
 
   // Relations
   sessions  AttendanceSession[]
+  managers  ClassManager[]
 
   @@map("classes")
 }
@@ -137,4 +142,18 @@ model UserStudentPreference {
 
   @@id([userId, studentId])
   @@map("user_student_preferences")
+}
+
+model ClassManager {
+  id        String   @id @default(uuid())
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([classId, userId])
+  @@map("class_managers")
 }

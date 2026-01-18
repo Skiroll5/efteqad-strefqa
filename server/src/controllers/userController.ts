@@ -32,6 +32,66 @@ export const listPendingUsers = async (req: Request, res: Response) => {
     }
 };
 
+export const listAllUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await prisma.user.findMany({
+            where: { isDeleted: false },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                isActive: true,
+                createdAt: true,
+                // TODO: uncomment after running: npx prisma generate
+                // managedClasses: {
+                //     select: {
+                //         class: {
+                //             select: { id: true, name: true }
+                //         }
+                //     }
+                // }
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+export const enableUser = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        if (!id) return res.status(400).json({ message: 'User ID required' });
+
+        const user = await prisma.user.update({
+            where: { id },
+            data: { isActive: true },
+        });
+
+        res.json({ message: 'User enabled', user: { id: user.id, isActive: user.isActive } });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+export const disableUser = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        if (!id) return res.status(400).json({ message: 'User ID required' });
+
+        const user = await prisma.user.update({
+            where: { id },
+            data: { isActive: false },
+        });
+
+        res.json({ message: 'User disabled', user: { id: user.id, isActive: user.isActive } });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
 export const updateProfile = async (req: Request, res: Response) => {
     try {
         // @ts-ignore

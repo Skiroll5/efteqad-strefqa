@@ -113,10 +113,6 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
       ),
       body: studentsAsync.when(
         data: (students) {
-          if (students.isEmpty) {
-            return _buildEmptyState(context, isDark, theme);
-          }
-
           final sortState = ref.watch(studentSortProvider);
           final statsMap = attendanceStatsAsync.value ?? {};
           final sessions = sessionsAsync.value ?? [];
@@ -441,6 +437,48 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     );
                   }
 
+                  // Show empty state when no students at all
+                  if (students.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.people_outline,
+                                size: 64,
+                                color: isDark
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No students yet',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap the + button above to add students',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isDark
+                                      ? Colors.grey.shade500
+                                      : Colors.grey.shade500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
                   return SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final student = displayedStudents[index];
@@ -467,28 +505,6 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
         error: (err, st) => Center(child: Text('Error: $err')),
       ),
       // No bottom nav bar needed if actions are inline
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context, bool isDark, ThemeData theme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.people_outline,
-            size: 80,
-            color: isDark
-                ? AppColors.textSecondaryDark
-                : AppColors.textSecondaryLight,
-          ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
-          const SizedBox(height: 16),
-          Text(
-            'No students yet',
-            style: theme.textTheme.titleLarge,
-          ).animate().fade(delay: 200.ms),
-        ],
-      ),
     );
   }
 

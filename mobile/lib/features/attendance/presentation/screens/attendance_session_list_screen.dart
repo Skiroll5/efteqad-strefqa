@@ -32,11 +32,18 @@ class _AttendanceSessionListScreenState
   @override
   Widget build(BuildContext context) {
     final sessionsAsync = ref.watch(attendanceSessionsProvider);
+    final studentsAsync = ref.watch(classStudentsProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final selectedClassId = ref.watch(selectedClassIdProvider);
     final classesAsync = ref.watch(classesStreamProvider);
     final l10n = AppLocalizations.of(context);
+
+    // Check if class has students
+    final hasStudents = studentsAsync.maybeWhen(
+      data: (students) => students.isNotEmpty,
+      orElse: () => false,
+    );
 
     // Get class name for title
     String? className;
@@ -88,7 +95,9 @@ class _AttendanceSessionListScreenState
                         ).animate().fade(delay: 200.ms),
                         const SizedBox(height: 8),
                         Text(
-                          'Tap below to take attendance',
+                          hasStudents
+                              ? 'Tap below to take attendance'
+                              : 'Add students first to take attendance',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: isDark
                                 ? AppColors.textSecondaryDark
@@ -148,10 +157,14 @@ class _AttendanceSessionListScreenState
               ),
             ),
             child: PremiumButton(
-              label: l10n?.takeAttendance ?? 'Take Attendance',
-              icon: Icons.add,
+              label: hasStudents
+                  ? (l10n?.takeAttendance ?? 'Take Attendance')
+                  : 'Add students first',
+              icon: hasStudents ? Icons.add : Icons.warning_amber_rounded,
               isFullWidth: true,
-              onPressed: () => context.push('/attendance/new'),
+              onPressed: hasStudents
+                  ? () => context.push('/attendance/new')
+                  : null,
             ),
           ),
         ],

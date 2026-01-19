@@ -801,4 +801,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pending => 'قيد الانتظار';
+
+  @override
+  String get events => 'الأحداث';
+
+  @override
+  String get alerts => 'التنبيهات';
+
+  @override
+  String get configuration => 'إعدادات';
+
+  @override
+  String get notesNotificationDesc => 'تلقي إشعار عند إضافة ملاحظة';
 }

@@ -380,5 +380,9 @@
   "classManagers": "Managers",
   "disabled": "Disabled",
   "active": "Active",
-  "pending": "Pending"
+  "pending": "Pending",
+  "events": "Events",
+  "alerts": "Alerts",
+  "configuration": "Configuration",
+  "notesNotificationDesc": "Get notified when a note is added"
 }

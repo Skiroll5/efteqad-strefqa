@@ -282,5 +282,9 @@
   "classManagers": "المديرون",
   "disabled": "معطّل",
   "active": "نشط",
-  "pending": "قيد الانتظار"
+  "pending": "قيد الانتظار",
+  "events": "الأحداث",
+  "alerts": "التنبيهات",
+  "configuration": "إعدادات",
+  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة"
 }

@@ -807,4 +807,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pending => 'Pending';
+
+  @override
+  String get events => 'Events';
+
+  @override
+  String get alerts => 'Alerts';
+
+  @override
+  String get configuration => 'Configuration';
+
+  @override
+  String get notesNotificationDesc => 'Get notified when a note is added';
 }

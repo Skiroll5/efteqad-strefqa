@@ -1591,6 +1591,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pending'**
   String get pending;
+
+  /// No description provided for @events.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get events;
+
+  /// No description provided for @alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get alerts;
+
+  /// No description provided for @configuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration'**
+  String get configuration;
+
+  /// No description provided for @notesNotificationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when a note is added'**
+  String get notesNotificationDesc;
 }
 
 class _AppLocalizationsDelegate

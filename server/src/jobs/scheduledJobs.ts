@@ -116,41 +116,33 @@ const checkInactiveStudents = async () => {
             // "Inactive" usually means "Attended recently? No."
 
             // We want students where NOT EXISTS (attendance newer than threshold)
-            // Using queryRaw for complex condition or findMany where...
+            // Optimized to avoid N+1 query problem
 
-            // Let's find students in managed classes
-            const students = await prisma.student.findMany({
+            const inactiveStudents = await prisma.student.findMany({
                 where: {
                     classId: { in: classIds },
                     isDeleted: false,
-                    // Condition: No attendance session date > thresholdDate
-                    // This is hard to express in single Prisma query without deep relations and verification
+                    attendance: {
+                        none: {
+                            session: {
+                                date: { gte: thresholdDate }
+                            }
+                        }
+                    }
                 },
                 select: { id: true, name: true }
             });
 
-            for (const student of students) {
-                // Check last attendance
-                const lastAttendance = await prisma.attendanceRecord.findFirst({
-                    where: {
-                        studentId: student.id,
-                        session: {
-                            date: { gte: thresholdDate }
-                        }
-                    }
-                });
+            for (const student of inactiveStudents) {
+                // Check if student is new? If created recently, maybe not inactive?
+                // Skipping check for now, assume strict "no attendance in X days"
 
-                if (!lastAttendance) {
-                    // Check if student is new? If created recently, maybe not inactive?
-                    // Skipping check for now, assume strict "no attendance in X days"
-
-                    await notifyUser(
-                        user.id,
-                        '⚠️ Check-in Needed',
-                        `${student.name} hasn't attended in ${thresholdDays} days`,
-                        { type: 'inactive', studentId: student.id }
-                    );
-                }
+                await notifyUser(
+                    user.id,
+                    '⚠️ Check-in Needed',
+                    `${student.name} hasn't attended in ${thresholdDays} days`,
+                    { type: 'inactive', studentId: student.id }
+                );
             }
         }
     } catch (error) {

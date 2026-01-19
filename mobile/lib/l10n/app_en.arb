@@ -41,6 +41,7 @@
   "call": "Call",
   "phone": "Phone",
   "noPhone": "No Phone",
+  "phoneNumberCopied": "Phone number copied",
   "address": "Address",
   "birthdate": "Birthdate",
   "visitationNotes": "Notes",
@@ -384,6 +385,5 @@
   "events": "Events",
   "alerts": "Alerts",
   "configuration": "Configuration",
-  "notesNotificationDesc": "Get notified when a note is added",
-  "phoneNumberCopied": "Phone number copied"
+  "notesNotificationDesc": "Get notified when a note is added"
 }

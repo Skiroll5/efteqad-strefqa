@@ -36,6 +36,7 @@
   "call": "اتصال",
   "phone": "الهاتف",
   "noPhone": "لا يوجد هاتف",
+  "phoneNumberCopied": "تم نسخ رقم الهاتف",
   "address": "العنوان",
   "birthdate": "تاريخ الميلاد",
   "visitationNotes": "الملاحظات",
@@ -286,6 +287,5 @@
   "events": "الأحداث",
   "alerts": "التنبيهات",
   "configuration": "إعدادات",
-  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة",
-  "phoneNumberCopied": "تم نسخ رقم الهاتف"
+  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة"
 }

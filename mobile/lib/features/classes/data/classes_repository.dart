@@ -13,11 +13,47 @@ class ClassesRepository {
 
   ClassesRepository(this._db, this._dio);
 
+  /// Watch all classes (for admins)
   Stream<List<ClassesData>> watchAllClasses() {
     return (_db.select(_db.classes)
           ..where((t) => t.isDeleted.equals(false))
           ..orderBy([(t) => OrderingTerm(expression: t.name)]))
         .watch();
+  }
+
+  /// Watch classes assigned to a specific user via ClassManagers
+  Stream<List<ClassesData>> watchClassesForUser(String userId) {
+    // Join classes with classManagers to get only assigned classes
+    final query =
+        _db.select(_db.classes).join([
+            innerJoin(
+              _db.classManagers,
+              _db.classManagers.classId.equalsExp(_db.classes.id),
+            ),
+          ])
+          ..where(_db.classes.isDeleted.equals(false))
+          ..where(_db.classManagers.userId.equals(userId))
+          ..orderBy([OrderingTerm(expression: _db.classes.name)]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) => row.readTable(_db.classes)).toList();
+    });
+  }
+
+  /// Get all managers for a specific class
+  Future<List<User>> getManagersForClass(String classId) async {
+    final query =
+        _db.select(_db.users).join([
+            innerJoin(
+              _db.classManagers,
+              _db.classManagers.userId.equalsExp(_db.users.id),
+            ),
+          ])
+          ..where(_db.classManagers.classId.equals(classId))
+          ..where(_db.users.isDeleted.equals(false));
+
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(_db.users)).toList();
   }
 
   Future<void> addClass(String name, String? grade) async {

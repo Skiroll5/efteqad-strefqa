@@ -14,7 +14,6 @@ import '../../../../core/components/global_at_risk_widget.dart';
 import '../../../statistics/data/statistics_repository.dart';
 import '../../../students/data/students_controller.dart';
 import '../../../sync/data/sync_service.dart';
-import 'package:mobile/core/database/app_database.dart';
 import 'package:mobile/features/home/data/home_insights_repository.dart';
 import '../../../classes/presentation/widgets/class_list_item.dart';
 import '../../../classes/presentation/widgets/class_dialogs.dart';
@@ -25,7 +24,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).asData?.value;
-    final classesAsync = ref.watch(classesStreamProvider);
+    // Use userClassesStreamProvider which returns classes based on user role
+    final classesAsync = ref.watch(userClassesStreamProvider);
     // Ensure SyncService is alive and syncing
     ref.watch(syncServiceProvider);
 
@@ -75,14 +75,12 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: classesAsync.when(
-        data: (allClasses) {
-          // Filter classes based on user role
-          final classes = user?.role == 'ADMIN'
-              ? allClasses
-              : allClasses.where((c) => c.id == user?.classId).toList();
+        data: (classes) {
+          // The userClassesStreamProvider already filters based on user role
+          // Admin sees all, Servant sees only assigned classes
 
           if (classes.isEmpty && user?.role != 'ADMIN') {
-            // Only show empty state if not admin (admin might have dashboard but no classes yet)
+            // Non-admin with no assigned classes
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -99,16 +97,24 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    user?.role == 'ADMIN'
-                        ? (l10n?.noClassesYet ?? 'No classes yet')
-                        : (l10n?.noClassAssigned ?? 'No class assigned'),
+                    l10n?.noClassAssigned ?? 'No class assigned',
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: isDark
                           ? AppColors.textSecondaryDark
                           : AppColors.textSecondaryLight,
                     ),
                   ).animate().fade(delay: 200.ms),
-                  if (user?.role == 'ADMIN') ...[const SizedBox(height: 16)],
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n?.contactAdminForActivation ??
+                        'Please contact the administrator to be assigned to a class',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    textAlign: TextAlign.center,
+                  ).animate().fade(delay: 300.ms),
                 ],
               ),
             );

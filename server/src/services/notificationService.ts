@@ -1,10 +1,11 @@
 
 import admin from 'firebase-admin';
 import path from 'path';
+import fs from 'fs';
 
 let isInitialized = false;
 
-export const initFirebase = () => {
+export const initFirebase = async () => {
     try {
         // Check if service account file exists, or use environment variables
         // For this implementation, we'll assume a standard path or environment setup
@@ -18,9 +19,37 @@ export const initFirebase = () => {
             // Note: In production, usually handled by Env vars.
             // We will wrap this in a try-catch to avoid crashing if not set up yet
 
-            if (process.env.GOOGLE_APPLICATION_CREDENTIALS || require('fs').existsSync(serviceAccountPath)) {
+            let fileContent: string | null = null;
+            try {
+                fileContent = await fs.promises.readFile(serviceAccountPath, 'utf-8');
+            } catch (e) {
+                // File not found or not readable
+            }
+
+            if (process.env.GOOGLE_APPLICATION_CREDENTIALS || fileContent) {
+                let credential;
+
+                if (fileContent) {
+                    try {
+                        const serviceAccount = JSON.parse(fileContent);
+                        credential = admin.credential.cert(serviceAccount);
+                    } catch (parseError) {
+                         // If JSON parse fails, but we are using ENV var, maybe let standard cert(path) try?
+                         // It will likely fail too if file is invalid JSON, but to be safe/consistent:
+                         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+                             credential = admin.credential.cert(serviceAccountPath);
+                         } else {
+                             throw parseError;
+                         }
+                    }
+                } else {
+                     // Env var is set, but we couldn't read file (maybe path is weird, or just not a file path but handled by lib?)
+                     // Although admin.credential.cert(path) expects a file path.
+                     credential = admin.credential.cert(serviceAccountPath);
+                }
+
                 admin.initializeApp({
-                    credential: admin.credential.cert(serviceAccountPath),
+                    credential,
                 });
                 isInitialized = true;
                 console.log('Firebase Admin initialized successfully');

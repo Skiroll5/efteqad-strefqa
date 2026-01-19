@@ -244,7 +244,7 @@
   "errorResetData": "خطأ في إعادة تعيين البيانات: {error}",
   "noEligibleUsers": "لا يوجد مستخدمين مؤهلين",
   "allUsersAreManagers": "جميع المستخدمين المؤهلين هم مديرون بالفعل",
-  "managersForClass": "مديرو: {className}",
+  "managersForClass": "مديرين {className}",
   "resetAllData": "إعادة تعيين جميع البيانات",
   "resetAllDataDesc": "حذف جميع الجلسات والسجلات",
   "resetDataTitle": "إعادة تعيين البيانات؟",
@@ -287,5 +287,17 @@
   "events": "الأحداث",
   "alerts": "التنبيهات",
   "configuration": "إعدادات",
-  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة"
+  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة",
+  "manage": "إدارة",
+  "good": "جيد",
+  "average": "متوسط",
+  "poor": "ضعيف",
+  "manageClassManagers": "إدارة المديرين",
+  "classManagersDescription": "مديرو {className}",
+  "managerRemoved": "تم إزالة المدير",
+  "enabled": "مُفعّل",
+  "accountPendingActivationDesc": "تم إنشاء حسابك بنجاح ولكنه في انتظار موافقة المسؤول. سيتم إشعارك عند تفعيل حسابك.",
+  "removingManager": "جاري إزالة {name}...",
+  "addingManager": "جاري إضافة {name}...",
+  "availableUsers": "المستخدمون المتاحون"
 }

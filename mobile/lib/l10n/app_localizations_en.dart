@@ -852,4 +852,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountPendingActivationDesc =>
       'Your account has been created successfully but is waiting for administrator approval. You will be notified once your account is active.';
+
+  @override
+  String removingManager(Object name) {
+    return 'Removing $name...';
+  }
+
+  @override
+  String addingManager(Object name) {
+    return 'Adding $name...';
+  }
+
+  @override
+  String get availableUsers => 'Available Users';
 }

@@ -37,6 +37,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen>
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: Text(l10n.userManagement),
         bottom: TabBar(
           controller: _tabController,
@@ -508,21 +509,79 @@ class _SwitchAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(4),
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () => onChanged(!value),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12)),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: Colors.green,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          // Custom Toggle Switch
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            width: 52,
+            height: 28,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: value
+                  ? LinearGradient(
+                      colors: [Colors.green.shade400, Colors.green.shade600],
+                    )
+                  : null,
+              color: value
+                  ? null
+                  : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+              boxShadow: [
+                BoxShadow(
+                  color: value
+                      ? Colors.green.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    value ? Icons.check : Icons.close,
+                    size: 14,
+                    color: value ? Colors.green.shade600 : Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Label
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: value
+                  ? (isDark ? Colors.green.shade300 : Colors.green.shade700)
+                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+            ),
           ),
         ],
       ),

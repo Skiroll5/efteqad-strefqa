@@ -4,7 +4,7 @@ import 'package:mobile/core/components/premium_card.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import 'package:mobile/features/admin/data/admin_controller.dart';
-// import 'package:mobile/features/classes/presentation/widgets/class_list_item.dart'; // Removed unused import
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ClassManagerAssignmentScreen extends ConsumerStatefulWidget {
   final String classId;
@@ -27,17 +27,14 @@ class _ClassManagerAssignmentScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final managersAsync = ref.watch(classManagersProvider(widget.classId));
+    final allUsersAsync = ref.watch(allUsersProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.manageClassManagers),
-            Text(widget.className, style: const TextStyle(fontSize: 14)),
-          ],
-        ),
+        centerTitle: false,
+        title: Text(l10n.managersForClass(widget.className)),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -54,344 +51,436 @@ class _ClassManagerAssignmentScreenState
           error: (e, st) =>
               Center(child: Text(l10n.errorGeneric(e.toString()))),
           data: (managers) {
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _HeaderSection(
-                  className: widget.className,
-                  managerCount: managers.length,
-                  l10n: l10n,
-                  isDark: isDark,
-                ),
-                const SizedBox(height: 24),
+            return allUsersAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) =>
+                  Center(child: Text(l10n.errorGeneric(e.toString()))),
+              data: (allUsers) {
+                // Server returns ClassManager with nested user, extract userId
+                final managerIds = managers
+                    .map((m) => m['userId'] ?? m['id'])
+                    .toSet();
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n.currentManagers,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    FilledButton.icon(
-                      onPressed: () => _showAddManagerDialog(
-                        context,
-                        ref,
-                        widget.classId,
-                        l10n,
-                      ),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: Text(l10n.addManager),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.goldPrimary,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+                // 1. Current Managers
+                final currentManagers = managers;
 
-                if (managers.isEmpty)
-                  _EmptyState(l10n: l10n, isDark: isDark)
-                else
-                  ...managers.map(
-                    (manager) => _ManagerCard(
-                      manager: manager,
-                      classId: widget.classId,
-                      l10n: l10n,
-                      isDark: isDark,
-                    ),
+                // 2. Available Users (Enabled, Not Deleted, Not Admin, Not already manager)
+                final availableUsers = allUsers.where((u) {
+                  return !managerIds.contains(u['id']) &&
+                      u['role'] != 'ADMIN' &&
+                      u['isEnabled'] == true &&
+                      u['isDeleted'] != true;
+                }).toList();
+
+                // Sort available users by name
+                availableUsers.sort((a, b) {
+                  final nameA = (a['name'] as String?) ?? '';
+                  final nameB = (b['name'] as String?) ?? '';
+                  return nameA.compareTo(nameB);
+                });
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(classManagersProvider(widget.classId));
+                    ref.invalidate(allUsersProvider);
+                  },
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      // Current Managers Section
+                      _SectionHeader(
+                        title: l10n.currentManagers,
+                        icon: Icons.manage_accounts,
+                        isDark: isDark,
+                        count: currentManagers.length,
+                      ),
+                      const SizedBox(height: 12),
+                      if (currentManagers.isEmpty)
+                        _EmptySection(
+                          text: l10n.noManagersAssigned,
+                          icon: Icons.person_off_outlined,
+                          isDark: isDark,
+                        )
+                      else
+                        ...currentManagers.asMap().entries.map((entry) {
+                          return _ManagerCard(
+                            user: entry.value,
+                            isManager: true,
+                            classId: widget.classId,
+                            l10n: l10n,
+                            isDark: isDark,
+                            index: entry.key,
+                          );
+                        }),
+
+                      const SizedBox(height: 32),
+
+                      // Separator
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.transparent,
+                                    isDark ? Colors.white24 : Colors.black12,
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Icon(
+                              Icons.add_circle_outline,
+                              color: isDark ? Colors.white38 : Colors.black26,
+                              size: 20,
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    isDark ? Colors.white24 : Colors.black12,
+                                    Colors.transparent,
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Available Users Section
+                      _SectionHeader(
+                        title: l10n.availableUsers,
+                        icon: Icons.person_add_alt_1,
+                        isDark: isDark,
+                        count: availableUsers.length,
+                      ),
+                      const SizedBox(height: 12),
+                      if (availableUsers.isEmpty)
+                        _EmptySection(
+                          text: l10n.noUsersFound,
+                          icon: Icons.people_outline,
+                          isDark: isDark,
+                        )
+                      else
+                        ...availableUsers.asMap().entries.map((entry) {
+                          return _ManagerCard(
+                            user: entry.value,
+                            isManager: false,
+                            classId: widget.classId,
+                            l10n: l10n,
+                            isDark: isDark,
+                            index: entry.key,
+                          );
+                        }),
+                      const SizedBox(height: 40),
+                    ],
                   ),
-              ],
+                );
+              },
             );
           },
         ),
       ),
     );
   }
+}
 
-  Future<void> _showAddManagerDialog(
-    BuildContext context,
-    WidgetRef ref,
-    String classId,
-    AppLocalizations l10n,
-  ) async {
-    showDialog(
-      context: context,
-      builder: (ctx) => _AddManagerDialog(classId: classId),
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool isDark;
+  final int count;
+
+  const _SectionHeader({
+    required this.title,
+    required this.icon,
+    required this.isDark,
+    required this.count,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.goldPrimary.withOpacity(0.15)
+                : AppColors.goldPrimary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.goldPrimary, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white70 : Colors.black54,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _HeaderSection extends StatelessWidget {
-  final String className;
-  final int managerCount;
-  final AppLocalizations l10n;
+class _EmptySection extends StatelessWidget {
+  final String text;
+  final IconData icon;
   final bool isDark;
 
-  const _HeaderSection({
-    required this.className,
-    required this.managerCount,
-    required this.l10n,
+  const _EmptySection({
+    required this.text,
+    required this.icon,
     required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    return PremiumCard(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(
-              Icons.manage_accounts,
-              size: 48,
-              color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.classManagersDescription(className),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withOpacity(0.03)
+            : Colors.black.withOpacity(0.02),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
         ),
       ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final AppLocalizations l10n;
-  final bool isDark;
-
-  const _EmptyState({required this.l10n, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          children: [
-            Icon(
-              Icons.people_outline,
-              size: 64,
-              color: isDark ? Colors.white24 : Colors.black12,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 40, color: isDark ? Colors.white24 : Colors.black26),
+          const SizedBox(height: 12),
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isDark ? Colors.white54 : Colors.black45,
+              fontStyle: FontStyle.italic,
             ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.noManagersAssigned,
-              style: TextStyle(
-                fontSize: 16,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _ManagerCard extends ConsumerWidget {
-  final Map<String, dynamic> manager;
+  final Map<String, dynamic> user;
+  final bool isManager;
   final String classId;
   final AppLocalizations l10n;
   final bool isDark;
+  final int index;
 
   const _ManagerCard({
-    required this.manager,
+    required this.user,
+    required this.isManager,
     required this.classId,
     required this.l10n,
     required this.isDark,
+    required this.index,
   });
+
+  // Handle both flat user structure and nested user structure from ClassManager
+  Map<String, dynamic>? get _userData =>
+      user['user'] as Map<String, dynamic>? ?? user;
+  String get userName => (_userData?['name'] as String?) ?? l10n.unknown;
+  String get userEmail => (_userData?['email'] as String?) ?? '';
+  String get userId =>
+      (user['userId'] as String?) ?? (_userData?['id'] as String?) ?? '';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: PremiumCard(
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: AppColors.goldPrimary.withValues(alpha: 0.2),
-            child: Text(
-              ((manager['name'] as String?) ?? '?')
-                  .substring(0, 1)
-                  .toUpperCase(),
-              style: const TextStyle(
-                color: AppColors.goldPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          title: Text(
-            manager['name'] ?? 'Unknown',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(manager['email'] ?? ''),
-          trailing: IconButton(
-            icon: const Icon(
-              Icons.remove_circle_outline,
-              color: AppColors.redPrimary,
-            ),
-            onPressed: () => _confirmRemove(context, ref),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _confirmRemove(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.removeManagerTitle),
-        content: Text(l10n.removeManagerConfirm(manager['name'] ?? 'Unknown')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.redPrimary,
-            ),
-            child: Text(l10n.remove),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      final success = await ref
-          .read(adminControllerProvider.notifier)
-          .removeClassManager(classId, manager['id']);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? l10n.managerRemoved : l10n.errorGeneric('Failed'),
-            ),
-            backgroundColor: success ? Colors.green : Colors.red,
-          ),
-        );
-      }
-    }
-  }
-}
-
-class _AddManagerDialog extends ConsumerStatefulWidget {
-  final String classId;
-
-  const _AddManagerDialog({required this.classId});
-
-  @override
-  ConsumerState<_AddManagerDialog> createState() => _AddManagerDialogState();
-}
-
-class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
-  String? _selectedUserId;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final allUsersAsync = ref.watch(allUsersProvider);
-    final currentManagersAsync = ref.watch(
-      classManagersProvider(widget.classId),
-    );
-
-    return AlertDialog(
-      title: Text(l10n.addManager),
-      content: allUsersAsync.when(
-        data: (allUsers) {
-          return currentManagersAsync.when(
-            data: (managers) {
-              final managerIds = managers.map((m) => m['id']).toSet();
-              // Filter out admins and existing managers
-              final eligibleUsers = allUsers
-                  .where(
-                    (u) =>
-                        !managerIds.contains(u['id']) &&
-                        u['role'] != 'ADMIN' &&
-                        u['isActive'] == true &&
-                        u['isDeleted'] == false,
-                  )
-                  .toList();
-
-              if (eligibleUsers.isEmpty) {
-                return Text(l10n.allUsersAreManagers);
-              }
-
-              return DropdownButtonFormField<String>(
-                initialValue: _selectedUserId,
-                hint: Text(l10n.selectClassToManage), // "Select..."
-                isExpanded: true,
-                items: eligibleUsers.map((user) {
-                  return DropdownMenuItem(
-                    value: user['id'] as String,
-                    child: Text(user['name']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedUserId = value;
-                  });
-                },
-              );
-            },
-            loading: () => const SizedBox(
-              height: 50,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, _) => Text(l10n.errorGeneric(e.toString())),
-          );
-        },
-        loading: () => const SizedBox(
-          height: 50,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (e, _) => Text(l10n.errorGeneric(e.toString())),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(
-          onPressed: _selectedUserId == null
-              ? null
-              : () async {
-                  final success = await ref
-                      .read(adminControllerProvider.notifier)
-                      .assignClassManager(widget.classId, _selectedUserId!);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          success
-                              ? l10n.managerAdded('') // Placeholder
-                              : l10n.managerAddFailed,
+      padding: const EdgeInsets.only(bottom: 10),
+      child:
+          PremiumCard(
+                color: isManager
+                    ? (isDark
+                          ? Colors.green.withOpacity(0.08)
+                          : Colors.green.withOpacity(0.05))
+                    : null,
+                child: InkWell(
+                  onTap: () => _handleTap(context, ref),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        // Avatar
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: isManager
+                                ? AppColors.goldGradient
+                                : LinearGradient(
+                                    colors: isDark
+                                        ? [
+                                            Colors.grey.shade700,
+                                            Colors.grey.shade800,
+                                          ]
+                                        : [
+                                            Colors.grey.shade200,
+                                            Colors.grey.shade300,
+                                          ],
+                                  ),
+                            shape: BoxShape.circle,
+                            boxShadow: isManager
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.goldPrimary.withOpacity(
+                                        0.3,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              userName.isNotEmpty
+                                  ? userName.substring(0, 1).toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                color: isManager
+                                    ? Colors.white
+                                    : (isDark
+                                          ? Colors.white70
+                                          : Colors.black54),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
                         ),
-                        backgroundColor: success ? Colors.green : Colors.red,
-                      ),
-                    );
-                  }
-                },
-          style: FilledButton.styleFrom(backgroundColor: AppColors.goldPrimary),
-          child: Text(l10n.add),
-        ),
-      ],
+                        const SizedBox(width: 14),
+                        // User Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimaryLight,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (userEmail.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  userEmail,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Action Button
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isManager
+                                ? AppColors.redPrimary.withOpacity(0.1)
+                                : AppColors.goldPrimary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isManager
+                                ? Icons.person_remove_rounded
+                                : Icons.person_add_rounded,
+                            color: isManager
+                                ? AppColors.redPrimary
+                                : AppColors.goldPrimary,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+              .animate()
+              .fade(duration: const Duration(milliseconds: 300))
+              .slideX(begin: 0.05, delay: Duration(milliseconds: index * 40)),
     );
+  }
+
+  Future<void> _handleTap(BuildContext context, WidgetRef ref) async {
+    final displayName = userName;
+
+    // Show quick feedback
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isManager
+              ? l10n.removingManager(displayName)
+              : l10n.addingManager(displayName),
+        ),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+
+    if (isManager) {
+      await ref
+          .read(adminControllerProvider.notifier)
+          .removeClassManager(classId, userId);
+    } else {
+      await ref
+          .read(adminControllerProvider.notifier)
+          .assignClassManager(classId, userId);
+    }
   }
 }

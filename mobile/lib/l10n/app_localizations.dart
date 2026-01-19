@@ -1675,6 +1675,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your account has been created successfully but is waiting for administrator approval. You will be notified once your account is active.'**
   String get accountPendingActivationDesc;
+
+  /// No description provided for @removingManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Removing {name}...'**
+  String removingManager(Object name);
+
+  /// No description provided for @addingManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding {name}...'**
+  String addingManager(Object name);
+
+  /// No description provided for @availableUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Users'**
+  String get availableUsers;
 }
 
 class _AppLocalizationsDelegate

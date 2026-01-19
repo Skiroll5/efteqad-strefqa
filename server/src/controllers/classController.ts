@@ -150,8 +150,10 @@ export const getClassManagers = async (req: Request, res: Response) => {
             },
         });
 
-        // Flatten the response to return the users directly
-        const flattenedManagers = managers.map(m => m.user);
+        // Flatten the response to return the users directly, filtering out null users
+        const flattenedManagers = managers
+            .filter(m => m.user !== null)
+            .map(m => m.user);
 
         res.json(flattenedManagers);
     } catch (error) {

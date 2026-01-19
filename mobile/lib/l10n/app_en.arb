@@ -243,7 +243,7 @@
   "errorUpdateUser": "Failed to update user",
   "classManagement": "Class Management",
   "noClassesFound": "No classes found",
-  "managersForClass": "Managers: {className}",
+  "managersForClass": "Managers for {className}",
   "@managersForClass": {
     "placeholders": {
       "className": {}
@@ -400,5 +400,18 @@
   },
   "managerRemoved": "Manager removed",
   "enabled": "Enabled",
-  "accountPendingActivationDesc": "Your account has been created successfully but is waiting for administrator approval. You will be notified once your account is active."
+  "accountPendingActivationDesc": "Your account has been created successfully but is waiting for administrator approval. You will be notified once your account is active.",
+  "removingManager": "Removing {name}...",
+  "@removingManager": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "addingManager": "Adding {name}...",
+  "@addingManager": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "availableUsers": "Available Users"
 }

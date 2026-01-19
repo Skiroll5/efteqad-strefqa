@@ -100,19 +100,53 @@ class _ClassesSection extends ConsumerWidget {
                 color: isDark ? Colors.white : AppColors.textPrimaryLight,
               ),
             ),
-            IconButton.filled(
-              onPressed: () async {
-                await showAddClassDialog(context, ref);
-                ref.invalidate(adminClassesProvider);
-              },
-              icon: const Icon(Icons.add),
-              style: IconButton.styleFrom(
-                backgroundColor: isDark
-                    ? AppColors.goldPrimary
-                    : AppColors.goldPrimary,
-                foregroundColor: isDark ? Colors.black : Colors.white,
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  await showAddClassDialog(context, ref);
+                  ref.invalidate(adminClassesProvider);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.goldPrimary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.goldPrimary.withOpacity(0.2)
+                          : AppColors.goldPrimary.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.add,
+                        size: 18,
+                        color: isDark
+                            ? AppColors.goldPrimary
+                            : AppColors.goldDark,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n?.createClass ?? 'Create Class',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.goldDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              tooltip: l10n?.addClass ?? 'Add Class',
             ),
           ],
         ),
@@ -329,6 +363,7 @@ class _UsersSection extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final user = users[index];
                 final isActive = user['isActive'] == true;
+                final isEnabled = user['isEnabled'] == true;
                 final isAdmin = user['role'] == 'ADMIN';
 
                 return Card(
@@ -337,14 +372,14 @@ class _UsersSection extends ConsumerWidget {
                     leading: CircleAvatar(
                       backgroundColor: isAdmin
                           ? Colors.amber.shade100
-                          : (isActive
+                          : (isEnabled
                                 ? Colors.green.shade100
                                 : Colors.grey.shade200),
                       child: Icon(
                         isAdmin ? Icons.admin_panel_settings : Icons.person,
                         color: isAdmin
                             ? Colors.amber.shade700
-                            : (isActive ? Colors.green : Colors.grey),
+                            : (isEnabled ? Colors.green : Colors.grey),
                         size: 20,
                       ),
                     ),
@@ -376,13 +411,34 @@ class _UsersSection extends ConsumerWidget {
                             ),
                           ),
                         ],
+                        if (!isActive && !isAdmin) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade100,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              l10n?.pending ?? 'Pending',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.orange.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     subtitle: Text(user['email'] ?? ''),
                     trailing: isAdmin
                         ? null // Don't allow modifying admin users
                         : Switch(
-                            value: isActive,
+                            value: isEnabled,
+                            activeColor: Colors.green,
                             onChanged: (value) async {
                               final success = value
                                   ? await adminController.enableUser(user['id'])

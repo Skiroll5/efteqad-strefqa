@@ -566,7 +566,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String managersForClass(Object className) {
-    return 'مديرو: $className';
+    return 'مديرين $className';
   }
 
   @override
@@ -818,32 +818,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notesNotificationDesc => 'تلقي إشعار عند إضافة ملاحظة';
 
   @override
-  String get manage => 'Manage';
+  String get manage => 'إدارة';
 
   @override
-  String get good => 'Good';
+  String get good => 'جيد';
 
   @override
-  String get average => 'Average';
+  String get average => 'متوسط';
 
   @override
-  String get poor => 'Poor';
+  String get poor => 'ضعيف';
 
   @override
-  String get manageClassManagers => 'Manage Managers';
+  String get manageClassManagers => 'إدارة المديرين';
 
   @override
   String classManagersDescription(Object className) {
-    return 'Managers for $className';
+    return 'مديرو $className';
   }
 
   @override
-  String get managerRemoved => 'Manager removed';
+  String get managerRemoved => 'تم إزالة المدير';
 
   @override
-  String get enabled => 'Enabled';
+  String get enabled => 'مُفعّل';
 
   @override
   String get accountPendingActivationDesc =>
-      'Your account has been created successfully but is waiting for administrator approval. You will be notified once your account is active.';
+      'تم إنشاء حسابك بنجاح ولكنه في انتظار موافقة المسؤول. سيتم إشعارك عند تفعيل حسابك.';
+
+  @override
+  String removingManager(Object name) {
+    return 'جاري إزالة $name...';
+  }
+
+  @override
+  String addingManager(Object name) {
+    return 'جاري إضافة $name...';
+  }
+
+  @override
+  String get availableUsers => 'المستخدمون المتاحون';
 }

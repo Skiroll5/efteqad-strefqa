@@ -102,15 +102,40 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                 try {
                     // @ts-ignore
                     const authorId = req.user?.userId;
+
+                    // Collect IDs for bulk fetching
+                    const studentIds = new Set<string>();
+                    const classIds = new Set<string>();
+
+                    for (const change of batch) {
+                        const { entityType, operation, payload } = change;
+                        const sanitizedPayload = sanitizePayload(payload);
+
+                        if (entityType === 'NOTE' && operation === 'CREATE' && sanitizedPayload.studentId) {
+                            studentIds.add(sanitizedPayload.studentId);
+                        } else if (entityType === 'ATTENDANCE_SESSION' && operation === 'CREATE' && sanitizedPayload.classId) {
+                            classIds.add(sanitizedPayload.classId);
+                        }
+                    }
+
+                    // Bulk fetch related data
+                    const [students, classes, author] = await Promise.all([
+                        studentIds.size > 0 ? prisma.student.findMany({ where: { id: { in: Array.from(studentIds) } } }) : [],
+                        classIds.size > 0 ? prisma.class.findMany({ where: { id: { in: Array.from(classIds) } } }) : [],
+                        authorId ? prisma.user.findUnique({ where: { id: authorId } }) : Promise.resolve(null)
+                    ]);
+
+                    const studentMap = new Map(students.map((s: any) => [s.id, s]));
+                    const classMap = new Map(classes.map((c: any) => [c.id, c]));
+                    const authorName = author?.name || 'A servant';
+
                     for (const change of batch) {
                          const { entityType, operation, payload } = change;
                          const sanitizedPayload = sanitizePayload(payload);
 
                         if (entityType === 'NOTE' && operation === 'CREATE') {
-                            const student = await prisma.student.findUnique({ where: { id: sanitizedPayload.studentId } });
+                            const student: any = studentMap.get(sanitizedPayload.studentId);
                             if (student && student.classId && authorId) {
-                                const author = await prisma.user.findUnique({ where: { id: authorId } });
-                                const authorName = author?.name || 'A servant';
                                 await notifyClassManagers(
                                     student.classId,
                                     'noteAdded',
@@ -122,9 +147,7 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                             }
                         } else if (entityType === 'ATTENDANCE_SESSION' && operation === 'CREATE') {
                              if (sanitizedPayload.classId && authorId) {
-                                const cls = await prisma.class.findUnique({ where: { id: sanitizedPayload.classId } });
-                                const author = await prisma.user.findUnique({ where: { id: authorId } });
-                                const authorName = author?.name || 'A servant';
+                                const cls: any = classMap.get(sanitizedPayload.classId);
                                 await notifyClassManagers(
                                     sanitizedPayload.classId,
                                     'attendanceRecorded',

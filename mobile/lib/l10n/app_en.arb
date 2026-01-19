@@ -256,6 +256,12 @@
       "name": {}
     }
   },
+  "addManagerConfirmation": "Are you sure you want to add {name} as a manager for this class?",
+  "@addManagerConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "remove": "Remove",
   "noEligibleUsers": "No eligible users",
   "allUsersAreManagers": "All eligible users are already managers",
@@ -297,6 +303,12 @@
   "userActivated": "User activated!",
   "userActivationFailed": "Failed to activate",
   "currentManagers": "Current Managers",
+  "managersForClass": "Managers for {className}",
+  "@managersForClass": {
+    "placeholders": {
+      "className": {}
+    }
+  },
   "noManagersAssigned": "No managers assigned",
   "removeManagerTitle": "Remove Manager",
   "removeManagerConfirm": "Remove {name} as manager?",
@@ -434,5 +446,21 @@
   "managerAssigned": "Manager assigned!",
   "managerRemoved": "Manager removed.",
   "loadingAdminPanel": "Loading Admin Panel...",
-  "loadingClassManagers": "Loading class managers..."
+  "loadingClassManagers": "Loading class managers...",
+  "enableUser": "Enable User",
+  "disableUser": "Disable User",
+  "enableUserConfirmation": "Are you sure you want to enable \"{name}\"?",
+  "@enableUserConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "disableUserConfirmation": "Are you sure you want to disable \"{name}\"?",
+  "@disableUserConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "enable": "Enable",
+  "disable": "Disable"
 }

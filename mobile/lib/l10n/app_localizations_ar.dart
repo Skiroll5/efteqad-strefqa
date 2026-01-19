@@ -578,6 +578,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String addManagerConfirmation(Object name) {
+    return 'هل أنت متأكد من إضافة $name كمدير لهذا الصف؟';
+  }
+
+  @override
   String get remove => 'إزالة';
 
   @override
@@ -761,7 +766,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get userActivationAborted => 'تم رفض تفعيل المستخدم';
 
   @override
-  String get enableUser => 'تمكين المستخدم';
+  String get enableUser => 'تفعيل المستخدم';
 
   @override
   String get disableUser => 'تعطيل المستخدم';
@@ -905,4 +910,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get loadingClassManagers => 'جارٍ تحميل مديري الفصول...';
+
+  @override
+  String enableUserConfirmation(Object name) {
+    return 'هل أنت متأكد من تفعيل \"$name\"؟';
+  }
+
+  @override
+  String disableUserConfirmation(Object name) {
+    return 'هل أنت متأكد من تعطيل \"$name\"؟';
+  }
+
+  @override
+  String get enable => 'تفعيل';
+
+  @override
+  String get disable => 'تعطيل';
 }

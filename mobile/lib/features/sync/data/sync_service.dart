@@ -328,6 +328,14 @@ class SyncService {
           // Don't rethrow on auth errors since we've handled it by logging out
           return;
         }
+        // Silently swallow connection/timeout errors - these are expected when offline
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.connectionError) {
+          // Will retry later via _scheduleRetry
+          return;
+        }
       }
       rethrow;
     } finally {
@@ -394,14 +402,22 @@ class SyncService {
 
       await prefs.setString('last_sync_timestamp', serverTimestamp);
     } catch (e) {
-      // print('Pull failed: $e');
       // Auto-logout on 401/403 (token expired/invalid)
-      if (e is DioException &&
-          (e.response?.statusCode == 403 || e.response?.statusCode == 401)) {
-        // print('SyncService: Token expired/invalid, logging out user');
-        await _ref.read(authControllerProvider.notifier).logout();
-        // Don't rethrow on auth errors since we've handled it by logging out
-        return;
+      if (e is DioException) {
+        if (e.response?.statusCode == 403 || e.response?.statusCode == 401) {
+          // print('SyncService: Token expired/invalid, logging out user');
+          await _ref.read(authControllerProvider.notifier).logout();
+          // Don't rethrow on auth errors since we've handled it by logging out
+          return;
+        }
+        // Silently swallow connection/timeout errors - these are expected when offline
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.connectionError) {
+          // print('SyncService: Network error during pull, will retry later');
+          return;
+        }
       }
       rethrow;
     }

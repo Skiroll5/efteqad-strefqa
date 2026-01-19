@@ -188,6 +188,7 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
     if (showLoading) {
       return AdminLoadingScreen(
         message: l10n?.loadingAdminPanel ?? 'Loading Admin Panel...',
+        onRetry: _refreshAll,
       );
     }
 
@@ -426,6 +427,7 @@ class _UsersSection extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final user = users[index];
                     return Card(
+                      key: ValueKey('pending_${user['id'] ?? index}'),
                       margin: const EdgeInsets.only(bottom: 8),
                       color: isDark
                           ? AppColors.goldPrimary.withValues(alpha: 0.1)
@@ -503,6 +505,7 @@ class _UsersSection extends ConsumerWidget {
                 final isAdmin = user['role'] == 'ADMIN';
 
                 return _UserCard(
+                  key: ValueKey('user_${user['id'] ?? index}'),
                   user: user,
                   isActive: isActive,
                   isEnabled: isEnabled,
@@ -566,6 +569,7 @@ class _UserCard extends StatefulWidget {
   final AdminController controller;
 
   const _UserCard({
+    super.key,
     required this.user,
     required this.isActive,
     required this.isEnabled,
@@ -602,6 +606,55 @@ class _UserCardState extends State<_UserCard> {
     if (_isLoading || widget.isAdmin) return;
 
     final newValue = !_optimisticEnabled;
+    final l10n = widget.l10n;
+    final userName = widget.user['name'] ?? 'Unknown';
+
+    // Show confirmation dialog
+    final isDark = widget.isDark;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          newValue
+              ? (l10n?.enableUser ?? 'Enable User')
+              : (l10n?.disableUser ?? 'Disable User'),
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          newValue
+              ? (l10n?.enableUserConfirmation(userName) ??
+                  'Are you sure you want to enable "$userName"?')
+              : (l10n?.disableUserConfirmation(userName) ??
+                  'Are you sure you want to disable "$userName"?'),
+          style: TextStyle(
+            color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n?.cancel ?? 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: newValue ? Colors.green.shade600 : Colors.red.shade600,
+              foregroundColor: newValue ? Colors.green.shade50 : Colors.red.shade50,
+            ),
+            child: Text(
+              newValue
+                  ? (l10n?.enable ?? 'Enable')
+                  : (l10n?.disable ?? 'Disable'),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
 
     // Optimistic update
     setState(() {
@@ -626,7 +679,7 @@ class _UserCardState extends State<_UserCard> {
             success: false,
             successMessage: '',
             failureMessage:
-                widget.l10n?.actionFailedCheckConnection ??
+                l10n?.actionFailedCheckConnection ??
                 'Action failed. Check your internet connection.',
           );
         }
@@ -665,35 +718,29 @@ class _UserCardState extends State<_UserCard> {
                             : Colors.grey.shade200),
                 ),
                 child: Center(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _isLoading
-                        ? SizedBox(
-                            key: const ValueKey('loading'),
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                _optimisticEnabled ? Colors.green : Colors.grey,
-                              ),
+                  // Simple conditional rendering - no AnimatedSwitcher to avoid duplicate key issues
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _optimisticEnabled ? Colors.green : Colors.grey,
                             ),
-                          )
-                        : Icon(
-                            widget.isAdmin
-                                ? Icons.admin_panel_settings
-                                : Icons.person,
-                            key: ValueKey(
-                              _optimisticEnabled ? 'enabled' : 'disabled',
-                            ),
-                            color: widget.isAdmin
-                                ? Colors.amber.shade700
-                                : (_optimisticEnabled
-                                      ? Colors.green
-                                      : Colors.grey),
-                            size: 20,
                           ),
-                  ),
+                        )
+                      : Icon(
+                          widget.isAdmin
+                              ? Icons.admin_panel_settings
+                              : Icons.person,
+                          color: widget.isAdmin
+                              ? Colors.amber.shade700
+                              : (_optimisticEnabled
+                                    ? Colors.green
+                                    : Colors.grey),
+                          size: 20,
+                        ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -708,7 +755,9 @@ class _UserCardState extends State<_UserCard> {
                           child: Text(
                             widget.user['name'] ?? 'Unknown',
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
                           ),
                         ),
                         if (widget.isAdmin) ...[
@@ -801,83 +850,39 @@ class _UserCardState extends State<_UserCard> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        switchInCurve: Curves.easeOutBack,
-                        switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, animation) {
-                          return ScaleTransition(
-                            scale: animation,
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
+                      // Simple conditional - no AnimatedSwitcher
+                      if (_isLoading)
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _optimisticEnabled
+                                  ? Colors.white
+                                  : (isDark ? Colors.white70 : Colors.black54),
                             ),
-                          );
-                        },
-                        child: _isLoading
-                            ? SizedBox(
-                                key: const ValueKey('loading'),
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    _optimisticEnabled
-                                        ? Colors.white
-                                        : (isDark
-                                              ? Colors.white70
-                                              : Colors.black54),
-                                  ),
-                                ),
-                              )
-                            : Icon(
-                                _optimisticEnabled
-                                    ? Icons.check_circle
-                                    : Icons.cancel,
-                                key: ValueKey(
-                                  _optimisticEnabled ? 'enabled' : 'disabled',
-                                ),
-                                size: 14,
-                                color: _optimisticEnabled
-                                    ? Colors.white
-                                    : (isDark
-                                          ? Colors.white70
-                                          : Colors.black54),
-                              ),
-                      ),
+                          ),
+                        )
+                      else
+                        Icon(
+                          _optimisticEnabled ? Icons.check_circle : Icons.cancel,
+                          size: 14,
+                          color: _optimisticEnabled
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : Colors.black54),
+                        ),
                       const SizedBox(width: 6),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0.1, 0),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Text(
-                          _optimisticEnabled
-                              ? (l10n?.enabled ?? 'Enabled')
-                              : (l10n?.disabled ?? 'Disabled'),
-                          key: ValueKey(
-                            _optimisticEnabled
-                                ? 'enabled_text'
-                                : 'disabled_text',
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _optimisticEnabled
-                                ? Colors.white
-                                : (isDark ? Colors.white70 : Colors.black54),
-                          ),
+                      Text(
+                        _optimisticEnabled
+                            ? (l10n?.enabled ?? 'Enabled')
+                            : (l10n?.disabled ?? 'Disabled'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _optimisticEnabled
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : Colors.black54),
                         ),
                       ),
                     ],

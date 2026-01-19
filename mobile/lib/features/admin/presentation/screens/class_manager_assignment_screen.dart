@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile/core/components/premium_card.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import 'package:mobile/features/admin/data/admin_controller.dart';
@@ -116,18 +115,20 @@ class _ClassManagerAssignmentScreenState
     final firstError = managersAsync.error ?? allUsersAsync.error;
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
         centerTitle: false,
-        title: Text(l10n.managersForClass(widget.className)),
-        actions: [
-          // Manual refresh button - always show if we have fresh data
-          if (_hasLoadedFreshData)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _refreshAll,
-              tooltip: l10n.tryAgain,
-            ),
-        ],
+        title: Text(
+          l10n.managersForClass(widget.className),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : AppColors.textPrimaryLight,
+          ),
+        ),
       ),
       body: _buildBody(
         context,
@@ -156,6 +157,7 @@ class _ClassManagerAssignmentScreenState
     if (showLoading) {
       return AdminLoadingScreen(
         message: l10n.loadingClassManagers,
+        onRetry: _refreshAll,
       );
     }
 
@@ -190,119 +192,218 @@ class _ClassManagerAssignmentScreenState
       return nameA.compareTo(nameB);
     });
 
+    return RefreshIndicator(
+      onRefresh: _refreshAll,
+      color: AppColors.goldPrimary,
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          // Stats Card
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.star_rounded,
+                      label: l10n.currentManagers,
+                      count: managers.length,
+                      color: AppColors.goldPrimary,
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.person_add_rounded,
+                      label: l10n.availableUsers,
+                      count: availableUsers.length,
+                      color: Colors.blue,
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.1),
+            ),
+          ),
+
+          // Current Managers Section Header
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: _SectionHeader(
+                title: l10n.currentManagers,
+                icon: Icons.star_rounded,
+                isDark: isDark,
+                count: managers.length,
+                accentColor: AppColors.goldPrimary,
+              ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
+            ),
+          ),
+
+          // Managers List
+          if (managers.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _EmptySection(
+                  text: l10n.noManagersAssigned,
+                  icon: Icons.person_off_outlined,
+                  isDark: isDark,
+                ).animate().fadeIn(delay: 150.ms, duration: 300.ms),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _ManagerCard(
+                      user: managers[index],
+                      isManager: true,
+                      classId: widget.classId,
+                      l10n: l10n,
+                      isDark: isDark,
+                      index: index,
+                      onActionComplete: _forceRefreshAll,
+                    )
+                        .animate()
+                        .fadeIn(
+                          delay: Duration(milliseconds: 150 + (index * 40)),
+                          duration: 250.ms,
+                        )
+                        .slideX(begin: -0.03, curve: Curves.easeOut);
+                  },
+                  childCount: managers.length,
+                ),
+              ),
+            ),
+
+          // Spacer
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+          // Available Users Section Header
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: _SectionHeader(
+                title: l10n.availableUsers,
+                icon: Icons.person_add_rounded,
+                isDark: isDark,
+                count: availableUsers.length,
+                accentColor: Colors.blue,
+              ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+            ),
+          ),
+
+          // Available Users List
+          if (availableUsers.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _EmptySection(
+                  text: l10n.noUsersFound,
+                  icon: Icons.people_outline,
+                  isDark: isDark,
+                ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _ManagerCard(
+                      user: availableUsers[index],
+                      isManager: false,
+                      classId: widget.classId,
+                      l10n: l10n,
+                      isDark: isDark,
+                      index: index,
+                      onActionComplete: _forceRefreshAll,
+                    )
+                        .animate()
+                        .fadeIn(
+                          delay: Duration(milliseconds: 250 + (index * 30)),
+                          duration: 250.ms,
+                        )
+                        .slideX(begin: 0.03, curve: Curves.easeOut);
+                  },
+                  childCount: availableUsers.length,
+                ),
+              ),
+            ),
+
+          // Bottom padding
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 40),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Stat card widget for showing counts
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+  final Color color;
+  final bool isDark;
+
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [AppColors.backgroundDark, AppColors.surfaceDark]
-              : [AppColors.backgroundLight, Colors.white],
+        color: isDark
+            ? color.withValues(alpha: 0.1)
+            : color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.2 : 0.12),
         ),
       ),
-      child: RefreshIndicator(
-        onRefresh: _refreshAll,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Current Managers Section
-            _SectionHeader(
-              title: l10n.currentManagers,
-              icon: Icons.manage_accounts,
-              isDark: isDark,
-              count: managers.length,
-            ),
-            const SizedBox(height: 12),
-            if (managers.isEmpty)
-              _EmptySection(
-                text: l10n.noManagersAssigned,
-                icon: Icons.person_off_outlined,
-                isDark: isDark,
-              )
-            else
-              ...managers.asMap().entries.map((entry) {
-                return _ManagerCard(
-                  user: entry.value,
-                  isManager: true,
-                  classId: widget.classId,
-                  l10n: l10n,
-                  isDark: isDark,
-                  index: entry.key,
-                );
-              }),
-
-            const SizedBox(height: 32),
-
-            // Separator
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          isDark ? Colors.white24 : Colors.black12,
-                        ],
-                      ),
-                    ),
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const Spacer(),
+              Text(
+                count.toString(),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Icon(
-                    Icons.add_circle_outline,
-                    color: isDark ? Colors.white38 : Colors.black26,
-                    size: 20,
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          isDark ? Colors.white24 : Colors.black12,
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.white60 : Colors.black54,
             ),
-
-            const SizedBox(height: 32),
-
-            // Available Users Section
-            _SectionHeader(
-              title: l10n.availableUsers,
-              icon: Icons.person_add_alt_1,
-              isDark: isDark,
-              count: availableUsers.length,
-            ),
-            const SizedBox(height: 12),
-            if (availableUsers.isEmpty)
-              _EmptySection(
-                text: l10n.noUsersFound,
-                icon: Icons.people_outline,
-                isDark: isDark,
-              )
-            else
-              ...availableUsers.asMap().entries.map((entry) {
-                return _ManagerCard(
-                  user: entry.value,
-                  isManager: false,
-                  classId: widget.classId,
-                  l10n: l10n,
-                  isDark: isDark,
-                  index: entry.key,
-                );
-              }),
-            const SizedBox(height: 40),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -313,55 +414,27 @@ class _SectionHeader extends StatelessWidget {
   final IconData icon;
   final bool isDark;
   final int count;
+  final Color accentColor;
 
   const _SectionHeader({
     required this.title,
     required this.icon,
     required this.isDark,
     required this.count,
+    this.accentColor = AppColors.goldPrimary,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.goldPrimary.withValues(alpha: 0.15)
-                : AppColors.goldPrimary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: AppColors.goldPrimary, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : AppColors.textPrimaryLight,
-            ),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white12
-                : Colors.black.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            count.toString(),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
+        Text(
+          title,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white70 : Colors.black54,
+            letterSpacing: 0.3,
           ),
         ),
       ],
@@ -383,27 +456,26 @@ class _EmptySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withValues(alpha: 0.03)
-            : Colors.black.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(16),
+            ? Colors.white.withValues(alpha: 0.02)
+            : Colors.black.withValues(alpha: 0.015),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 40, color: isDark ? Colors.white24 : Colors.black26),
-          const SizedBox(height: 12),
+          Icon(icon, size: 20, color: isDark ? Colors.white30 : Colors.black26),
+          const SizedBox(width: 10),
           Text(
             text,
-            textAlign: TextAlign.center,
             style: TextStyle(
-              color: isDark ? Colors.white54 : Colors.black45,
-              fontStyle: FontStyle.italic,
+              color: isDark ? Colors.white38 : Colors.black38,
+              fontSize: 13,
             ),
           ),
         ],
@@ -419,6 +491,7 @@ class _ManagerCard extends ConsumerWidget {
   final AppLocalizations l10n;
   final bool isDark;
   final int index;
+  final VoidCallback? onActionComplete;
 
   const _ManagerCard({
     required this.user,
@@ -427,6 +500,7 @@ class _ManagerCard extends ConsumerWidget {
     required this.l10n,
     required this.isDark,
     required this.index,
+    this.onActionComplete,
   });
 
   // Handle both flat user structure and nested user structure from ClassManager
@@ -442,130 +516,117 @@ class _ManagerCard extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child:
-          PremiumCard(
-                color: isManager
-                    ? (isDark
-                          ? Colors.green.withValues(alpha: 0.08)
-                          : Colors.green.withValues(alpha: 0.05))
-                    : null,
-                child: InkWell(
-                  onTap: () => _handleTap(context, ref),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        // Avatar
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: isManager
-                                ? AppColors.goldGradient
-                                : LinearGradient(
-                                    colors: isDark
-                                        ? [
-                                            Colors.grey.shade700,
-                                            Colors.grey.shade800,
-                                          ]
-                                        : [
-                                            Colors.grey.shade200,
-                                            Colors.grey.shade300,
-                                          ],
-                                  ),
-                            shape: BoxShape.circle,
-                            boxShadow: isManager
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.goldPrimary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Center(
-                            child: Text(
-                              userName.isNotEmpty
-                                  ? userName.substring(0, 1).toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                color: isManager
-                                    ? Colors.white
-                                    : (isDark
-                                          ? Colors.white70
-                                          : Colors.black54),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        // User Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                userName,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppColors.textPrimaryLight,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (userEmail.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  userEmail,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondaryLight,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Action Button
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isManager
-                                ? AppColors.redPrimary.withValues(alpha: 0.1)
-                                : AppColors.goldPrimary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isManager
-                                ? Icons.person_remove_rounded
-                                : Icons.person_add_rounded,
-                            color: isManager
-                                ? AppColors.redPrimary
-                                : AppColors.goldPrimary,
-                            size: 20,
-                          ),
-                        ),
-                      ],
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _handleTap(context, ref),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.06),
+              ),
+            ),
+            child: Row(
+              children: [
+                // Avatar
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isManager
+                        ? AppColors.goldPrimary.withValues(alpha: 0.15)
+                        : Colors.blue.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      userName.isNotEmpty
+                          ? userName.substring(0, 1).toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: isManager ? AppColors.goldPrimary : Colors.blue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
-              )
-              .animate()
-              .fade(duration: const Duration(milliseconds: 300))
-              .slideX(begin: 0.05, delay: Duration(milliseconds: index * 40)),
+                const SizedBox(width: 14),
+                // User Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        userName,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (userEmail.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            userEmail,
+                            style: TextStyle(
+                              color: isDark ? Colors.white54 : Colors.black45,
+                              fontSize: 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Action Button
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isManager
+                        ? AppColors.redPrimary.withValues(alpha: isDark ? 0.15 : 0.1)
+                        : AppColors.goldPrimary.withValues(alpha: isDark ? 0.15 : 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isManager ? Icons.remove_rounded : Icons.add_rounded,
+                        color: isManager ? AppColors.redPrimary : AppColors.goldPrimary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isManager ? l10n.remove : l10n.addManager,
+                        style: TextStyle(
+                          color: isManager ? AppColors.redPrimary : AppColors.goldPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -643,8 +704,8 @@ class _ManagerCard extends ConsumerWidget {
 
       if (confirmed != true || !context.mounted) return;
 
-      // Show processing feedback
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      // Show processing feedback - clear all queued snackbars for fast response
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.removingManager(displayName)),
@@ -659,6 +720,10 @@ class _ManagerCard extends ConsumerWidget {
           .read(adminControllerProvider.notifier)
           .removeClassManager(classId, userId);
 
+      // Force refresh the providers to update UI immediately
+      ref.invalidate(classManagersProvider(classId));
+      onActionComplete?.call();
+
       if (context.mounted) {
         _showActionFeedback(
           context,
@@ -668,8 +733,78 @@ class _ManagerCard extends ConsumerWidget {
         );
       }
     } else {
-      // Show processing feedback
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      // Show confirmation dialog for adding manager
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          final theme = Theme.of(context);
+          final dialogIsDark = theme.brightness == Brightness.dark;
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.goldPrimary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person_add,
+                    color: AppColors.goldPrimary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.addManager,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: dialogIsDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              l10n.addManagerConfirmation(displayName),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: dialogIsDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l10n.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.goldPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(l10n.addManager),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmed != true || !context.mounted) return;
+
+      // Show processing feedback - clear all queued snackbars for fast response
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.addingManager(displayName)),
@@ -683,6 +818,10 @@ class _ManagerCard extends ConsumerWidget {
       final success = await ref
           .read(adminControllerProvider.notifier)
           .assignClassManager(classId, userId);
+
+      // Force refresh the providers to update UI immediately
+      ref.invalidate(classManagersProvider(classId));
+      onActionComplete?.call();
 
       if (context.mounted) {
         _showActionFeedback(
@@ -703,7 +842,8 @@ void _showActionFeedback(
   required String successMessage,
   required String failureMessage,
 }) {
-  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  // Clear all queued snackbars for instant response on rapid actions
+  ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Row(

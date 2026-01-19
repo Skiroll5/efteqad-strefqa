@@ -580,6 +580,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String addManagerConfirmation(Object name) {
+    return 'Are you sure you want to add $name as a manager for this class?';
+  }
+
+  @override
   String get remove => 'Remove';
 
   @override
@@ -911,4 +916,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingClassManagers => 'Loading class managers...';
+
+  @override
+  String enableUserConfirmation(Object name) {
+    return 'Are you sure you want to enable \"$name\"?';
+  }
+
+  @override
+  String disableUserConfirmation(Object name) {
+    return 'Are you sure you want to disable \"$name\"?';
+  }
+
+  @override
+  String get enable => 'Enable';
+
+  @override
+  String get disable => 'Disable';
 }

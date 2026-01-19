@@ -1160,6 +1160,12 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to remove {name} as a manager from this class?'**
   String removeManagerConfirmation(Object name);
 
+  /// No description provided for @addManagerConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to add {name} as a manager for this class?'**
+  String addManagerConfirmation(Object name);
+
   /// No description provided for @remove.
   ///
   /// In en, this message translates to:
@@ -1777,6 +1783,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading class managers...'**
   String get loadingClassManagers;
+
+  /// No description provided for @enableUserConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to enable \"{name}\"?'**
+  String enableUserConfirmation(Object name);
+
+  /// No description provided for @disableUserConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to disable \"{name}\"?'**
+  String disableUserConfirmation(Object name);
+
+  /// No description provided for @enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get enable;
+
+  /// No description provided for @disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get disable;
 }
 
 class _AppLocalizationsDelegate

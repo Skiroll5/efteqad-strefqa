@@ -218,6 +218,12 @@
   "userActivated": "تم تفعيل المستخدم!",
   "userActivationFailed": "فشل التفعيل",
   "currentManagers": "المديرون الحاليون",
+  "managersForClass": "مديرين {className}",
+  "@managersForClass": {
+    "placeholders": {
+      "className": {}
+    }
+  },
   "noManagersAssigned": "لا يوجد مديرين معينين",
   "removeManagerTitle": "إزالة المدير",
   "removeManagerConfirm": "هل تريد إزالة {name} من الإدارة؟",
@@ -305,6 +311,12 @@
       "name": {}
     }
   },
+  "addManagerConfirmation": "هل أنت متأكد من إضافة {name} كمدير لهذا الصف؟",
+  "@addManagerConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "serverConnectionError": "لا يمكن الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.",
   "tryAgain": "حاول مجدداً",
   "loadingData": "جارٍ تحميل البيانات...",
@@ -320,5 +332,21 @@
   "managerAssigned": "تم تعيين المدير!",
   "managerRemoved": "تمت إزالة المدير.",
   "loadingAdminPanel": "جارٍ تحميل لوحة الإدارة...",
-  "loadingClassManagers": "جارٍ تحميل مديري الفصول..."
+  "loadingClassManagers": "جارٍ تحميل مديري الفصول...",
+  "enableUser": "تفعيل المستخدم",
+  "disableUser": "تعطيل المستخدم",
+  "enableUserConfirmation": "هل أنت متأكد من تفعيل \"{name}\"؟",
+  "@enableUserConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "disableUserConfirmation": "هل أنت متأكد من تعطيل \"{name}\"؟",
+  "@disableUserConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "enable": "تفعيل",
+  "disable": "تعطيل"
 }

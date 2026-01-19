@@ -10,6 +10,17 @@ export const listClasses = async (req: Request, res: Response) => {
         const classes = await prisma.class.findMany({
             where: { isDeleted: false },
             include: {
+                managers: {
+                    select: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true
+                            }
+                        }
+                    }
+                },
                 sessions: {
                     where: { isDeleted: false },
                     select: {

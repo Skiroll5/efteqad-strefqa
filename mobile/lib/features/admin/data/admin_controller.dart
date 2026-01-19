@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'admin_repository.dart';
 import '../../classes/data/classes_controller.dart';
+import '../../classes/presentation/widgets/class_list_item.dart';
 
 /// Provider for all users (admin view)
 final allUsersProvider = FutureProvider<List<Map<String, dynamic>>>((
@@ -152,6 +153,7 @@ class AdminController extends StateNotifier<AsyncValue<void>> {
     try {
       await _repository.assignClassManager(classId, userId);
       _ref.invalidate(classManagersProvider(classId));
+      _ref.invalidate(classManagerNamesProvider(classId));
       _ref.invalidate(adminClassesProvider);
       state = const AsyncValue.data(null);
       return true;
@@ -167,6 +169,7 @@ class AdminController extends StateNotifier<AsyncValue<void>> {
     try {
       await _repository.removeClassManager(classId, userId);
       _ref.invalidate(classManagersProvider(classId));
+      _ref.invalidate(classManagerNamesProvider(classId));
       _ref.invalidate(adminClassesProvider);
       state = const AsyncValue.data(null);
       return true;

@@ -91,7 +91,7 @@ class StatisticsDashboard extends ConsumerWidget {
                   child: Text(
                     l10n.thresholdCaption(threshold),
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: isDark ? Colors.white54 : Colors.grey,
+                  color: isDark ? Colors.white54 : Colors.grey.shade600,
                     ),
                   ),
                 );
@@ -149,7 +149,7 @@ class StatisticsDashboard extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) => Text('Error: $e'),
+              error: (e, s) => Text(l10n.errorGeneric(e.toString())),
             );
           },
         ),
@@ -168,7 +168,7 @@ class _AttendanceLineChart extends ConsumerWidget {
 
     return statsAsync.when(
       data: (stats) {
-        if (stats.isEmpty) return const Center(child: Text("Not enough data"));
+        if (stats.isEmpty) return Center(child: Text(AppLocalizations.of(context)?.notEnoughData ?? "Not enough data"));
 
         final spots = stats.asMap().entries.map((e) {
           return FlSpot(e.key.toDouble(), e.value.attendanceRate);
@@ -239,7 +239,7 @@ class _AttendanceLineChart extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text("Error")),
+      error: (_, __) => Center(child: Text(AppLocalizations.of(context)?.genericError ?? "Error")),
     );
   }
 }

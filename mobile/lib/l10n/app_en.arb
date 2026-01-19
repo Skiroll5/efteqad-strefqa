@@ -384,5 +384,6 @@
   "events": "Events",
   "alerts": "Alerts",
   "configuration": "Configuration",
-  "notesNotificationDesc": "Get notified when a note is added"
+  "notesNotificationDesc": "Get notified when a note is added",
+  "phoneNumberCopied": "Phone number copied"
 }

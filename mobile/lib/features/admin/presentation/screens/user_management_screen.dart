@@ -266,7 +266,7 @@ class _AllUsersTab extends ConsumerWidget {
                             _ActionButton(
                               icon: Icons.delete,
                               label: l10n.deleteUser,
-                              color: Colors.grey,
+                              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                               onPressed: () => _showDeleteConfirmation(
                                 context,
                                 ref,
@@ -433,7 +433,7 @@ class _AbortedUsersTab extends ConsumerWidget {
                       _ActionButton(
                         icon: Icons.delete,
                         label: l10n.delete,
-                        color: Colors.grey,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                         onPressed: () =>
                             _showDeleteConfirmation(context, ref, user, l10n),
                       ),
@@ -580,12 +580,12 @@ class _UserCard extends StatelessWidget {
                         ? AppColors.goldPrimary.withValues(alpha: 0.2)
                         : (isEnabled
                               ? Colors.green.withValues(alpha: 0.2)
-                              : Colors.grey.withValues(alpha: 0.2)),
+                              : (isDark ? Colors.grey.shade700 : Colors.grey.shade300).withValues(alpha: 0.2)),
                     child: Icon(
                       isAdmin ? Icons.admin_panel_settings : Icons.person,
                       color: isAdmin
                           ? AppColors.goldPrimary
-                          : (isEnabled ? Colors.green : Colors.grey),
+                          : (isEnabled ? Colors.green : (isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
                     ),
                   ),
                   const SizedBox(width: 12),

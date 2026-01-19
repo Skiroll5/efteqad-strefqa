@@ -286,5 +286,6 @@
   "events": "الأحداث",
   "alerts": "التنبيهات",
   "configuration": "إعدادات",
-  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة"
+  "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة",
+  "phoneNumberCopied": "تم نسخ رقم الهاتف"
 }

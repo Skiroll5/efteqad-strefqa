@@ -34,12 +34,12 @@ export const listClasses = async (req: Request, res: Response) => {
             orderBy: { name: 'asc' },
         });
 
-        const classesWithStats = classes.map(cls => {
+        const classesWithStats = classes.map((cls) => {
             let totalRecords = 0;
             let presentRecords = 0;
 
-            cls.sessions.forEach(session => {
-                session.records.forEach(record => {
+            cls.sessions.forEach((session) => {
+                session.records.forEach((record) => {
                     totalRecords++;
                     if (record.status === 'PRESENT') {
                         presentRecords++;

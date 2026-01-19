@@ -1,6 +1,6 @@
 
 import cron from 'node-cron';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { notifyUser } from '../utils/notificationUtils';
 
 const prisma = new PrismaClient();
@@ -35,46 +35,55 @@ const checkBirthdays = async (isMorning: boolean) => {
         const targetMonth = targetDate.getMonth() + 1; // 1-12
         const targetDay = targetDate.getDate();
 
-        for (const user of users) {
-            // Admin gets all? Or just managed classes?
-            // Plan says "Class managers + Admins". 
-            // If Admin has no managed classes, maybe they want ALL birthdays? 
-            // Let's stick to managed classes for now to avoid spam, unless they are strict Admin.
-            // If plan implies Admins get ALL, we might need a separate query.
-            // For simplicity/safety: Users get notifications for classes they MANAGE. 
-            // Only "New User Registered" is global for Admins.
+        // Collect all class IDs from all users to fetch students in one go
+        const allClassIds = new Set<string>();
+        users.forEach(user => {
+            user.managedClasses.forEach((cm: any) => {
+                if (cm.classId) allClassIds.add(cm.classId);
+            });
+        });
 
-            const classIds = user.managedClasses.map((cm: any) => cm.classId);
+        if (allClassIds.size === 0) {
+            console.log('No managed classes found for birthday check.');
+            return;
+        }
+
+        // Fetch all students with birthdays on the target date in any of the relevant classes
+        const birthdayStudents = await prisma.$queryRaw`
+            SELECT id, name, "classId" FROM students
+            WHERE "isDeleted" = false
+            AND "classId" IN (${(Prisma as any).join(Array.from(allClassIds))})
+            AND EXTRACT(MONTH FROM birthdate) = ${targetMonth}
+            AND EXTRACT(DAY FROM birthdate) = ${targetDay}
+        ` as { id: string, name: string, classId: string }[];
+
+        // Group students by classId for efficient lookup
+        const studentsByClass = new Map<string, typeof birthdayStudents>();
+        for (const student of birthdayStudents) {
+            if (!student.classId) continue;
+            if (!studentsByClass.has(student.classId)) {
+                studentsByClass.set(student.classId, []);
+            }
+            studentsByClass.get(student.classId)?.push(student);
+        }
+
+        for (const user of users) {
+            const classIds = user.managedClasses.map((cm: { classId: string }) => cm.classId);
             if (classIds.length === 0) continue;
 
-            // Find students with birthday on target date in these classes
-            // Prisma doesn't have great date extraction in where clause for all DBs, 
-            // but raw query or fetching all students and filtering in memory works for small scale.
-            // Given typical class size, fetching matching month/day roughly is okay or just raw query.
-            // Let's use raw query for performance/correctness across years.
+            for (const classId of classIds) {
+                const students = studentsByClass.get(classId) || [];
+                for (const student of students) {
+                    const title = isMorning ? '🎉 Happy Birthday!' : '🎂 Birthday Tomorrow';
+                    const body = isMorning
+                        ? `Today is ${student.name}'s birthday!`
+                        : `${student.name} has a birthday tomorrow!`;
 
-            // Postgres specific date function: EXTRACT(MONTH FROM birthdate)
-            // We'll use findMany and filter in memory for simplicity if dataset isn't huge, 
-            // but raw query is safer for scalability.
-
-            const students = await prisma.$queryRaw`
-                SELECT id, name, "classId" FROM students 
-                WHERE "isDeleted" = false 
-                AND "classId" IN (${Prisma.join(classIds)})
-                AND EXTRACT(MONTH FROM birthdate) = ${targetMonth}
-                AND EXTRACT(DAY FROM birthdate) = ${targetDay}
-             ` as { id: string, name: string, classId: string }[];
-
-            for (const student of students) {
-                const title = isMorning ? '🎉 Happy Birthday!' : '🎂 Birthday Tomorrow';
-                const body = isMorning
-                    ? `Today is ${student.name}'s birthday!`
-                    : `${student.name} has a birthday tomorrow!`;
-
-                await notifyUser(user.id, title, body, {
-                    type: 'birthday',
-                    studentId: student.id
-                });
+                    await notifyUser(user.id, title, body, {
+                        type: 'birthday',
+                        studentId: student.id
+                    });
+                }
             }
         }
 
@@ -164,5 +173,3 @@ export const initScheduledJobs = () => {
 
     console.log('Scheduled jobs initialized');
 };
-
-import { Prisma } from '@prisma/client';

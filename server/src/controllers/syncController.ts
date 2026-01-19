@@ -18,7 +18,7 @@ export const syncChanges = async (req: AuthRequest, res: Response) => {
 
 const handlePush = async (req: AuthRequest, res: Response) => {
     const { changes } = req.body;
-    console.log('SyncController: Received push request', JSON.stringify(req.body, null, 2));
+    console.log(`SyncController: Received push request with ${changes?.length || 0} changes`);
     if (!Array.isArray(changes)) return res.status(400).json({ message: 'Invalid format' });
 
     // Sort changes by dependency order: CLASS -> USER/STUDENT -> ATTENDANCE/NOTE

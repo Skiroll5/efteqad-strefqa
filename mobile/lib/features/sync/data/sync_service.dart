@@ -70,7 +70,7 @@ class SyncService {
           .setTransports(['websocket'])
           .disableAutoConnect() // We connect manually
           .enableReconnection() // Reconnect on disconnect
-          .setReconnectionAttempts(double.infinity.toInt())
+          .setReconnectionAttempts(99999)
           .setReconnectionDelay(1000)
           .build(),
     );

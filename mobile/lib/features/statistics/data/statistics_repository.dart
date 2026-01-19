@@ -28,86 +28,117 @@ class StatisticsRepository {
   Future<List<AtRiskStudent>> getAtRiskStudents(int threshold) async {
     final atRiskList = <AtRiskStudent>[];
 
-    // Get all active students
-    final students = await (_db.select(
-      _db.students,
-    )..where((t) => t.isDeleted.equals(false))).get();
+    // 1. Fetch all active students joined with their class info
+    //    Query: SELECT s.*, c.name FROM students s LEFT JOIN classes c ON s.classId = c.id WHERE s.isDeleted = 0
+    final studentsQuery = _db.select(_db.students).join([
+      leftOuterJoin(_db.classes, _db.classes.id.equalsExp(_db.students.classId))
+    ]);
+    studentsQuery.where(_db.students.isDeleted.equals(false));
 
-    // Group students by class to minimize session queries
+    final studentRows = await studentsQuery.get();
+
+    // Group students by classId and store class names
     final studentsByClass = <String, List<Student>>{};
-    for (var s in students) {
-      if (s.classId != null) {
-        studentsByClass.putIfAbsent(s.classId!, () => []).add(s);
+    final classNames = <String, String>{};
+
+    for (var row in studentRows) {
+      final student = row.readTable(_db.students);
+      final clazz = row.readTableOrNull(_db.classes);
+
+      if (student.classId != null) {
+        studentsByClass.putIfAbsent(student.classId!, () => []).add(student);
+        if (clazz != null) {
+          classNames[student.classId!] = clazz.name;
+        }
       }
     }
 
-    // Check each class
+    if (studentsByClass.isEmpty) return [];
+
+    final classIds = studentsByClass.keys.toList();
+
+    // 2. Fetch all sessions for these classes
+    //    Query: SELECT * FROM attendance_sessions WHERE classId IN (...) AND isDeleted = 0 ORDER BY date DESC
+    //    We fetch all sessions to calculate total stats, not just recent ones.
+    final allSessionsList = await (_db.select(_db.attendanceSessions)
+          ..where((t) => t.classId.isIn(classIds) & t.isDeleted.equals(false))
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)
+          ]))
+        .get();
+
+    // Group sessions by classId
+    final sessionsByClass = <String, List<AttendanceSession>>{};
+    for (var s in allSessionsList) {
+      sessionsByClass.putIfAbsent(s.classId, () => []).add(s);
+    }
+
+    // 3. Fetch all attendance records for these sessions
+    final allSessionIds = allSessionsList.map((s) => s.id).toList();
+    if (allSessionIds.isEmpty) return [];
+
+    // Batch query to avoid SQLite limits (typically 999 parameters)
+    final allRecords = <AttendanceRecord>[];
+    const batchSize = 500;
+    for (var i = 0; i < allSessionIds.length; i += batchSize) {
+      final end = (i + batchSize < allSessionIds.length)
+          ? i + batchSize
+          : allSessionIds.length;
+      final batch = allSessionIds.sublist(i, end);
+
+      final batchRecords = await (_db.select(_db.attendanceRecords)
+            ..where((t) => t.sessionId.isIn(batch) & t.isDeleted.equals(false)))
+          .get();
+      allRecords.addAll(batchRecords);
+    }
+
+    // Group records by studentId for O(1) access
+    final recordsByStudent = <String, List<AttendanceRecord>>{};
+    for (var r in allRecords) {
+      recordsByStudent.putIfAbsent(r.studentId, () => []).add(r);
+    }
+
+    // 4. Process data in memory
     for (var entry in studentsByClass.entries) {
       final classId = entry.key;
       final classStudents = entry.value;
-      final className = (await _getClassName(classId)) ?? 'Unknown Class';
+      final className = classNames[classId] ?? 'Unknown Class';
 
-      // Get last [threshold] sessions for this class (for consecutive check)
-      final recentSessions =
-          await (_db.select(_db.attendanceSessions)
-                ..where(
-                  (t) => t.classId.equals(classId) & t.isDeleted.equals(false),
-                )
-                ..orderBy([
-                  (t) =>
-                      OrderingTerm(expression: t.date, mode: OrderingMode.desc),
-                ])
-                ..limit(threshold))
-              .get();
+      final classSessions = sessionsByClass[classId] ?? [];
 
-      // If not enough sessions to judge, skip
-      // print(
-      //   'DEBUG: Class $className ($classId) - Recent Sessions: ${recentSessions.length}, Threshold: $threshold',
-      // );
+      // Get recent sessions (already sorted desc)
+      final recentSessions = classSessions.take(threshold).toList();
       if (recentSessions.isEmpty) continue;
 
-      // Get ALL sessions for this class (for total stats)
-      final allSessions =
-          await (_db.select(_db.attendanceSessions)..where(
-                (t) => t.classId.equals(classId) & t.isDeleted.equals(false),
-              ))
-              .get();
-      final allSessionIds = allSessions.map((s) => s.id).toList();
+      // Create a set of session IDs for this class to filter relevant records
+      final classSessionIds = classSessions.map((s) => s.id).toSet();
 
-      // For each student in this class, check attendance
       for (var student in classStudents) {
-        // Get ALL attendance records for this student
-        // Only count sessions where student has a record
-        final allStudentRecords =
-            await (_db.select(_db.attendanceRecords)..where(
-                  (t) =>
-                      t.studentId.equals(student.id) &
-                      t.sessionId.isIn(allSessionIds) &
-                      t.isDeleted.equals(false),
-                ))
-                .get();
+        final studentRecords = recordsByStudent[student.id];
 
-        if (allStudentRecords.isEmpty) continue; // No records at all
+        if (studentRecords == null || studentRecords.isEmpty) continue;
+
+        // Filter records to only those belonging to this class's sessions
+        final relevantRecords = studentRecords
+            .where((r) => classSessionIds.contains(r.sessionId))
+            .toList();
+
+        if (relevantRecords.isEmpty) continue;
 
         // Calculate Attendance Percentage
-        // Total sessions = sessions where student has ANY record (Present, Absent, Excused)
-        final totalSessions = allStudentRecords.length;
-        final totalPresences = allStudentRecords
-            .where((r) => r.status == 'PRESENT')
-            .length;
-        final attendancePercentage = totalSessions > 0
-            ? (totalPresences / totalSessions) * 100
-            : 0.0;
+        final totalSessions = relevantRecords.length;
+        final totalPresences =
+            relevantRecords.where((r) => r.status == 'PRESENT').length;
+        final attendancePercentage =
+            totalSessions > 0 ? (totalPresences / totalSessions) * 100 : 0.0;
 
         // Calculate Consecutive Absences
-        // Count how many of the top `threshold` sessions defined in `recentSessions`
-        // have a record that is NOT PRESENT.
-
         int currentConsecutive = 0;
         for (var session in recentSessions) {
-          final record = allStudentRecords
+          final record = relevantRecords
               .where((r) => r.sessionId == session.id)
               .firstOrNull;
+
           if (record != null) {
             if (record.status != 'PRESENT') {
               currentConsecutive++;
@@ -118,12 +149,6 @@ class StatisticsRepository {
           // If no record, ignore this session (e.g. didn't join yet)
         }
 
-        // Condition: Consecutive >= threshold
-        if (currentConsecutive > 0) {
-          // print(
-          //   'DEBUG: Student ${student.name} - Consecutive: $currentConsecutive',
-          // );
-        }
         if (currentConsecutive >= threshold) {
           atRiskList.add(
             AtRiskStudent(
@@ -148,45 +173,50 @@ class StatisticsRepository {
     return atRiskList;
   }
 
-  Future<String?> _getClassName(String id) async {
-    final c = await (_db.select(
-      _db.classes,
-    )..where((t) => t.id.equals(id))).getSingleOrNull();
-    return c?.name;
-  }
-
   /// Get aggregated weekly attendance percentage for the last 12 weeks
   Future<List<WeeklyStats>> getWeeklyAttendanceStats() async {
-    // This is complex in pure Dart/Drift without raw SQL for date truncating.
-    // simpler approach: Fetch all sessions/records for last 12 weeks and aggregate in memory.
+    final cutoffDate = DateTime.now().subtract(const Duration(days: 84)); // 12 weeks
 
-    final cutoffDate = DateTime.now().subtract(
-      const Duration(days: 84),
-    ); // 12 weeks
+    final sessions = await (_db.select(_db.attendanceSessions)
+          ..where(
+            (t) =>
+                t.date.isBiggerOrEqualValue(cutoffDate) &
+                t.isDeleted.equals(false),
+          )
+          ..orderBy([(t) => OrderingTerm(expression: t.date)]))
+        .get();
 
-    final sessions =
-        await (_db.select(_db.attendanceSessions)
-              ..where(
-                (t) =>
-                    t.date.isBiggerOrEqualValue(cutoffDate) &
-                    t.isDeleted.equals(false),
-              )
-              ..orderBy([(t) => OrderingTerm(expression: t.date)]))
-            .get();
+    if (sessions.isEmpty) return [];
+
+    final sessionIds = sessions.map((s) => s.id).toList();
+
+    // Batch fetch records
+    final allRecords = <AttendanceRecord>[];
+    const batchSize = 500;
+    for (var i = 0; i < sessionIds.length; i += batchSize) {
+      final end = (i + batchSize < sessionIds.length)
+          ? i + batchSize
+          : sessionIds.length;
+      final batch = sessionIds.sublist(i, end);
+      final batchRecords = await (_db.select(_db.attendanceRecords)
+            ..where((t) => t.sessionId.isIn(batch) & t.isDeleted.equals(false)))
+          .get();
+      allRecords.addAll(batchRecords);
+    }
+
+    // Group records by sessionId
+    final recordsBySession = <String, List<AttendanceRecord>>{};
+    for (var r in allRecords) {
+      recordsBySession.putIfAbsent(r.sessionId, () => []).add(r);
+    }
 
     final statsMap = <int, _WeeklyAggregator>{}; // WeekIndex -> Data
 
     for (var session in sessions) {
-      // Simple week grouping: milliseconds since epoch / week_ms
       final weekIndex =
           session.date.millisecondsSinceEpoch ~/ (1000 * 60 * 60 * 24 * 7);
 
-      final records =
-          await (_db.select(_db.attendanceRecords)..where(
-                (t) =>
-                    t.sessionId.equals(session.id) & t.isDeleted.equals(false),
-              ))
-              .get();
+      final records = recordsBySession[session.id] ?? [];
 
       if (records.isNotEmpty) {
         final present = records.where((r) => r.status == 'PRESENT').length;

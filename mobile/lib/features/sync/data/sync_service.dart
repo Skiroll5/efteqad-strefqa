@@ -388,9 +388,12 @@ class SyncService {
           }
         }
         if (changes['classes'] != null) {
+          print('SyncService: Received ${(changes['classes'] as List).length} classes to sync');
           for (var c in changes['classes']) {
             await _upsertClassFromSync(c);
           }
+        } else {
+          print('SyncService: No classes in sync response');
         }
         if (changes['attendance_sessions'] != null) {
           for (var s in changes['attendance_sessions']) {
@@ -496,6 +499,9 @@ class SyncService {
   // ClassManager upsert removed
 
   Future<void> _upsertClassFromSync(Map<String, dynamic> data) async {
+    // DEBUG: Log incoming class data
+    print('SyncService _upsertClassFromSync: id=${data['id']}, name=${data['name']}, managerNames=${data['managerNames']}');
+    
     final entity = ClassesCompanion(
       id: Value(data['id']),
       name: Value(data['name']),

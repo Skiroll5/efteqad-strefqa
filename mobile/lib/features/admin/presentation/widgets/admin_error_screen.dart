@@ -42,6 +42,7 @@ class AdminErrorScreen extends StatelessWidget {
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Subtle error icon
               Container(
@@ -80,7 +81,7 @@ class AdminErrorScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ).animate().fade(delay: 100.ms),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               // Error message
               Text(
@@ -94,9 +95,9 @@ class AdminErrorScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ).animate().fade(delay: 150.ms),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
-              // Auto-retry indicator or retry button
+              // Auto-retry indicator
               if (isAutoRetrying) ...[
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -122,32 +123,17 @@ class AdminErrorScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              ] else ...[
-                TextButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                  label: Text(l10n?.tryAgain ?? 'Try Again'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.goldPrimary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                  ),
-                ),
               ],
 
-              if (isConnectionError) ...[
-                const SizedBox(height: 8),
-                Text(
-                  l10n?.willAutoRetry ?? 'Will auto-retry when connected',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark ? Colors.white30 : Colors.black26,
-                    fontSize: 11,
-                  ),
-                  textAlign: TextAlign.center,
+              const SizedBox(height: 6),
+              Text(
+                l10n?.willAutoRetry ?? 'Will auto-retry when connected',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isDark ? Colors.white30 : Colors.black26,
+                  fontSize: 11,
                 ),
-              ],
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),

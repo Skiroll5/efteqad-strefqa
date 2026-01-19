@@ -142,6 +142,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Error icon
           Container(
@@ -176,7 +177,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
             textAlign: TextAlign.center,
           ).animate().fade(delay: 100.ms),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           // Error message
           Text(
@@ -191,9 +192,9 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
             textAlign: TextAlign.center,
           ).animate().fade(delay: 150.ms),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
-          // Auto-retry indicator or retry button
+          // Auto-retry indicator
           if (_isAutoRetrying) ...[
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -219,22 +220,9 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
                 ),
               ],
             ),
-          ] else ...[
-            TextButton.icon(
-              onPressed: _handleManualRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text(l10n?.tryAgain ?? 'Try Again'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.goldPrimary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-              ),
-            ),
           ],
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             l10n?.willAutoRetry ?? 'Will auto-retry when connected',
             style: theme.textTheme.bodySmall?.copyWith(

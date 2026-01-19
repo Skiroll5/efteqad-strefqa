@@ -267,6 +267,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get today => 'النهاردة!';
 
   @override
+  String get tomorrow => 'بكره';
+
+  @override
   String daysLeft(Object count) {
     return 'باقي $count يوم';
   }

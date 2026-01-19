@@ -303,12 +303,33 @@ const handlePull = async (req: AuthRequest, res: Response) => {
         },
     });
 
-    // 3. Classes
-    const classes = await prisma.class.findMany({
+    // 3. Classes (with managers for managerNames de-normalization)
+    const classesRaw = await prisma.class.findMany({
         where: {
             updatedAt: { gt: sinceDate },
             ...classFilter
         },
+        include: {
+            managers: {
+                include: {
+                    user: {
+                        select: { name: true }
+                    }
+                }
+            }
+        }
+    });
+
+    // De-normalize managerNames for sync
+    const classes = classesRaw.map(cls => {
+        const { managers, ...classData } = cls;
+        return {
+            ...classData,
+            managerNames: managers
+                .map((m: any) => m.user?.name)
+                .filter((n: any) => n)
+                .join(', ')
+        };
     });
 
     // 4. Attendance Records

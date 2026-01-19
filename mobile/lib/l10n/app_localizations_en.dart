@@ -269,6 +269,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get today => 'Today!';
 
   @override
+  String get tomorrow => 'Tomorrow';
+
+  @override
   String daysLeft(Object count) {
     return '$count days left';
   }

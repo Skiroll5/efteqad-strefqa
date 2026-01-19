@@ -106,6 +106,7 @@
   "create": "Create",
   "upcomingBirthdays": "Upcoming Birthdays",
   "today": "Today!",
+  "tomorrow": "Tomorrow",
   "daysLeft": "{count} days left",
   "@daysLeft": {
     "placeholders": {

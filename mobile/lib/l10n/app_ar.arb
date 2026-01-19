@@ -90,6 +90,7 @@
   "create": "إنشاء",
   "upcomingBirthdays": "أعياد الميلاد القادمة",
   "today": "النهاردة!",
+  "tomorrow": "بكره",
   "daysLeft": "باقي {count} يوم",
   "markAbsentPast": "تسجيل غياب للحصص السابقة",
   "markAbsentPastCaption": "سيتم تسجيل الطالب 'غائب' في جميع الحصص السابقة.",

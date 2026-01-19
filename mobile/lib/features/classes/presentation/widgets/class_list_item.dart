@@ -16,6 +16,8 @@ class ClassListItem extends ConsumerWidget {
   final bool isDark;
   final VoidCallback onTap;
   final VoidCallback? onRefresh;
+  final bool showDragHandle;
+  final int? reorderIndex;
 
   const ClassListItem({
     super.key,
@@ -24,6 +26,8 @@ class ClassListItem extends ConsumerWidget {
     required this.isDark,
     required this.onTap,
     this.onRefresh,
+    this.showDragHandle = false,
+    this.reorderIndex,
   });
 
   @override
@@ -32,6 +36,10 @@ class ClassListItem extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     // Managers are now pre-fetched in the class object
     final managers = cls.managerNames ?? '';
+    
+    // DEBUG: Log manager names
+    debugPrint('ClassListItem [${cls.name}]: managerNames = "${cls.managerNames}" (isEmpty: ${managers.isEmpty})');
+    
     final percentageAsync = ref.watch(
       classAttendancePercentageProvider(cls.id),
     );
@@ -58,24 +66,47 @@ class ClassListItem extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    // Class Icon - Simplified
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.goldPrimary.withValues(alpha: 0.15)
-                            : AppColors.goldPrimary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.class_rounded,
-                          color: AppColors.goldPrimary,
-                          size: 22,
+                    // Drag handle replaces class icon when reorderable
+                    if (showDragHandle && reorderIndex != null)
+                      ReorderableDragStartListener(
+                        index: reorderIndex!,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : Colors.black.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.drag_indicator_rounded,
+                              color: isDark ? Colors.white54 : Colors.black38,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      // Class Icon - when not reorderable
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.goldPrimary.withValues(alpha: 0.15)
+                              : AppColors.goldPrimary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.class_rounded,
+                            color: AppColors.goldPrimary,
+                            size: 22,
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(width: 14),
                     // Class Info
                     Expanded(
@@ -84,49 +115,32 @@ class ClassListItem extends ConsumerWidget {
                         children: [
                           Text(
                             cls.name,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white : AppColors.textPrimaryLight,
                             ),
                           ),
-                          if (cls.grade != null && cls.grade!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                cls.grade!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark ? Colors.white54 : Colors.black45,
-                                ),
-                              ),
-                            ),
-                          // Managers subtitle
+                          // Managers as subtitle
                           if (managers.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.person_outline_rounded,
-                                    size: 12,
-                                    color: isDark
-                                        ? AppColors.goldPrimary.withValues(alpha: 0.7)
-                                        : AppColors.goldDark.withValues(alpha: 0.7),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      managers,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: isDark
-                                            ? AppColors.goldPrimary.withValues(alpha: 0.7)
-                                            : AppColors.goldDark.withValues(alpha: 0.7),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(top: 3),
+                              child: Text(
+                                managers,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          else if (cls.grade != null && cls.grade!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 3),
+                              child: Text(
+                                cls.grade!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
                               ),
                             ),
                         ],

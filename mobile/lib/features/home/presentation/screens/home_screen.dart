@@ -18,6 +18,9 @@ import 'package:mobile/features/home/data/home_insights_repository.dart';
 import '../../../classes/presentation/widgets/class_list_item.dart';
 import '../../../classes/presentation/widgets/class_dialogs.dart';
 
+/// Provider for optimistic class order - shared between HomeScreen and InsightsSection
+final optimisticClassOrderProvider = StateProvider<List<String>?>((ref) => null);
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -26,9 +29,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  // Optimistic order to prevent UI jitter during reordering
-  List<String>? _optimisticOrder;
-
   @override
   void initState() {
     super.initState();
@@ -137,7 +137,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           }
 
           // Apply Sorting
-          final order = _optimisticOrder ?? orderAsync.value ?? [];
+          final optimisticOrder = ref.watch(optimisticClassOrderProvider);
+          final order = optimisticOrder ?? orderAsync.value ?? [];
           final sortedClasses = [...classes];
 
           if (order.isNotEmpty) {
@@ -160,21 +161,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               await ref.read(syncServiceProvider).pullChanges();
             },
             child: ReorderableListView(
-              // Use ReorderableListView
+              buildDefaultDragHandles: false,
               padding: const EdgeInsets.all(16),
               onReorder: (oldIndex, newIndex) {
                 if (oldIndex < newIndex) {
                   newIndex -= 1;
                 }
 
-                // 1. Update optimistic order locally
+                // 1. Update optimistic order via provider (shared with InsightsSection)
                 final item = sortedClasses.removeAt(oldIndex);
                 sortedClasses.insert(newIndex, item);
 
                 final newOrderIds = sortedClasses.map((c) => c.id).toList();
-                setState(() {
-                  _optimisticOrder = newOrderIds;
-                });
+                ref.read(optimisticClassOrderProvider.notifier).state = newOrderIds;
 
                 // 2. Persist to storage
                 ref
@@ -356,14 +355,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
               children: [
-                for (final cls in sortedClasses)
+                for (int i = 0; i < sortedClasses.length; i++)
                   ClassListItem(
-                    key: ValueKey(cls.id),
-                    cls: cls,
+                    key: ValueKey(sortedClasses[i].id),
+                    cls: sortedClasses[i],
                     isAdmin: user?.role == 'ADMIN',
                     isDark: isDark,
+                    showDragHandle: true,
+                    reorderIndex: i,
                     onTap: () {
-                      ref.read(selectedClassIdProvider.notifier).state = cls.id;
+                      ref.read(selectedClassIdProvider.notifier).state = sortedClasses[i].id;
                       context.push('/students');
                     },
                   ),
@@ -387,6 +388,7 @@ class _InsightsSection extends ConsumerWidget {
     final atRiskAsync = ref.watch(atRiskStudentsProvider);
     final classesSessionsAsync = ref.watch(classesLatestSessionsProvider);
     final allStudentsAsync = ref.watch(studentsStreamProvider);
+    final optimisticOrder = ref.watch(optimisticClassOrderProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -412,23 +414,39 @@ class _InsightsSection extends ConsumerWidget {
         // 2. Class Awareness (Latest Sessions)
         classesSessionsAsync.when(
           data: (sessions) {
-            final activeSessions = sessions.where((s) => s.hasSession).toList();
+            var activeSessions = sessions.where((s) => s.hasSession).toList();
             if (activeSessions.isEmpty) return const SizedBox.shrink();
+
+            // Apply optimistic order if available
+            if (optimisticOrder != null && optimisticOrder.isNotEmpty) {
+              activeSessions.sort((a, b) {
+                final indexA = optimisticOrder.indexOf(a.classId);
+                final indexB = optimisticOrder.indexOf(b.classId);
+                if (indexA == -1 && indexB == -1) return 0;
+                if (indexA == -1) return 1;
+                if (indexB == -1) return -1;
+                return indexA.compareTo(indexB);
+              });
+            }
 
             return Container(
               height: 145,
               margin: const EdgeInsets.only(bottom: 24),
-              child: PageView.builder(
-                controller: PageController(viewportFraction: 0.92),
-                padEnds: false,
-                itemCount: activeSessions.length,
-                itemBuilder: (context, index) {
-                  final session = activeSessions[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: LastSessionCard(sessionStatus: session),
-                  );
-                },
+              child: ClipRect(
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsetsDirectional.only(start: 0, end: 0),
+                  itemCount: activeSessions.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final session = activeSessions[index];
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    return SizedBox(
+                      width: screenWidth - 32 - 48,
+                      child: LastSessionCard(sessionStatus: session),
+                    );
+                  },
+                ),
               ),
             );
           },

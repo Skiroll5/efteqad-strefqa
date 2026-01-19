@@ -1279,7 +1279,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     subtitle: Text(
                       l10n?.markAbsentPastCaption ??
                           "Student will be recorded as ABSENT for all previous sessions.",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
                     ),
                     activeColor: AppColors.goldPrimary,
                     contentPadding: EdgeInsets.zero,

@@ -179,7 +179,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                               ).showSnackBar(
                                                 const SnackBar(
                                                   content: Text(
-                                                    'Phone number copied',
+                                                    l10n?.phoneNumberCopied ?? 'Phone number copied',
                                                   ),
                                                 ),
                                               );

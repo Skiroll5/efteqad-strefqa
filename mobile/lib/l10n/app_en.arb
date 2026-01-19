@@ -41,6 +41,7 @@
   "call": "Call",
   "phone": "Phone",
   "noPhone": "No Phone",
+  "phoneNumberCopied": "Phone number copied",
   "address": "Address",
   "birthdate": "Birthdate",
   "visitationNotes": "Notes",

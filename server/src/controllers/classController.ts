@@ -150,7 +150,10 @@ export const getClassManagers = async (req: Request, res: Response) => {
             },
         });
 
-        res.json(managers);
+        // Flatten the response to return the users directly
+        const flattenedManagers = managers.map(m => m.user);
+
+        res.json(flattenedManagers);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

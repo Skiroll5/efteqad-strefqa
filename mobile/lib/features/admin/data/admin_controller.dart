@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'admin_repository.dart';
+import '../../classes/data/classes_controller.dart';
 
 /// Provider for all users (admin view)
 final allUsersProvider = FutureProvider<List<Map<String, dynamic>>>((
@@ -30,7 +31,24 @@ final adminClassesProvider = FutureProvider<List<Map<String, dynamic>>>((
   ref,
 ) async {
   final repo = ref.watch(adminRepositoryProvider);
-  return repo.fetchClasses();
+  final classes = await repo.fetchClasses();
+  final order = await ref.watch(classOrderProvider.future);
+
+  if (order.isEmpty) return classes;
+
+  classes.sort((a, b) {
+    final indexA = order.indexOf(a['id']);
+    final indexB = order.indexOf(b['id']);
+
+    if (indexA == -1 && indexB == -1) {
+      return (a['name'] as String).compareTo(b['name'] as String);
+    }
+    if (indexA == -1) return 1;
+    if (indexB == -1) return -1;
+    return indexA.compareTo(indexB);
+  });
+
+  return classes;
 });
 
 /// Provider for class managers of a specific class

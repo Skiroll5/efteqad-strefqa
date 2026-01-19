@@ -18,22 +18,32 @@ import 'package:mobile/features/home/data/home_insights_repository.dart';
 import '../../../classes/presentation/widgets/class_list_item.dart';
 import '../../../classes/presentation/widgets/class_dialogs.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  // Optimistic order to prevent UI jitter during reordering
+  List<String>? _optimisticOrder;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).asData?.value;
-    // Use userClassesStreamProvider which returns classes based on user role
+    // Watch raw classes stream and order separately to handle optimistic updates
     final classesAsync = ref.watch(userClassesStreamProvider);
-    // Ensure SyncService is alive and syncing
+    final orderAsync = ref.watch(classOrderProvider);
+
+    // Ensure SyncService is alive
     ref.watch(syncServiceProvider);
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
 
-    // Get first name for greeting (capitalized)
+    // Get first name for greeting
     final rawName = user?.name.split(' ').first ?? 'User';
     final firstName = rawName.isNotEmpty
         ? rawName[0].toUpperCase() + rawName.substring(1).toLowerCase()
@@ -41,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: false, // Align to start (left in LTR, right in RTL)
+        centerTitle: false,
         title: RichText(
           text: TextSpan(
             style: theme.textTheme.titleLarge,
@@ -76,11 +86,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: classesAsync.when(
         data: (classes) {
-          // The userClassesStreamProvider already filters based on user role
-          // Admin sees all, Servant sees only assigned classes
-
           if (classes.isEmpty && user?.role != 'ADMIN') {
-            // Non-admin with no assigned classes
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -120,189 +126,223 @@ class HomeScreen extends ConsumerWidget {
             );
           }
 
-          return ListView(
+          // Apply Sorting
+          final order = _optimisticOrder ?? orderAsync.value ?? [];
+          final sortedClasses = [...classes];
+
+          if (order.isNotEmpty) {
+            sortedClasses.sort((a, b) {
+              final indexA = order.indexOf(a.id);
+              final indexB = order.indexOf(b.id);
+
+              if (indexA == -1 && indexB == -1) return a.name.compareTo(b.name);
+              if (indexA == -1) return 1;
+              if (indexB == -1) return -1;
+              return indexA.compareTo(indexB);
+            });
+          } else {
+            // Default sort by name if no order
+            sortedClasses.sort((a, b) => a.name.compareTo(b.name));
+          }
+
+          return ReorderableListView(
+            // Use ReorderableListView
             padding: const EdgeInsets.all(16),
-            children: [
-              // Insights Section
-              // Admin Panel Entry Point
-              if (user?.role == 'ADMIN') ...[
-                PremiumCard(
-                  margin: EdgeInsets.zero,
-                  child: InkWell(
-                    onTap: () => context.push('/admin'),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: isDark
-                                    ? [
-                                        AppColors.goldPrimary,
-                                        AppColors.goldDark,
-                                      ]
-                                    : [
-                                        AppColors.goldPrimary,
-                                        AppColors.goldLight,
-                                      ],
+            onReorder: (oldIndex, newIndex) {
+              if (oldIndex < newIndex) {
+                newIndex -= 1;
+              }
+
+              // 1. Update optimistic order locally
+              final item = sortedClasses.removeAt(oldIndex);
+              sortedClasses.insert(newIndex, item);
+
+              final newOrderIds = sortedClasses.map((c) => c.id).toList();
+              setState(() {
+                _optimisticOrder = newOrderIds;
+              });
+
+              // 2. Persist to storage
+              ref.read(classesControllerProvider).updateClassOrder(newOrderIds);
+            },
+            header: Column(
+              children: [
+                if (user?.role == 'ADMIN') ...[
+                  PremiumCard(
+                    margin: EdgeInsets.zero,
+                    child: InkWell(
+                      onTap: () => context.push('/admin'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: isDark
+                                      ? [
+                                          AppColors.goldPrimary,
+                                          AppColors.goldDark,
+                                        ]
+                                      : [
+                                          AppColors.goldPrimary,
+                                          AppColors.goldLight,
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              child: const Icon(
+                                Icons.admin_panel_settings,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.admin_panel_settings,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n?.adminPanel ?? 'Admin Panel',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n?.adminPanel ?? 'Admin Panel',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? AppColors.textPrimaryDark
+                                              : AppColors.textPrimaryLight,
+                                        ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n?.adminPanelDesc ??
-                                      'Manage users, classes & data',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: isDark
-                                        ? AppColors.textSecondaryDark
-                                        : AppColors.textSecondaryLight,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n?.adminPanelDesc ??
+                                        'Manage users, classes & data',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: isDark
-                                ? AppColors.goldPrimary
-                                : AppColors.goldDark,
-                          ),
-                        ],
+                            Icon(
+                              Icons.arrow_forward,
+                              color: isDark
+                                  ? AppColors.goldPrimary
+                                  : AppColors.goldDark,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ).animate().fade().slideY(begin: -0.2, end: 0),
-                const SizedBox(height: 24),
+                  ).animate().fade().slideY(begin: -0.2, end: 0),
+                  const SizedBox(height: 24),
 
-                const _InsightsSection(),
-                const SizedBox(height: 24),
-              ],
+                  const _InsightsSection(),
+                  const SizedBox(height: 24),
+                ],
 
-              if (classes.isNotEmpty || user?.role == 'ADMIN') ...[
-                Row(
-                  children: [
-                    Text(
-                      user?.role == 'ADMIN'
-                          ? (l10n?.yourClasses ?? 'Your Classes')
-                          : (l10n?.yourClass ?? 'Your Class'),
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
+                if (classes.isNotEmpty || user?.role == 'ADMIN') ...[
+                  Row(
+                    children: [
+                      Text(
+                        user?.role == 'ADMIN'
+                            ? (l10n?.yourClasses ?? 'Your Classes')
+                            : (l10n?.yourClass ?? 'Your Class'),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    if (user?.role == 'ADMIN')
-                      Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () => showAddClassDialog(context, ref),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
+                      const Spacer(),
+                      if (user?.role == 'ADMIN')
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => showAddClassDialog(context, ref),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.goldPrimary.withValues(
+                                        alpha: 0.1,
+                                      )
+                                    : AppColors.goldPrimary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
                                   color: isDark
                                       ? AppColors.goldPrimary.withValues(
-                                          alpha: 0.1,
+                                          alpha: 0.2,
                                         )
                                       : AppColors.goldPrimary.withValues(
-                                          alpha: 0.1,
+                                          alpha: 0.3,
                                         ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? AppColors.goldPrimary.withValues(
-                                            alpha: 0.2,
-                                          )
-                                        : AppColors.goldPrimary.withValues(
-                                            alpha: 0.3,
-                                          ),
-                                  ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.add,
-                                      size: 18,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.add,
+                                    size: 18,
+                                    color: isDark
+                                        ? AppColors.goldPrimary
+                                        : AppColors.goldDark,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    l10n?.createClass ?? 'Create Class',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
                                       color: isDark
                                           ? AppColors.goldPrimary
                                           : AppColors.goldDark,
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      l10n?.createClass ?? 'Create Class',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        color: isDark
-                                            ? AppColors.goldPrimary
-                                            : AppColors.goldDark,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                          )
-                          .animate()
-                          .fade(delay: 300.ms)
-                          .slideY(begin: 0.2, end: 0, curve: Curves.easeOut),
-                  ],
-                ).animate().fade(),
-                const SizedBox(height: 4),
-                Text(
-                  l10n?.selectClassToManage ??
-                      'Select a class to manage students and attendance',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
-                ).animate().fade(delay: 100.ms),
-                const SizedBox(height: 20),
-
-                // Classes List
-                ...classes.map((cls) {
-                  return ClassListItem(
-                    key: ValueKey(cls.id),
-                    cls: cls,
-                    isAdmin: user?.role == 'ADMIN',
-                    isDark: isDark,
-                    onTap: () {
-                      ref.read(selectedClassIdProvider.notifier).state = cls.id;
-                      context.push('/students');
-                    },
-                  );
-                }),
+                          ),
+                        ),
+                    ],
+                  ).animate().fade(),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n?.selectClassToManage ??
+                        'Select a class to manage students and attendance',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ).animate().fade(delay: 100.ms),
+                  const SizedBox(height: 20),
+                ],
               ],
+            ),
+            children: [
+              for (final cls in sortedClasses)
+                ClassListItem(
+                  key: ValueKey(cls.id),
+                  cls: cls,
+                  isAdmin: user?.role == 'ADMIN',
+                  isDark: isDark,
+                  onTap: () {
+                    ref.read(selectedClassIdProvider.notifier).state = cls.id;
+                    context.push('/students');
+                  },
+                ),
             ],
           );
         },

@@ -60,6 +60,14 @@ final studentAttendanceHistoryProvider =
       return repo.watchStudentAttendance(studentId);
     });
 
+// Watch average attendance percentage for a class
+final classAttendancePercentageProvider = StreamProvider.family<double, String>(
+  (ref, classId) {
+    final repo = ref.watch(attendanceRepositoryProvider);
+    return repo.watchClassAttendancePercentage(classId);
+  },
+);
+
 // --- Controller ---
 
 final attendanceControllerProvider =

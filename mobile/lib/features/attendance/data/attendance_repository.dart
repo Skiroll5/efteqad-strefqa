@@ -489,6 +489,46 @@ class AttendanceRepository {
       }).toList();
     });
   }
+
+  // Watch average class attendance percentage
+  Stream<double> watchClassAttendancePercentage(String classId) {
+    // Join sessions and records to get all records for this class
+    final query =
+        _db.select(_db.attendanceSessions).join([
+          innerJoin(
+            _db.attendanceRecords,
+            _db.attendanceRecords.sessionId.equalsExp(
+                  _db.attendanceSessions.id,
+                ) &
+                _db.attendanceRecords.isDeleted.equals(false),
+          ),
+        ])..where(
+          _db.attendanceSessions.classId.equals(classId) &
+              _db.attendanceSessions.isDeleted.equals(false),
+        );
+
+    return query.watch().map((rows) {
+      if (rows.isEmpty) return 0.0;
+
+      int present = 0;
+      int total = 0;
+
+      for (final row in rows) {
+        final record = row.readTable(_db.attendanceRecords);
+        // Only count explicit PRESENT/ABSENT statuses if there are others
+        // Assuming 'PRESENT' and 'ABSENT' are the main ones.
+        if (record.status == 'PRESENT') {
+          present++;
+          total++;
+        } else if (record.status == 'ABSENT') {
+          total++;
+        }
+      }
+
+      if (total == 0) return 0.0;
+      return (present / total) * 100.0;
+    });
+  }
 }
 
 class AttendanceRecordWithSession {

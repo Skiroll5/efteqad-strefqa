@@ -274,11 +274,11 @@
   "emptyMessage": "(Empty message)",
   "whatsappMessageHint": "Hello {firstname}, how are you?",
   "notificationSettingsDesc": "Manage push notifications",
-  "notesNotification": "📝 Notes",
-  "attendanceNotification": "📊 Attendance",
-  "birthdayNotification": "🎂 Birthday Reminders",
-  "inactiveNotification": "⚠️ Inactive Students",
-  "newUserNotification": "👤 New Registrations",
+  "notesNotification": "Notes",
+  "attendanceNotification": "Attendance",
+  "birthdayNotification": "Birthday Reminders",
+  "inactiveNotification": "Inactive Students",
+  "newUserNotification": "New Registrations",
   "morningTime": "Morning (8:00 AM)",
   "eveningTime": "Evening before (8:00 PM)",
   "className": "Class Name",
@@ -374,6 +374,7 @@
   
   "accountPendingActivation": "Your account is awaiting admin activation",
   "accountDenied": "Your activation request was denied by the administrator",
+  "accountDeniedDesc": "Your activation request was denied. If you believe this was a mistake, please contact the administrator for assistance.",
   "accountDisabled": "Your account has been disabled by the administrator",
   "invalidCredentials": "Invalid email or password",
   "registrationSuccessful": "Registration Successful!",
@@ -396,7 +397,15 @@
   "userDeleted": "User deleted successfully",
   "abortedActivations": "Denied Activations",
   "noAbortedUsers": "No denied activation requests",
+  "viewDeniedUsersDesc": "View and manage users whose activation was denied",
   "reactivate": "Reactivate",
+  "reactivateConfirmation": "Are you sure you want to reactivate {name}? They will be able to log in again.",
+  "@reactivateConfirmation": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "deny": "Deny",
   "classManagers": "Managers",
   "disabled": "Disabled",
   "active": "Active",

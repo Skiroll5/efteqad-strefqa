@@ -1241,31 +1241,31 @@ abstract class AppLocalizations {
   /// No description provided for @notesNotification.
   ///
   /// In en, this message translates to:
-  /// **'📝 Notes'**
+  /// **'Notes'**
   String get notesNotification;
 
   /// No description provided for @attendanceNotification.
   ///
   /// In en, this message translates to:
-  /// **'📊 Attendance'**
+  /// **'Attendance'**
   String get attendanceNotification;
 
   /// No description provided for @birthdayNotification.
   ///
   /// In en, this message translates to:
-  /// **'🎂 Birthday Reminders'**
+  /// **'Birthday Reminders'**
   String get birthdayNotification;
 
   /// No description provided for @inactiveNotification.
   ///
   /// In en, this message translates to:
-  /// **'⚠️ Inactive Students'**
+  /// **'Inactive Students'**
   String get inactiveNotification;
 
   /// No description provided for @newUserNotification.
   ///
   /// In en, this message translates to:
-  /// **'👤 New Registrations'**
+  /// **'New Registrations'**
   String get newUserNotification;
 
   /// No description provided for @morningTime.
@@ -1460,6 +1460,12 @@ abstract class AppLocalizations {
   /// **'Your activation request was denied by the administrator'**
   String get accountDenied;
 
+  /// No description provided for @accountDeniedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activation request was denied. If you believe this was a mistake, please contact the administrator for assistance.'**
+  String get accountDeniedDesc;
+
   /// No description provided for @accountDisabled.
   ///
   /// In en, this message translates to:
@@ -1585,6 +1591,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No denied activation requests'**
   String get noAbortedUsers;
+
+  /// No description provided for @viewDeniedUsersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View and manage users whose activation was denied'**
+  String get viewDeniedUsersDesc;
 
   /// No description provided for @reactivate.
   ///

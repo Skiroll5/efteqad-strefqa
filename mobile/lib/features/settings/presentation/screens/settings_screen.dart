@@ -345,6 +345,62 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ).animate().fade(delay: 300.ms),
 
+          // Admin Management Section
+          if (user?.role == 'ADMIN')
+            PremiumCard(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.admin_panel_settings_outlined,
+                          color: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.goldDark,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n?.adminPanel ?? 'Admin Panel',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.goldPrimary
+                                : AppColors.goldDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: isDark
+                        ? AppColors.goldPrimary.withValues(alpha: 0.2)
+                        : AppColors.goldPrimary.withValues(alpha: 0.2),
+                  ),
+                  _SettingsTile(
+                    icon: Icons.block_rounded,
+                    title: l10n?.abortedActivations ?? 'Denied Activations',
+                    subtitle:
+                        l10n?.viewDeniedUsersDesc ??
+                        'View and manage users whose activation was denied',
+                    isDark: isDark,
+                    onTap: () => context.push('/settings/denied-activations'),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fade(delay: 320.ms),
+
           // Data Management (Reset)
           if (user?.role == 'ADMIN')
             PremiumCard(

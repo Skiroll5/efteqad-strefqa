@@ -411,12 +411,11 @@ class _UsersSection extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
                     l10n?.pendingActivation ?? 'Pending Activation',
-                    style: TextStyle(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       color: isDark
                           ? AppColors.goldPrimary
                           : AppColors.goldDark,
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -438,28 +437,92 @@ class _UsersSection extends ConsumerWidget {
                         ),
                         title: Text(user['name'] ?? 'Unknown'),
                         subtitle: Text(user['email'] ?? ''),
-                        trailing: FilledButton.icon(
-                          icon: const Icon(Icons.check, size: 16),
-                          label: Text(l10n?.activate ?? 'Activate'),
-                          style: FilledButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          onPressed: () async {
-                            final success = await controller.activateUser(
-                              user['id'],
-                            );
-                            if (context.mounted) {
-                              _showActionFeedback(
-                                context,
-                                success: success,
-                                successMessage:
-                                    l10n?.userActivated ?? 'User activated!',
-                                failureMessage:
-                                    l10n?.actionFailedCheckConnection ??
-                                    'Action failed. Check your internet connection.',
-                              );
-                            }
-                          },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Reject button
+                            IconButton.outlined(
+                              icon: const Icon(Icons.close, size: 18),
+                              tooltip: l10n?.abortActivation ?? 'Deny',
+                              visualDensity: VisualDensity.compact,
+                              style: IconButton.styleFrom(
+                                foregroundColor: Colors.red.shade600,
+                                side: BorderSide(color: Colors.red.shade300),
+                              ),
+                              onPressed: () async {
+                                final userName = user['name'] ?? 'Unknown';
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    icon: Icon(
+                                      Icons.block_rounded,
+                                      color: Colors.red.shade600,
+                                      size: 32,
+                                    ),
+                                    title: Text(l10n?.abortActivation ?? 'Deny Activation'),
+                                    content: Text(
+                                      l10n?.abortActivationConfirm ??
+                                          'Are you sure you want to deny this user\'s activation request?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx, false),
+                                        child: Text(l10n?.cancel ?? 'Cancel'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => Navigator.pop(ctx, true),
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor: Colors.red.shade600,
+                                        ),
+                                        child: Text(l10n?.deny ?? 'Deny'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmed != true || !context.mounted) return;
+                                final success = await controller.abortActivation(
+                                  user['id'],
+                                );
+                                if (context.mounted) {
+                                  _showActionFeedback(
+                                    context,
+                                    success: success,
+                                    successMessage:
+                                        l10n?.userActivationAborted ??
+                                        'Activation denied',
+                                    failureMessage:
+                                        l10n?.actionFailedCheckConnection ??
+                                        'Action failed. Check your internet connection.',
+                                  );
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            // Activate button
+                            FilledButton.icon(
+                              icon: const Icon(Icons.check, size: 16),
+                              label: Text(l10n?.activate ?? 'Activate'),
+                              style: FilledButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              onPressed: () async {
+                                final success = await controller.activateUser(
+                                  user['id'],
+                                );
+                                if (context.mounted) {
+                                  _showActionFeedback(
+                                    context,
+                                    success: success,
+                                    successMessage:
+                                        l10n?.userActivated ?? 'User activated!',
+                                    failureMessage:
+                                        l10n?.actionFailedCheckConnection ??
+                                        'Action failed. Check your internet connection.',
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -474,10 +537,9 @@ class _UsersSection extends ConsumerWidget {
         // All Users Sub-section
         Text(
           l10n?.allUsers ?? 'All Users',
-          style: TextStyle(
+          style: theme.textTheme.titleSmall?.copyWith(
             color: isDark ? Colors.white70 : Colors.black54,
             fontWeight: FontWeight.bold,
-            fontSize: 13,
           ),
         ),
         const SizedBox(height: 8),

@@ -562,13 +562,14 @@ class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
           return currentManagersAsync.when(
             data: (managers) {
               final managerIds = managers.map((m) => m['id']).toSet();
-              // Filter out admins and existing managers
+              // Filter out admins, existing managers, non-activated, and denied users
               final eligibleUsers = allUsers
                   .where(
                     (u) =>
                         !managerIds.contains(u['id']) &&
                         u['role'] != 'ADMIN' &&
                         u['isActive'] == true &&
+                        u['activationDenied'] != true &&
                         u['isDeleted'] == false,
                   )
                   .toList();

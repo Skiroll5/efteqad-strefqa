@@ -621,19 +621,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notificationSettingsDesc => 'إدارة الإشعارات';
 
   @override
-  String get notesNotification => '📝 الملاحظات';
+  String get notesNotification => 'الملاحظات';
 
   @override
-  String get attendanceNotification => '📊 الغياب';
+  String get attendanceNotification => 'الغياب';
 
   @override
-  String get birthdayNotification => '🎂 أعياد الميلاد';
+  String get birthdayNotification => 'أعياد الميلاد';
 
   @override
-  String get inactiveNotification => '⚠️ الطلاب غير النشطين';
+  String get inactiveNotification => 'الطلاب غير النشطين';
 
   @override
-  String get newUserNotification => '👤 تسجيلات جديدة';
+  String get newUserNotification => 'تسجيلات جديدة';
 
   @override
   String get morningTime => 'صباحاً (8:00 ص)';
@@ -737,6 +737,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountDenied => 'تم رفض طلب التفعيل من قبل المسؤول';
 
   @override
+  String get accountDeniedDesc =>
+      'تم رفض طلب التفعيل الخاص بك. إذا كنت تعتقد أن هذا خطأ، يرجى التواصل مع المسؤول للمساعدة.';
+
+  @override
   String get accountDisabled => 'تم تعطيل حسابك من قبل المسؤول';
 
   @override
@@ -802,6 +806,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noAbortedUsers => 'لا توجد طلبات تفعيل مرفوضة';
+
+  @override
+  String get viewDeniedUsersDesc =>
+      'عرض وإدارة المستخدمين الذين تم رفض تفعيلهم';
 
   @override
   String get reactivate => 'إعادة التفعيل';

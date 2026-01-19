@@ -41,6 +41,10 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen>
         title: Text(l10n.userManagement),
         bottom: TabBar(
           controller: _tabController,
+          labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+          unselectedLabelStyle: Theme.of(context).textTheme.labelLarge,
           tabs: [
             Tab(
               text: l10n.pendingActivation,
@@ -357,13 +361,7 @@ class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
     final l10n = AppLocalizations.of(context)!;
     final isActive = widget.user['isActive'] == true;
     final isAdmin = widget.user['role'] == 'ADMIN';
-
-    // The user card already handles some display, but for better control over the toggle
-    // we'll build the actions here properly or wrap the switch.
-    // However, _UserCard takes a list of widgets.
-
-    // We can't use Switch in _UserCard's actions list easily if we want optimistic updates
-    // unless we pass a stateful widget as an action.
+    final activationDenied = widget.user['activationDenied'] == true;
 
     return _UserCard(
           user: widget.user,
@@ -371,58 +369,163 @@ class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
           delay: widget.index * 0.1,
           showStatusBadge: true,
           isActive: isActive,
-          isEnabled: _isEnabled, // Use optimistic state for visual consistency
+          isEnabled: _isEnabled,
           isAdmin: isAdmin,
           actions: isAdmin
               ? []
-              : [
-                  // Use a custom widget for the toggle action to handle state
-                  _SwitchAction(
-                    value: _isEnabled,
-                    label: _isEnabled ? l10n.enabled : l10n.disabled,
-                    onChanged: (val) async {
-                      setState(() {
-                        _isEnabled = val;
-                      });
+              : isActive
+                  ? [
+                      // Active users: Enable/Disable toggle and Delete
+                      _SwitchAction(
+                        value: _isEnabled,
+                        label: _isEnabled ? l10n.enabled : l10n.disabled,
+                        onChanged: (val) async {
+                          setState(() {
+                            _isEnabled = val;
+                          });
 
-                      final success = val
-                          ? await ref
-                                .read(adminControllerProvider.notifier)
-                                .enableUser(widget.user['id'])
-                          : await ref
-                                .read(adminControllerProvider.notifier)
-                                .disableUser(widget.user['id']);
+                          final success = val
+                              ? await ref
+                                    .read(adminControllerProvider.notifier)
+                                    .enableUser(widget.user['id'])
+                              : await ref
+                                    .read(adminControllerProvider.notifier)
+                                    .disableUser(widget.user['id']);
 
-                      if (!success && context.mounted) {
-                        // Revert if failed
-                        setState(() {
-                          _isEnabled = !val;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.errorUpdateUser),
-                            backgroundColor: Colors.red,
+                          if (!success && context.mounted) {
+                            setState(() {
+                              _isEnabled = !val;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.errorUpdateUser),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      _ActionButton(
+                        icon: Icons.delete,
+                        label: l10n.deleteUser,
+                        color: Colors.grey,
+                        onPressed: () => _showDeleteConfirmation(
+                          context,
+                          ref,
+                          widget.user,
+                          l10n,
+                        ),
+                      ),
+                    ]
+                  : activationDenied
+                      ? [
+                          // Denied users: Reactivate option
+                          _ActionButton(
+                            icon: Icons.refresh,
+                            label: l10n.reactivate,
+                            color: Colors.orange,
+                            onPressed: () => _activateUser(context, ref, l10n),
                           ),
-                        );
-                      }
-                    },
-                  ),
-                  _ActionButton(
-                    icon: Icons.delete,
-                    label: l10n.deleteUser,
-                    color: Colors.grey,
-                    onPressed: () => _showDeleteConfirmation(
-                      context,
-                      ref,
-                      widget.user,
-                      l10n,
-                    ),
-                  ),
-                ],
+                          _ActionButton(
+                            icon: Icons.delete,
+                            label: l10n.deleteUser,
+                            color: Colors.grey,
+                            onPressed: () => _showDeleteConfirmation(
+                              context,
+                              ref,
+                              widget.user,
+                              l10n,
+                            ),
+                          ),
+                        ]
+                      : [
+                          // Pending users: Activate or Reject
+                          _ActionButton(
+                            icon: Icons.check,
+                            label: l10n.activate,
+                            color: Colors.green,
+                            onPressed: () => _activateUser(context, ref, l10n),
+                          ),
+                          _ActionButton(
+                            icon: Icons.close,
+                            label: l10n.abortActivation,
+                            color: AppColors.redPrimary,
+                            onPressed: () => _showAbortConfirmation(
+                              context,
+                              ref,
+                              widget.user,
+                              l10n,
+                            ),
+                          ),
+                        ],
         )
         .animate()
         .fade(delay: Duration(milliseconds: (widget.index * 100)))
         .slideX(begin: 0.1);
+  }
+
+  Future<void> _activateUser(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final success = await ref
+        .read(adminControllerProvider.notifier)
+        .activateUser(widget.user['id']);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? l10n.userActivated : l10n.userActivationFailed,
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showAbortConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> user,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.abortActivation),
+        content: Text(l10n.abortActivationConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.redPrimary,
+            ),
+            child: Text(l10n.abortActivation),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await ref
+          .read(adminControllerProvider.notifier)
+          .abortActivation(user['id']);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success ? l10n.userActivationAborted : l10n.errorUpdateUser,
+            ),
+            backgroundColor: success ? Colors.orange : Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _showDeleteConfirmation(

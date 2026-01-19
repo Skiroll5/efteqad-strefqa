@@ -120,23 +120,8 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        // Check if activation was denied
-        if (user.activationDenied) {
-            return res.status(403).json({
-                message: 'Your activation request was denied by the administrator',
-                code: 'ACTIVATION_DENIED'
-            });
-        }
-
-        // Check if account is pending activation
-        if (!user.isActive) {
-            return res.status(403).json({
-                message: 'Your account is awaiting administrator activation',
-                code: 'PENDING_ACTIVATION'
-            });
-        }
-
         // Generate token with longer expiry
+        // Allow login for pending/denied users so they can see the pending screen
         const token = jwt.sign(
             { userId: user.id, role: user.role },
             JWT_SECRET,
@@ -151,7 +136,8 @@ export const login = async (req: Request, res: Response) => {
                 name: user.name,
                 role: user.role,
                 isActive: user.isActive,
-                isEnabled: user.isEnabled
+                isEnabled: user.isEnabled,
+                activationDenied: user.activationDenied
             }
         });
     } catch (error) {

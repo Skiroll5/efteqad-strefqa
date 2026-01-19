@@ -623,19 +623,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationSettingsDesc => 'Manage push notifications';
 
   @override
-  String get notesNotification => '📝 Notes';
+  String get notesNotification => 'Notes';
 
   @override
-  String get attendanceNotification => '📊 Attendance';
+  String get attendanceNotification => 'Attendance';
 
   @override
-  String get birthdayNotification => '🎂 Birthday Reminders';
+  String get birthdayNotification => 'Birthday Reminders';
 
   @override
-  String get inactiveNotification => '⚠️ Inactive Students';
+  String get inactiveNotification => 'Inactive Students';
 
   @override
-  String get newUserNotification => '👤 New Registrations';
+  String get newUserNotification => 'New Registrations';
 
   @override
   String get morningTime => 'Morning (8:00 AM)';
@@ -741,6 +741,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your activation request was denied by the administrator';
 
   @override
+  String get accountDeniedDesc =>
+      'Your activation request was denied. If you believe this was a mistake, please contact the administrator for assistance.';
+
+  @override
   String get accountDisabled =>
       'Your account has been disabled by the administrator';
 
@@ -808,6 +812,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noAbortedUsers => 'No denied activation requests';
+
+  @override
+  String get viewDeniedUsersDesc =>
+      'View and manage users whose activation was denied';
 
   @override
   String get reactivate => 'Reactivate';

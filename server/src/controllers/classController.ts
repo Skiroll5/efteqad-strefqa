@@ -12,6 +12,7 @@ export const listClasses = async (req: Request, res: Response) => {
             where: { isDeleted: false },
             include: {
                 managers: {
+                    where: { isDeleted: false },
                     select: {
                         user: {
                             select: {
@@ -56,7 +57,11 @@ export const listClasses = async (req: Request, res: Response) => {
             const { sessions, ...classData } = cls;
             return {
                 ...classData,
-                attendancePercentage
+                attendancePercentage,
+                managerNames: cls.managers
+                    .map((m) => m.user.name)
+                    .filter((n) => n)
+                    .join(', ')
             };
         });
 
@@ -77,6 +82,10 @@ export const createClass = async (req: Request, res: Response) => {
         });
 
         res.status(201).json({ message: 'Class created', class: newClass });
+
+        // Emit real-time update
+        const io = getIO();
+        io.emit('sync_update');
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
@@ -92,17 +101,10 @@ export const assignManager = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Class ID and User ID required' });
         }
 
-        // Check if manager relationship already exists
-        const existing = await prisma.classManager.findUnique({
+        const manager = await prisma.classManager.upsert({
             where: { classId_userId: { classId, userId } },
-        });
-
-        if (existing) {
-            return res.status(409).json({ message: 'User is already a manager of this class' });
-        }
-
-        const manager = await prisma.classManager.create({
-            data: { classId, userId },
+            update: { isDeleted: false, deletedAt: null },
+            create: { classId, userId },
             include: {
                 user: { select: { id: true, name: true, email: true } },
                 class: { select: { id: true, name: true } },
@@ -131,8 +133,12 @@ export const removeManager = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Class ID and User ID required' });
         }
 
-        await prisma.classManager.delete({
+        await prisma.classManager.update({
             where: { classId_userId: { classId, userId } },
+            data: {
+                isDeleted: true,
+                deletedAt: new Date(),
+            }
         });
 
         // Emit sync update event so all clients refresh
@@ -157,7 +163,7 @@ export const getClassManagers = async (req: Request, res: Response) => {
         }
 
         const managers = await prisma.classManager.findMany({
-            where: { classId },
+            where: { classId, isDeleted: false },
             include: {
                 user: { select: { id: true, name: true, email: true } },
             },

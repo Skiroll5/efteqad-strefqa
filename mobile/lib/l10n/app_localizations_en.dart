@@ -575,6 +575,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeManager => 'Remove Manager';
 
   @override
+  String removeManagerConfirmation(Object name) {
+    return 'Are you sure you want to remove $name as a manager from this class?';
+  }
+
+  @override
   String get remove => 'Remove';
 
   @override
@@ -775,10 +780,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Disable this user\'s access? They will be logged out immediately.';
 
   @override
-  String get userEnabled => 'User enabled successfully';
+  String get userEnabled => 'User enabled!';
 
   @override
-  String get userDisabled => 'User disabled successfully';
+  String get userDisabled => 'User disabled.';
 
   @override
   String get deleteUser => 'Delete User';
@@ -844,9 +849,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get managerRemoved => 'Manager removed';
-
-  @override
   String get enabled => 'Enabled';
 
   @override
@@ -865,4 +867,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get availableUsers => 'Available Users';
+
+  @override
+  String get serverConnectionError =>
+      'Cannot connect to server. Please check your internet connection.';
+
+  @override
+  String get tryAgain => 'Try Again';
+
+  @override
+  String get loadingData => 'Loading data...';
+
+  @override
+  String get cannotConnect => 'Cannot Connect';
+
+  @override
+  String get somethingWentWrong => 'Something Went Wrong';
+
+  @override
+  String get autoRetrying => 'Auto-retrying...';
+
+  @override
+  String get willAutoRetry => 'Will auto-retry when connected';
+
+  @override
+  String get serverError => 'Server error. Please try again later.';
+
+  @override
+  String get unauthorized => 'Unauthorized. Please log in again.';
+
+  @override
+  String get actionFailedCheckConnection =>
+      'Action failed. Check your internet connection.';
+
+  @override
+  String get managerAssigned => 'Manager assigned!';
+
+  @override
+  String get managerRemoved => 'Manager removed.';
+
+  @override
+  String get loadingAdminPanel => 'Loading Admin Panel...';
+
+  @override
+  String get loadingClassManagers => 'Loading class managers...';
 }

@@ -177,7 +177,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 });
 
                 // 2. Persist to storage
-                ref.read(classesControllerProvider).updateClassOrder(newOrderIds);
+                ref
+                    .read(classesControllerProvider)
+                    .updateClassOrder(newOrderIds);
               },
               header: Column(
                 children: [
@@ -232,11 +234,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     Text(
                                       l10n?.adminPanelDesc ??
                                           'Manage users, classes & data',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: isDark
-                                            ? AppColors.textSecondaryDark
-                                            : AppColors.textSecondaryLight,
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: isDark
+                                                ? AppColors.textSecondaryDark
+                                                : AppColors.textSecondaryLight,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -282,7 +285,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 Material(
                                   color: Colors.transparent,
                                   child: InkWell(
-                                    onTap: () => showAddClassDialog(context, ref),
+                                    onTap: () =>
+                                        showAddClassDialog(context, ref),
                                     borderRadius: BorderRadius.circular(12),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
@@ -300,12 +304,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: isDark
-                                              ? AppColors.goldPrimary.withValues(
-                                                  alpha: 0.2,
-                                                )
-                                              : AppColors.goldPrimary.withValues(
-                                                  alpha: 0.3,
-                                                ),
+                                              ? AppColors.goldPrimary
+                                                    .withValues(alpha: 0.2)
+                                              : AppColors.goldPrimary
+                                                    .withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Row(
@@ -391,7 +393,23 @@ class _InsightsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Class Awareness (Latest Sessions)
+        // 1. Upcoming Birthdays
+        allStudentsAsync.when(
+          data: (students) {
+            if (students.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: UpcomingBirthdaysSection(
+                students: students,
+                isDark: isDark,
+              ),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+
+        // 2. Class Awareness (Latest Sessions)
         classesSessionsAsync.when(
           data: (sessions) {
             final activeSessions = sessions.where((s) => s.hasSession).toList();
@@ -421,7 +439,7 @@ class _InsightsSection extends ConsumerWidget {
           error: (_, __) => const SizedBox.shrink(),
         ),
 
-        // 2. Global At Risk
+        // 3. Global At Risk
         atRiskAsync.when(
           data: (students) {
             return Padding(
@@ -436,16 +454,6 @@ class _InsightsSection extends ConsumerWidget {
             height: 200,
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (_, __) => const SizedBox.shrink(),
-        ),
-
-        // 3. Upcoming Birthdays
-        allStudentsAsync.when(
-          data: (students) {
-            if (students.isEmpty) return const SizedBox.shrink();
-            return UpcomingBirthdaysSection(students: students, isDark: isDark);
-          },
-          loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),
       ],

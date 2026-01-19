@@ -4,23 +4,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/database/app_database.dart';
-import '../../data/classes_controller.dart';
 import 'class_dialogs.dart';
 
 import '../../../../features/attendance/data/attendance_controller.dart';
 
 /// Provider to get managers for a specific class
-final classManagerNamesProvider = FutureProvider.family<String, String>((
-  ref,
-  classId,
-) async {
-  final controller = ref.watch(classesControllerProvider);
-  final managers = await controller.getManagersForClass(classId);
-  if (managers.isEmpty) {
-    return '';
-  }
-  return managers.map((m) => m.name).join(', ');
-});
+// classManagerNamesProvider removed
 
 class ClassListItem extends ConsumerWidget {
   final ClassesData cls;
@@ -42,7 +31,8 @@ class ClassListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final managersAsync = ref.watch(classManagerNamesProvider(cls.id));
+    // Managers are now pre-fetched in the class object
+    final managers = cls.managerNames ?? '';
     final percentageAsync = ref.watch(
       classAttendancePercentageProvider(cls.id),
     );
@@ -104,48 +94,38 @@ class ClassListItem extends ConsumerWidget {
                         ),
                       ),
                     // Managers subtitle
-                    managersAsync.when(
-                      data: (managers) {
-                        if (managers.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.person_outline,
-                                size: 12,
-                                color: isDark
-                                    ? AppColors.goldPrimary.withValues(
-                                        alpha: 0.7,
-                                      )
-                                    : AppColors.goldDark.withValues(alpha: 0.7),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  managers,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontSize: 11,
-                                    color: isDark
-                                        ? AppColors.goldPrimary.withValues(
-                                            alpha: 0.7,
-                                          )
-                                        : AppColors.goldDark.withValues(
-                                            alpha: 0.7,
-                                          ),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                    if (managers.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 12,
+                              color: isDark
+                                  ? AppColors.goldPrimary.withValues(alpha: 0.7)
+                                  : AppColors.goldDark.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                managers,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? AppColors.goldPrimary.withValues(
+                                          alpha: 0.7,
+                                        )
+                                      : AppColors.goldDark.withValues(
+                                          alpha: 0.7,
+                                        ),
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                    ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),

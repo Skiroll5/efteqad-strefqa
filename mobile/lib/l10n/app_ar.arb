@@ -294,7 +294,6 @@
   "poor": "ضعيف",
   "manageClassManagers": "إدارة المديرين",
   "classManagersDescription": "مديرو {className}",
-  "managerRemoved": "تم إزالة المدير",
   "enabled": "مُفعّل",
   "accountPendingActivationDesc": "تم إنشاء حسابك بنجاح ولكنه في انتظار موافقة المسؤول. سيتم إشعارك عند تفعيل حسابك.",
   "removingManager": "جاري إزالة {name}...",
@@ -305,5 +304,21 @@
     "placeholders": {
       "name": {}
     }
-  }
+  },
+  "serverConnectionError": "لا يمكن الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.",
+  "tryAgain": "حاول مجدداً",
+  "loadingData": "جارٍ تحميل البيانات...",
+  "cannotConnect": "لا يمكن الاتصال",
+  "somethingWentWrong": "حدث خطأ ما",
+  "autoRetrying": "جارٍ إعادة المحاولة تلقائياً...",
+  "willAutoRetry": "ستتم إعادة المحاولة عند الاتصال",
+  "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+  "unauthorized": "غير مصرح. يرجى تسجيل الدخول مرة أخرى.",
+  "actionFailedCheckConnection": "فشل الإجراء. تحقق من اتصالك بالإنترنت.",
+  "userEnabled": "تم تفعيل المستخدم!",
+  "userDisabled": "تم تعطيل المستخدم.",
+  "managerAssigned": "تم تعيين المدير!",
+  "managerRemoved": "تمت إزالة المدير.",
+  "loadingAdminPanel": "جارٍ تحميل لوحة الإدارة...",
+  "loadingClassManagers": "جارٍ تحميل مديري الفصول..."
 }

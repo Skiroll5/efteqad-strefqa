@@ -29,6 +29,8 @@ class Classes extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get grade => text().nullable()(); // e.g., "5th Grade"
+  TextColumn get managerNames =>
+      text().nullable()(); // De-normalized manager names
 
   // Sync Fields
   DateTimeColumn get createdAt => dateTime()();
@@ -93,7 +95,9 @@ class AttendanceRecords extends Table {
 class Notes extends Table {
   TextColumn get id => text()();
   TextColumn get studentId => text().references(Students, #id)();
-  TextColumn get authorId => text().references(Users, #id)();
+  TextColumn get authorId =>
+      text()(); // No FK to Users to allow restricting Users table
+  TextColumn get authorName => text().nullable()(); // De-normalized author name
   TextColumn get content => text()();
 
   // Sync Fields
@@ -117,7 +121,7 @@ class SyncQueue extends Table {
 }
 
 class UserStudentPreferences extends Table {
-  TextColumn get userId => text().references(Users, #id)();
+  TextColumn get userId => text()(); // No FK to Users
   TextColumn get studentId => text().references(Students, #id)();
   TextColumn get customWhatsappMessage => text().nullable()();
 
@@ -128,15 +132,4 @@ class UserStudentPreferences extends Table {
   Set<Column> get primaryKey => {userId, studentId};
 }
 
-// Junction table for Class-Manager many-to-many relationship
-class ClassManagers extends Table {
-  TextColumn get id => text()();
-  TextColumn get classId => text().references(Classes, #id)();
-  TextColumn get userId => text().references(Users, #id)();
-
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get updatedAt => dateTime()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
+// ClassManagers table removed for security

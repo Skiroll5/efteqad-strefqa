@@ -156,6 +156,10 @@ model ClassManager {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Soft Delete
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
 
   @@unique([classId, userId])
   @@map("class_managers")

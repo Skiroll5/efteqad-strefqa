@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import syncRoutes from './routes/syncRoutes';
 import classRoutes from './routes/classRoutes';
+import studentRoutes from './routes/studentRoutes';
 import fcmRoutes from './routes/fcmRoutes';
 import { initFirebase } from './services/notificationService';
 import { initScheduledJobs } from './jobs/scheduledJobs';
@@ -38,6 +39,7 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/sync', syncRoutes);
 app.use('/classes', classRoutes);
+app.use('/students', studentRoutes);
 app.use('/fcm', fcmRoutes);
 
 app.get('/', (req, res) => {

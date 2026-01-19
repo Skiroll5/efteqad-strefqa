@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/components/premium_card.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import 'package:mobile/features/admin/data/admin_controller.dart';
+import 'package:mobile/features/admin/presentation/widgets/admin_loading_screen.dart';
+import 'package:mobile/features/admin/presentation/widgets/admin_error_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class ClassManagerAssignmentScreen extends ConsumerStatefulWidget {
@@ -23,6 +26,67 @@ class ClassManagerAssignmentScreen extends ConsumerStatefulWidget {
 
 class _ClassManagerAssignmentScreenState
     extends ConsumerState<ClassManagerAssignmentScreen> {
+  Timer? _retryTimer;
+  bool _isAutoRetrying = false;
+  bool _hasLoadedFreshData = false; // Track if we've loaded fresh data since screen entry
+
+  @override
+  void initState() {
+    super.initState();
+    // CRITICAL: Force fresh data on every screen entry
+    // Must use postFrameCallback since ref is not available until after initState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _forceRefreshAll();
+      _startConnectivityLoop();
+    });
+  }
+
+  @override
+  void dispose() {
+    _retryTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Force invalidate providers to ensure fresh data fetch
+  void _forceRefreshAll() {
+    ref.invalidate(classManagersProvider(widget.classId));
+    ref.invalidate(allUsersProvider);
+  }
+
+  /// Start the connectivity check loop for auto-retry
+  void _startConnectivityLoop() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+
+      final managersState = ref.read(classManagersProvider(widget.classId));
+      final allUsersState = ref.read(allUsersProvider);
+
+      // Check if any provider has an error (connection failed)
+      final hasError = managersState.hasError || allUsersState.hasError;
+
+      if (hasError && !_isAutoRetrying) {
+        // Mark as auto-retrying and refresh
+        if (mounted) {
+          setState(() => _isAutoRetrying = true);
+        }
+        _forceRefreshAll();
+        // Reset auto-retry state after a short delay
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() => _isAutoRetrying = false);
+          }
+        });
+      }
+    });
+  }
+
+  /// Manual refresh triggered by user
+  Future<void> _refreshAll() async {
+    setState(() => _hasLoadedFreshData = false);
+    _forceRefreshAll();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -31,164 +95,213 @@ class _ClassManagerAssignmentScreenState
     final managersAsync = ref.watch(classManagersProvider(widget.classId));
     final allUsersAsync = ref.watch(allUsersProvider);
 
+    // Track when fresh data has been loaded
+    final hasAllData = managersAsync.hasValue && allUsersAsync.hasValue;
+    final hasError = managersAsync.hasError || allUsersAsync.hasError;
+    final isLoading = managersAsync.isLoading || allUsersAsync.isLoading;
+
+    // Mark fresh data loaded when we successfully get data AFTER an invalidation
+    // This ensures we don't show stale cached data
+    if (hasAllData && !hasError && !_hasLoadedFreshData && !isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _hasLoadedFreshData = true);
+      });
+    }
+
+    // Show loading until we've confirmed fresh data is loaded
+    // This prevents showing stale cache on first frame
+    final showLoading = !_hasLoadedFreshData;
+    // Show error only if we have an error AND haven't loaded fresh data
+    final showError = hasError && !_hasLoadedFreshData && !isLoading;
+    final firstError = managersAsync.error ?? allUsersAsync.error;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
         title: Text(l10n.managersForClass(widget.className)),
+        actions: [
+          // Manual refresh button - always show if we have fresh data
+          if (_hasLoadedFreshData)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refreshAll,
+              tooltip: l10n.tryAgain,
+            ),
+        ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [AppColors.backgroundDark, AppColors.surfaceDark]
-                : [AppColors.backgroundLight, Colors.white],
-          ),
+      body: _buildBody(
+        context,
+        l10n: l10n,
+        isDark: isDark,
+        showLoading: showLoading,
+        showError: showError,
+        firstError: firstError,
+        managersAsync: managersAsync,
+        allUsersAsync: allUsersAsync,
+      ),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context, {
+    required AppLocalizations l10n,
+    required bool isDark,
+    required bool showLoading,
+    required bool showError,
+    required Object? firstError,
+    required AsyncValue<List<Map<String, dynamic>>> managersAsync,
+    required AsyncValue<List<Map<String, dynamic>>> allUsersAsync,
+  }) {
+    // Full-page Loading State - only until first fresh load
+    if (showLoading) {
+      return AdminLoadingScreen(
+        message: l10n.loadingClassManagers,
+      );
+    }
+
+    // Full-page Error State - only if no fresh data loaded
+    if (showError && firstError != null) {
+      return AdminErrorScreen(
+        error: firstError,
+        onRetry: _refreshAll,
+        isAutoRetrying: _isAutoRetrying,
+      );
+    }
+
+    // Content State - show data (keep showing even during background refresh)
+    final managers = managersAsync.valueOrNull ?? [];
+    final allUsers = allUsersAsync.valueOrNull ?? [];
+
+    // Server returns ClassManager with nested user, extract userId
+    final managerIds = managers.map((m) => m['userId'] ?? m['id']).toSet();
+
+    // Available Users (Enabled, Not Deleted, Not Admin, Not already manager)
+    final availableUsers = allUsers.where((u) {
+      return !managerIds.contains(u['id']) &&
+          u['role'] != 'ADMIN' &&
+          u['isEnabled'] == true &&
+          u['isDeleted'] != true;
+    }).toList();
+
+    // Sort available users by name
+    availableUsers.sort((a, b) {
+      final nameA = (a['name'] as String?) ?? '';
+      final nameB = (b['name'] as String?) ?? '';
+      return nameA.compareTo(nameB);
+    });
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [AppColors.backgroundDark, AppColors.surfaceDark]
+              : [AppColors.backgroundLight, Colors.white],
         ),
-        child: managersAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, st) =>
-              Center(child: Text(l10n.errorGeneric(e.toString()))),
-          data: (managers) {
-            return allUsersAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, st) =>
-                  Center(child: Text(l10n.errorGeneric(e.toString()))),
-              data: (allUsers) {
-                // Server returns ClassManager with nested user, extract userId
-                final managerIds = managers
-                    .map((m) => m['userId'] ?? m['id'])
-                    .toSet();
+      ),
+      child: RefreshIndicator(
+        onRefresh: _refreshAll,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Current Managers Section
+            _SectionHeader(
+              title: l10n.currentManagers,
+              icon: Icons.manage_accounts,
+              isDark: isDark,
+              count: managers.length,
+            ),
+            const SizedBox(height: 12),
+            if (managers.isEmpty)
+              _EmptySection(
+                text: l10n.noManagersAssigned,
+                icon: Icons.person_off_outlined,
+                isDark: isDark,
+              )
+            else
+              ...managers.asMap().entries.map((entry) {
+                return _ManagerCard(
+                  user: entry.value,
+                  isManager: true,
+                  classId: widget.classId,
+                  l10n: l10n,
+                  isDark: isDark,
+                  index: entry.key,
+                );
+              }),
 
-                // 1. Current Managers
-                final currentManagers = managers;
+            const SizedBox(height: 32),
 
-                // 2. Available Users (Enabled, Not Deleted, Not Admin, Not already manager)
-                final availableUsers = allUsers.where((u) {
-                  return !managerIds.contains(u['id']) &&
-                      u['role'] != 'ADMIN' &&
-                      u['isEnabled'] == true &&
-                      u['isDeleted'] != true;
-                }).toList();
-
-                // Sort available users by name
-                availableUsers.sort((a, b) {
-                  final nameA = (a['name'] as String?) ?? '';
-                  final nameB = (b['name'] as String?) ?? '';
-                  return nameA.compareTo(nameB);
-                });
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(classManagersProvider(widget.classId));
-                    ref.invalidate(allUsersProvider);
-                  },
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      // Current Managers Section
-                      _SectionHeader(
-                        title: l10n.currentManagers,
-                        icon: Icons.manage_accounts,
-                        isDark: isDark,
-                        count: currentManagers.length,
-                      ),
-                      const SizedBox(height: 12),
-                      if (currentManagers.isEmpty)
-                        _EmptySection(
-                          text: l10n.noManagersAssigned,
-                          icon: Icons.person_off_outlined,
-                          isDark: isDark,
-                        )
-                      else
-                        ...currentManagers.asMap().entries.map((entry) {
-                          return _ManagerCard(
-                            user: entry.value,
-                            isManager: true,
-                            classId: widget.classId,
-                            l10n: l10n,
-                            isDark: isDark,
-                            index: entry.key,
-                          );
-                        }),
-
-                      const SizedBox(height: 32),
-
-                      // Separator
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.transparent,
-                                    isDark ? Colors.white24 : Colors.black12,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Icon(
-                              Icons.add_circle_outline,
-                              color: isDark ? Colors.white38 : Colors.black26,
-                              size: 20,
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    isDark ? Colors.white24 : Colors.black12,
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+            // Separator
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          isDark ? Colors.white24 : Colors.black12,
                         ],
                       ),
-
-                      const SizedBox(height: 32),
-
-                      // Available Users Section
-                      _SectionHeader(
-                        title: l10n.availableUsers,
-                        icon: Icons.person_add_alt_1,
-                        isDark: isDark,
-                        count: availableUsers.length,
-                      ),
-                      const SizedBox(height: 12),
-                      if (availableUsers.isEmpty)
-                        _EmptySection(
-                          text: l10n.noUsersFound,
-                          icon: Icons.people_outline,
-                          isDark: isDark,
-                        )
-                      else
-                        ...availableUsers.asMap().entries.map((entry) {
-                          return _ManagerCard(
-                            user: entry.value,
-                            isManager: false,
-                            classId: widget.classId,
-                            l10n: l10n,
-                            isDark: isDark,
-                            index: entry.key,
-                          );
-                        }),
-                      const SizedBox(height: 40),
-                    ],
+                    ),
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Icon(
+                    Icons.add_circle_outline,
+                    color: isDark ? Colors.white38 : Colors.black26,
+                    size: 20,
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          isDark ? Colors.white24 : Colors.black12,
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Available Users Section
+            _SectionHeader(
+              title: l10n.availableUsers,
+              icon: Icons.person_add_alt_1,
+              isDark: isDark,
+              count: availableUsers.length,
+            ),
+            const SizedBox(height: 12),
+            if (availableUsers.isEmpty)
+              _EmptySection(
+                text: l10n.noUsersFound,
+                icon: Icons.people_outline,
+                isDark: isDark,
+              )
+            else
+              ...availableUsers.asMap().entries.map((entry) {
+                return _ManagerCard(
+                  user: entry.value,
+                  isManager: false,
+                  classId: widget.classId,
+                  l10n: l10n,
+                  isDark: isDark,
+                  index: entry.key,
                 );
-              },
-            );
-          },
+              }),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
@@ -218,8 +331,8 @@ class _SectionHeader extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isDark
-                ? AppColors.goldPrimary.withOpacity(0.15)
-                : AppColors.goldPrimary.withOpacity(0.1),
+                ? AppColors.goldPrimary.withValues(alpha: 0.15)
+                : AppColors.goldPrimary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: AppColors.goldPrimary, size: 20),
@@ -237,7 +350,9 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
+            color: isDark
+                ? Colors.white12
+                : Colors.black.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -271,11 +386,11 @@ class _EmptySection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withOpacity(0.03)
-            : Colors.black.withOpacity(0.02),
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
@@ -332,8 +447,8 @@ class _ManagerCard extends ConsumerWidget {
           PremiumCard(
                 color: isManager
                     ? (isDark
-                          ? Colors.green.withOpacity(0.08)
-                          : Colors.green.withOpacity(0.05))
+                          ? Colors.green.withValues(alpha: 0.08)
+                          : Colors.green.withValues(alpha: 0.05))
                     : null,
                 child: InkWell(
                   onTap: () => _handleTap(context, ref),
@@ -364,8 +479,8 @@ class _ManagerCard extends ConsumerWidget {
                             boxShadow: isManager
                                 ? [
                                     BoxShadow(
-                                      color: AppColors.goldPrimary.withOpacity(
-                                        0.3,
+                                      color: AppColors.goldPrimary.withValues(
+                                        alpha: 0.3,
                                       ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
@@ -429,8 +544,8 @@ class _ManagerCard extends ConsumerWidget {
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: isManager
-                                ? AppColors.redPrimary.withOpacity(0.1)
-                                : AppColors.goldPrimary.withOpacity(0.1),
+                                ? AppColors.redPrimary.withValues(alpha: 0.1)
+                                : AppColors.goldPrimary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -474,7 +589,7 @@ class _ManagerCard extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.redPrimary.withOpacity(0.1),
+                    color: AppColors.redPrimary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -528,7 +643,7 @@ class _ManagerCard extends ConsumerWidget {
 
       if (confirmed != true || !context.mounted) return;
 
-      // Show removal feedback
+      // Show processing feedback
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -540,11 +655,20 @@ class _ManagerCard extends ConsumerWidget {
         ),
       );
 
-      await ref
+      final success = await ref
           .read(adminControllerProvider.notifier)
           .removeClassManager(classId, userId);
+
+      if (context.mounted) {
+        _showActionFeedback(
+          context,
+          success: success,
+          successMessage: l10n.managerRemoved,
+          failureMessage: l10n.actionFailedCheckConnection,
+        );
+      }
     } else {
-      // Show adding feedback
+      // Show processing feedback
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -556,9 +680,53 @@ class _ManagerCard extends ConsumerWidget {
         ),
       );
 
-      await ref
+      final success = await ref
           .read(adminControllerProvider.notifier)
           .assignClassManager(classId, userId);
+
+      if (context.mounted) {
+        _showActionFeedback(
+          context,
+          success: success,
+          successMessage: l10n.managerAssigned,
+          failureMessage: l10n.actionFailedCheckConnection,
+        );
+      }
     }
   }
+}
+
+/// Helper method to show action feedback snackbar
+void _showActionFeedback(
+  BuildContext context, {
+  required bool success,
+  required String successMessage,
+  required String failureMessage,
+}) {
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            success ? Icons.check_circle : Icons.error_outline,
+            color: Colors.white,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              success ? successMessage : failureMessage,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: success ? Colors.green.shade600 : Colors.red.shade600,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      duration: Duration(seconds: success ? 2 : 4),
+    ),
+  );
 }

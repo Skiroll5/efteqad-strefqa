@@ -1457,6 +1457,17 @@ class $ClassesTable extends Classes with TableInfo<$ClassesTable, ClassesData> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _managerNamesMeta = const VerificationMeta(
+    'managerNames',
+  );
+  @override
+  late final GeneratedColumn<String> managerNames = GeneratedColumn<String>(
+    'manager_names',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1510,6 +1521,7 @@ class $ClassesTable extends Classes with TableInfo<$ClassesTable, ClassesData> {
     id,
     name,
     grade,
+    managerNames,
     createdAt,
     updatedAt,
     deletedAt,
@@ -1544,6 +1556,15 @@ class $ClassesTable extends Classes with TableInfo<$ClassesTable, ClassesData> {
       context.handle(
         _gradeMeta,
         grade.isAcceptableOrUnknown(data['grade']!, _gradeMeta),
+      );
+    }
+    if (data.containsKey('manager_names')) {
+      context.handle(
+        _managerNamesMeta,
+        managerNames.isAcceptableOrUnknown(
+          data['manager_names']!,
+          _managerNamesMeta,
+        ),
       );
     }
     if (data.containsKey('created_at')) {
@@ -1595,6 +1616,10 @@ class $ClassesTable extends Classes with TableInfo<$ClassesTable, ClassesData> {
         DriftSqlType.string,
         data['${effectivePrefix}grade'],
       ),
+      managerNames: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}manager_names'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1624,6 +1649,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
   final String id;
   final String name;
   final String? grade;
+  final String? managerNames;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
@@ -1632,6 +1658,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
     required this.id,
     required this.name,
     this.grade,
+    this.managerNames,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -1644,6 +1671,9 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || grade != null) {
       map['grade'] = Variable<String>(grade);
+    }
+    if (!nullToAbsent || managerNames != null) {
+      map['manager_names'] = Variable<String>(managerNames);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -1661,6 +1691,9 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
       grade: grade == null && nullToAbsent
           ? const Value.absent()
           : Value(grade),
+      managerNames: managerNames == null && nullToAbsent
+          ? const Value.absent()
+          : Value(managerNames),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       deletedAt: deletedAt == null && nullToAbsent
@@ -1679,6 +1712,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       grade: serializer.fromJson<String?>(json['grade']),
+      managerNames: serializer.fromJson<String?>(json['managerNames']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
@@ -1692,6 +1726,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'grade': serializer.toJson<String?>(grade),
+      'managerNames': serializer.toJson<String?>(managerNames),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
@@ -1703,6 +1738,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
     String? id,
     String? name,
     Value<String?> grade = const Value.absent(),
+    Value<String?> managerNames = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> deletedAt = const Value.absent(),
@@ -1711,6 +1747,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
     id: id ?? this.id,
     name: name ?? this.name,
     grade: grade.present ? grade.value : this.grade,
+    managerNames: managerNames.present ? managerNames.value : this.managerNames,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
@@ -1721,6 +1758,9 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       grade: data.grade.present ? data.grade.value : this.grade,
+      managerNames: data.managerNames.present
+          ? data.managerNames.value
+          : this.managerNames,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
@@ -1734,6 +1774,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('grade: $grade, ')
+          ..write('managerNames: $managerNames, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -1743,8 +1784,16 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, grade, createdAt, updatedAt, deletedAt, isDeleted);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    grade,
+    managerNames,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    isDeleted,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1752,6 +1801,7 @@ class ClassesData extends DataClass implements Insertable<ClassesData> {
           other.id == this.id &&
           other.name == this.name &&
           other.grade == this.grade &&
+          other.managerNames == this.managerNames &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
@@ -1762,6 +1812,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
   final Value<String> id;
   final Value<String> name;
   final Value<String?> grade;
+  final Value<String?> managerNames;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
@@ -1771,6 +1822,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.grade = const Value.absent(),
+    this.managerNames = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
@@ -1781,6 +1833,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
     required String id,
     required String name,
     this.grade = const Value.absent(),
+    this.managerNames = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.deletedAt = const Value.absent(),
@@ -1794,6 +1847,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? grade,
+    Expression<String>? managerNames,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
@@ -1804,6 +1858,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (grade != null) 'grade': grade,
+      if (managerNames != null) 'manager_names': managerNames,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
@@ -1816,6 +1871,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
     Value<String>? id,
     Value<String>? name,
     Value<String?>? grade,
+    Value<String?>? managerNames,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? deletedAt,
@@ -1826,6 +1882,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
       id: id ?? this.id,
       name: name ?? this.name,
       grade: grade ?? this.grade,
+      managerNames: managerNames ?? this.managerNames,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
@@ -1845,6 +1902,9 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
     }
     if (grade.present) {
       map['grade'] = Variable<String>(grade.value);
+    }
+    if (managerNames.present) {
+      map['manager_names'] = Variable<String>(managerNames.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1870,6 +1930,7 @@ class ClassesCompanion extends UpdateCompanion<ClassesData> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('grade: $grade, ')
+          ..write('managerNames: $managerNames, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
@@ -3405,9 +3466,17 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
-    ),
+  );
+  static const VerificationMeta _authorNameMeta = const VerificationMeta(
+    'authorName',
+  );
+  @override
+  late final GeneratedColumn<String> authorName = GeneratedColumn<String>(
+    'author_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _contentMeta = const VerificationMeta(
     'content',
@@ -3473,6 +3542,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     id,
     studentId,
     authorId,
+    authorName,
     content,
     createdAt,
     updatedAt,
@@ -3511,6 +3581,12 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
       );
     } else if (isInserting) {
       context.missing(_authorIdMeta);
+    }
+    if (data.containsKey('author_name')) {
+      context.handle(
+        _authorNameMeta,
+        authorName.isAcceptableOrUnknown(data['author_name']!, _authorNameMeta),
+      );
     }
     if (data.containsKey('content')) {
       context.handle(
@@ -3569,6 +3645,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         DriftSqlType.string,
         data['${effectivePrefix}author_id'],
       )!,
+      authorName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author_name'],
+      ),
       content: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}content'],
@@ -3602,6 +3682,7 @@ class Note extends DataClass implements Insertable<Note> {
   final String id;
   final String studentId;
   final String authorId;
+  final String? authorName;
   final String content;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -3611,6 +3692,7 @@ class Note extends DataClass implements Insertable<Note> {
     required this.id,
     required this.studentId,
     required this.authorId,
+    this.authorName,
     required this.content,
     required this.createdAt,
     required this.updatedAt,
@@ -3623,6 +3705,9 @@ class Note extends DataClass implements Insertable<Note> {
     map['id'] = Variable<String>(id);
     map['student_id'] = Variable<String>(studentId);
     map['author_id'] = Variable<String>(authorId);
+    if (!nullToAbsent || authorName != null) {
+      map['author_name'] = Variable<String>(authorName);
+    }
     map['content'] = Variable<String>(content);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -3638,6 +3723,9 @@ class Note extends DataClass implements Insertable<Note> {
       id: Value(id),
       studentId: Value(studentId),
       authorId: Value(authorId),
+      authorName: authorName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(authorName),
       content: Value(content),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -3657,6 +3745,7 @@ class Note extends DataClass implements Insertable<Note> {
       id: serializer.fromJson<String>(json['id']),
       studentId: serializer.fromJson<String>(json['studentId']),
       authorId: serializer.fromJson<String>(json['authorId']),
+      authorName: serializer.fromJson<String?>(json['authorName']),
       content: serializer.fromJson<String>(json['content']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -3671,6 +3760,7 @@ class Note extends DataClass implements Insertable<Note> {
       'id': serializer.toJson<String>(id),
       'studentId': serializer.toJson<String>(studentId),
       'authorId': serializer.toJson<String>(authorId),
+      'authorName': serializer.toJson<String?>(authorName),
       'content': serializer.toJson<String>(content),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -3683,6 +3773,7 @@ class Note extends DataClass implements Insertable<Note> {
     String? id,
     String? studentId,
     String? authorId,
+    Value<String?> authorName = const Value.absent(),
     String? content,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -3692,6 +3783,7 @@ class Note extends DataClass implements Insertable<Note> {
     id: id ?? this.id,
     studentId: studentId ?? this.studentId,
     authorId: authorId ?? this.authorId,
+    authorName: authorName.present ? authorName.value : this.authorName,
     content: content ?? this.content,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -3703,6 +3795,9 @@ class Note extends DataClass implements Insertable<Note> {
       id: data.id.present ? data.id.value : this.id,
       studentId: data.studentId.present ? data.studentId.value : this.studentId,
       authorId: data.authorId.present ? data.authorId.value : this.authorId,
+      authorName: data.authorName.present
+          ? data.authorName.value
+          : this.authorName,
       content: data.content.present ? data.content.value : this.content,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -3717,6 +3812,7 @@ class Note extends DataClass implements Insertable<Note> {
           ..write('id: $id, ')
           ..write('studentId: $studentId, ')
           ..write('authorId: $authorId, ')
+          ..write('authorName: $authorName, ')
           ..write('content: $content, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -3731,6 +3827,7 @@ class Note extends DataClass implements Insertable<Note> {
     id,
     studentId,
     authorId,
+    authorName,
     content,
     createdAt,
     updatedAt,
@@ -3744,6 +3841,7 @@ class Note extends DataClass implements Insertable<Note> {
           other.id == this.id &&
           other.studentId == this.studentId &&
           other.authorId == this.authorId &&
+          other.authorName == this.authorName &&
           other.content == this.content &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -3755,6 +3853,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
   final Value<String> id;
   final Value<String> studentId;
   final Value<String> authorId;
+  final Value<String?> authorName;
   final Value<String> content;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -3765,6 +3864,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.id = const Value.absent(),
     this.studentId = const Value.absent(),
     this.authorId = const Value.absent(),
+    this.authorName = const Value.absent(),
     this.content = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3776,6 +3876,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     required String id,
     required String studentId,
     required String authorId,
+    this.authorName = const Value.absent(),
     required String content,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -3792,6 +3893,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Expression<String>? id,
     Expression<String>? studentId,
     Expression<String>? authorId,
+    Expression<String>? authorName,
     Expression<String>? content,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -3803,6 +3905,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
       if (id != null) 'id': id,
       if (studentId != null) 'student_id': studentId,
       if (authorId != null) 'author_id': authorId,
+      if (authorName != null) 'author_name': authorName,
       if (content != null) 'content': content,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3816,6 +3919,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Value<String>? id,
     Value<String>? studentId,
     Value<String>? authorId,
+    Value<String?>? authorName,
     Value<String>? content,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -3827,6 +3931,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
       id: id ?? this.id,
       studentId: studentId ?? this.studentId,
       authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3847,6 +3952,9 @@ class NotesCompanion extends UpdateCompanion<Note> {
     }
     if (authorId.present) {
       map['author_id'] = Variable<String>(authorId.value);
+    }
+    if (authorName.present) {
+      map['author_name'] = Variable<String>(authorName.value);
     }
     if (content.present) {
       map['content'] = Variable<String>(content.value);
@@ -3875,6 +3983,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
           ..write('id: $id, ')
           ..write('studentId: $studentId, ')
           ..write('authorId: $authorId, ')
+          ..write('authorName: $authorName, ')
           ..write('content: $content, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -3900,9 +4009,6 @@ class $UserStudentPreferencesTable extends UserStudentPreferences
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
-    ),
   );
   static const VerificationMeta _studentIdMeta = const VerificationMeta(
     'studentId',
@@ -4283,372 +4389,6 @@ class UserStudentPreferencesCompanion
   }
 }
 
-class $ClassManagersTable extends ClassManagers
-    with TableInfo<$ClassManagersTable, ClassManager> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ClassManagersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _classIdMeta = const VerificationMeta(
-    'classId',
-  );
-  @override
-  late final GeneratedColumn<String> classId = GeneratedColumn<String>(
-    'class_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES classes (id)',
-    ),
-  );
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-    'user_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
-    ),
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    classId,
-    userId,
-    createdAt,
-    updatedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'class_managers';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<ClassManager> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('class_id')) {
-      context.handle(
-        _classIdMeta,
-        classId.isAcceptableOrUnknown(data['class_id']!, _classIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_classIdMeta);
-    }
-    if (data.containsKey('user_id')) {
-      context.handle(
-        _userIdMeta,
-        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ClassManager map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ClassManager(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      classId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}class_id'],
-      )!,
-      userId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_id'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
-    );
-  }
-
-  @override
-  $ClassManagersTable createAlias(String alias) {
-    return $ClassManagersTable(attachedDatabase, alias);
-  }
-}
-
-class ClassManager extends DataClass implements Insertable<ClassManager> {
-  final String id;
-  final String classId;
-  final String userId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  const ClassManager({
-    required this.id,
-    required this.classId,
-    required this.userId,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['class_id'] = Variable<String>(classId);
-    map['user_id'] = Variable<String>(userId);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
-    return map;
-  }
-
-  ClassManagersCompanion toCompanion(bool nullToAbsent) {
-    return ClassManagersCompanion(
-      id: Value(id),
-      classId: Value(classId),
-      userId: Value(userId),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
-    );
-  }
-
-  factory ClassManager.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ClassManager(
-      id: serializer.fromJson<String>(json['id']),
-      classId: serializer.fromJson<String>(json['classId']),
-      userId: serializer.fromJson<String>(json['userId']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'classId': serializer.toJson<String>(classId),
-      'userId': serializer.toJson<String>(userId),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
-    };
-  }
-
-  ClassManager copyWith({
-    String? id,
-    String? classId,
-    String? userId,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) => ClassManager(
-    id: id ?? this.id,
-    classId: classId ?? this.classId,
-    userId: userId ?? this.userId,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
-  );
-  ClassManager copyWithCompanion(ClassManagersCompanion data) {
-    return ClassManager(
-      id: data.id.present ? data.id.value : this.id,
-      classId: data.classId.present ? data.classId.value : this.classId,
-      userId: data.userId.present ? data.userId.value : this.userId,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ClassManager(')
-          ..write('id: $id, ')
-          ..write('classId: $classId, ')
-          ..write('userId: $userId, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, classId, userId, createdAt, updatedAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ClassManager &&
-          other.id == this.id &&
-          other.classId == this.classId &&
-          other.userId == this.userId &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
-}
-
-class ClassManagersCompanion extends UpdateCompanion<ClassManager> {
-  final Value<String> id;
-  final Value<String> classId;
-  final Value<String> userId;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
-  final Value<int> rowid;
-  const ClassManagersCompanion({
-    this.id = const Value.absent(),
-    this.classId = const Value.absent(),
-    this.userId = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ClassManagersCompanion.insert({
-    required String id,
-    required String classId,
-    required String userId,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       classId = Value(classId),
-       userId = Value(userId),
-       createdAt = Value(createdAt),
-       updatedAt = Value(updatedAt);
-  static Insertable<ClassManager> custom({
-    Expression<String>? id,
-    Expression<String>? classId,
-    Expression<String>? userId,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (classId != null) 'class_id': classId,
-      if (userId != null) 'user_id': userId,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ClassManagersCompanion copyWith({
-    Value<String>? id,
-    Value<String>? classId,
-    Value<String>? userId,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
-    Value<int>? rowid,
-  }) {
-    return ClassManagersCompanion(
-      id: id ?? this.id,
-      classId: classId ?? this.classId,
-      userId: userId ?? this.userId,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (classId.present) {
-      map['class_id'] = Variable<String>(classId.value);
-    }
-    if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ClassManagersCompanion(')
-          ..write('id: $id, ')
-          ..write('classId: $classId, ')
-          ..write('userId: $userId, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4663,7 +4403,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NotesTable notes = $NotesTable(this);
   late final $UserStudentPreferencesTable userStudentPreferences =
       $UserStudentPreferencesTable(this);
-  late final $ClassManagersTable classManagers = $ClassManagersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4677,7 +4416,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncQueue,
     notes,
     userStudentPreferences,
-    classManagers,
   ];
 }
 
@@ -4717,76 +4455,6 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<bool> isDeleted,
       Value<int> rowid,
     });
-
-final class $$UsersTableReferences
-    extends BaseReferences<_$AppDatabase, $UsersTable, User> {
-  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$NotesTable, List<Note>> _notesRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.notes,
-    aliasName: $_aliasNameGenerator(db.users.id, db.notes.authorId),
-  );
-
-  $$NotesTableProcessedTableManager get notesRefs {
-    final manager = $$NotesTableTableManager(
-      $_db,
-      $_db.notes,
-    ).filter((f) => f.authorId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_notesRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<
-    $UserStudentPreferencesTable,
-    List<UserStudentPreference>
-  >
-  _userStudentPreferencesRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.userStudentPreferences,
-        aliasName: $_aliasNameGenerator(
-          db.users.id,
-          db.userStudentPreferences.userId,
-        ),
-      );
-
-  $$UserStudentPreferencesTableProcessedTableManager
-  get userStudentPreferencesRefs {
-    final manager = $$UserStudentPreferencesTableTableManager(
-      $_db,
-      $_db.userStudentPreferences,
-    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _userStudentPreferencesRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$ClassManagersTable, List<ClassManager>>
-  _classManagersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.classManagers,
-    aliasName: $_aliasNameGenerator(db.users.id, db.classManagers.userId),
-  );
-
-  $$ClassManagersTableProcessedTableManager get classManagersRefs {
-    final manager = $$ClassManagersTableTableManager(
-      $_db,
-      $_db.classManagers,
-    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_classManagersRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -4865,82 +4533,6 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     column: $table.isDeleted,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> notesRefs(
-    Expression<bool> Function($$NotesTableFilterComposer f) f,
-  ) {
-    final $$NotesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.notes,
-      getReferencedColumn: (t) => t.authorId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NotesTableFilterComposer(
-            $db: $db,
-            $table: $db.notes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> userStudentPreferencesRefs(
-    Expression<bool> Function($$UserStudentPreferencesTableFilterComposer f) f,
-  ) {
-    final $$UserStudentPreferencesTableFilterComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.userStudentPreferences,
-          getReferencedColumn: (t) => t.userId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$UserStudentPreferencesTableFilterComposer(
-                $db: $db,
-                $table: $db.userStudentPreferences,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-
-  Expression<bool> classManagersRefs(
-    Expression<bool> Function($$ClassManagersTableFilterComposer f) f,
-  ) {
-    final $$ClassManagersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.classManagers,
-      getReferencedColumn: (t) => t.userId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassManagersTableFilterComposer(
-            $db: $db,
-            $table: $db.classManagers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$UsersTableOrderingComposer
@@ -5077,82 +4669,6 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
-
-  Expression<T> notesRefs<T extends Object>(
-    Expression<T> Function($$NotesTableAnnotationComposer a) f,
-  ) {
-    final $$NotesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.notes,
-      getReferencedColumn: (t) => t.authorId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NotesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.notes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<T> userStudentPreferencesRefs<T extends Object>(
-    Expression<T> Function($$UserStudentPreferencesTableAnnotationComposer a) f,
-  ) {
-    final $$UserStudentPreferencesTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.userStudentPreferences,
-          getReferencedColumn: (t) => t.userId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$UserStudentPreferencesTableAnnotationComposer(
-                $db: $db,
-                $table: $db.userStudentPreferences,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
-
-  Expression<T> classManagersRefs<T extends Object>(
-    Expression<T> Function($$ClassManagersTableAnnotationComposer a) f,
-  ) {
-    final $$ClassManagersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.classManagers,
-      getReferencedColumn: (t) => t.userId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassManagersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.classManagers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$UsersTableTableManager
@@ -5166,13 +4682,9 @@ class $$UsersTableTableManager
           $$UsersTableAnnotationComposer,
           $$UsersTableCreateCompanionBuilder,
           $$UsersTableUpdateCompanionBuilder,
-          (User, $$UsersTableReferences),
+          (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
           User,
-          PrefetchHooks Function({
-            bool notesRefs,
-            bool userStudentPreferencesRefs,
-            bool classManagersRefs,
-          })
+          PrefetchHooks Function()
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -5254,86 +4766,9 @@ class $$UsersTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) =>
-                    (e.readTable(table), $$UsersTableReferences(db, table, e)),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback:
-              ({
-                notesRefs = false,
-                userStudentPreferencesRefs = false,
-                classManagersRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (notesRefs) db.notes,
-                    if (userStudentPreferencesRefs) db.userStudentPreferences,
-                    if (classManagersRefs) db.classManagers,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (notesRefs)
-                        await $_getPrefetchedData<User, $UsersTable, Note>(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._notesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(db, table, p0).notesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.authorId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (userStudentPreferencesRefs)
-                        await $_getPrefetchedData<
-                          User,
-                          $UsersTable,
-                          UserStudentPreference
-                        >(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._userStudentPreferencesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).userStudentPreferencesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.userId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (classManagersRefs)
-                        await $_getPrefetchedData<
-                          User,
-                          $UsersTable,
-                          ClassManager
-                        >(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._classManagersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).classManagersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.userId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -5348,13 +4783,9 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableAnnotationComposer,
       $$UsersTableCreateCompanionBuilder,
       $$UsersTableUpdateCompanionBuilder,
-      (User, $$UsersTableReferences),
+      (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
       User,
-      PrefetchHooks Function({
-        bool notesRefs,
-        bool userStudentPreferencesRefs,
-        bool classManagersRefs,
-      })
+      PrefetchHooks Function()
     >;
 typedef $$StudentsTableCreateCompanionBuilder =
     StudentsCompanion Function({
@@ -5974,6 +5405,7 @@ typedef $$ClassesTableCreateCompanionBuilder =
       required String id,
       required String name,
       Value<String?> grade,
+      Value<String?> managerNames,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> deletedAt,
@@ -5985,6 +5417,7 @@ typedef $$ClassesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<String?> grade,
+      Value<String?> managerNames,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> deletedAt,
@@ -6019,24 +5452,6 @@ final class $$ClassesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
-
-  static MultiTypedResultKey<$ClassManagersTable, List<ClassManager>>
-  _classManagersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.classManagers,
-    aliasName: $_aliasNameGenerator(db.classes.id, db.classManagers.classId),
-  );
-
-  $$ClassManagersTableProcessedTableManager get classManagersRefs {
-    final manager = $$ClassManagersTableTableManager(
-      $_db,
-      $_db.classManagers,
-    ).filter((f) => f.classId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_classManagersRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 }
 
 class $$ClassesTableFilterComposer
@@ -6060,6 +5475,11 @@ class $$ClassesTableFilterComposer
 
   ColumnFilters<String> get grade => $composableBuilder(
     column: $table.grade,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get managerNames => $composableBuilder(
+    column: $table.managerNames,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6107,31 +5527,6 @@ class $$ClassesTableFilterComposer
     );
     return f(composer);
   }
-
-  Expression<bool> classManagersRefs(
-    Expression<bool> Function($$ClassManagersTableFilterComposer f) f,
-  ) {
-    final $$ClassManagersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.classManagers,
-      getReferencedColumn: (t) => t.classId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassManagersTableFilterComposer(
-            $db: $db,
-            $table: $db.classManagers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$ClassesTableOrderingComposer
@@ -6155,6 +5550,11 @@ class $$ClassesTableOrderingComposer
 
   ColumnOrderings<String> get grade => $composableBuilder(
     column: $table.grade,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get managerNames => $composableBuilder(
+    column: $table.managerNames,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6197,6 +5597,11 @@ class $$ClassesTableAnnotationComposer
   GeneratedColumn<String> get grade =>
       $composableBuilder(column: $table.grade, builder: (column) => column);
 
+  GeneratedColumn<String> get managerNames => $composableBuilder(
+    column: $table.managerNames,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -6234,31 +5639,6 @@ class $$ClassesTableAnnotationComposer
         );
     return f(composer);
   }
-
-  Expression<T> classManagersRefs<T extends Object>(
-    Expression<T> Function($$ClassManagersTableAnnotationComposer a) f,
-  ) {
-    final $$ClassManagersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.classManagers,
-      getReferencedColumn: (t) => t.classId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassManagersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.classManagers,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$ClassesTableTableManager
@@ -6274,10 +5654,7 @@ class $$ClassesTableTableManager
           $$ClassesTableUpdateCompanionBuilder,
           (ClassesData, $$ClassesTableReferences),
           ClassesData,
-          PrefetchHooks Function({
-            bool attendanceSessionsRefs,
-            bool classManagersRefs,
-          })
+          PrefetchHooks Function({bool attendanceSessionsRefs})
         > {
   $$ClassesTableTableManager(_$AppDatabase db, $ClassesTable table)
     : super(
@@ -6295,6 +5672,7 @@ class $$ClassesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> grade = const Value.absent(),
+                Value<String?> managerNames = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -6304,6 +5682,7 @@ class $$ClassesTableTableManager
                 id: id,
                 name: name,
                 grade: grade,
+                managerNames: managerNames,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -6315,6 +5694,7 @@ class $$ClassesTableTableManager
                 required String id,
                 required String name,
                 Value<String?> grade = const Value.absent(),
+                Value<String?> managerNames = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> deletedAt = const Value.absent(),
@@ -6324,6 +5704,7 @@ class $$ClassesTableTableManager
                 id: id,
                 name: name,
                 grade: grade,
+                managerNames: managerNames,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 deletedAt: deletedAt,
@@ -6338,63 +5719,37 @@ class $$ClassesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback:
-              ({attendanceSessionsRefs = false, classManagersRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (attendanceSessionsRefs) db.attendanceSessions,
-                    if (classManagersRefs) db.classManagers,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (attendanceSessionsRefs)
-                        await $_getPrefetchedData<
-                          ClassesData,
-                          $ClassesTable,
-                          AttendanceSession
-                        >(
-                          currentTable: table,
-                          referencedTable: $$ClassesTableReferences
-                              ._attendanceSessionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$ClassesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).attendanceSessionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.classId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (classManagersRefs)
-                        await $_getPrefetchedData<
-                          ClassesData,
-                          $ClassesTable,
-                          ClassManager
-                        >(
-                          currentTable: table,
-                          referencedTable: $$ClassesTableReferences
-                              ._classManagersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$ClassesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).classManagersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.classId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+          prefetchHooksCallback: ({attendanceSessionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (attendanceSessionsRefs) db.attendanceSessions,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (attendanceSessionsRefs)
+                    await $_getPrefetchedData<
+                      ClassesData,
+                      $ClassesTable,
+                      AttendanceSession
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ClassesTableReferences
+                          ._attendanceSessionsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$ClassesTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).attendanceSessionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.classId == item.id),
+                      typedResults: items,
+                    ),
+                ];
               },
+            );
+          },
         ),
       );
 }
@@ -6411,10 +5766,7 @@ typedef $$ClassesTableProcessedTableManager =
       $$ClassesTableUpdateCompanionBuilder,
       (ClassesData, $$ClassesTableReferences),
       ClassesData,
-      PrefetchHooks Function({
-        bool attendanceSessionsRefs,
-        bool classManagersRefs,
-      })
+      PrefetchHooks Function({bool attendanceSessionsRefs})
     >;
 typedef $$AttendanceSessionsTableCreateCompanionBuilder =
     AttendanceSessionsCompanion Function({
@@ -7633,6 +6985,7 @@ typedef $$NotesTableCreateCompanionBuilder =
       required String id,
       required String studentId,
       required String authorId,
+      Value<String?> authorName,
       required String content,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -7645,6 +6998,7 @@ typedef $$NotesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> studentId,
       Value<String> authorId,
+      Value<String?> authorName,
       Value<String> content,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -7673,24 +7027,6 @@ final class $$NotesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
-
-  static $UsersTable _authorIdTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.notes.authorId, db.users.id),
-  );
-
-  $$UsersTableProcessedTableManager get authorId {
-    final $_column = $_itemColumn<String>('author_id')!;
-
-    final manager = $$UsersTableTableManager(
-      $_db,
-      $_db.users,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_authorIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
 }
 
 class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
@@ -7703,6 +7039,16 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorId => $composableBuilder(
+    column: $table.authorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get authorName => $composableBuilder(
+    column: $table.authorName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7753,29 +7099,6 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
     );
     return composer;
   }
-
-  $$UsersTableFilterComposer get authorId {
-    final $$UsersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.authorId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableFilterComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$NotesTableOrderingComposer
@@ -7789,6 +7112,16 @@ class $$NotesTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorId => $composableBuilder(
+    column: $table.authorId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get authorName => $composableBuilder(
+    column: $table.authorName,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -7839,29 +7172,6 @@ class $$NotesTableOrderingComposer
     );
     return composer;
   }
-
-  $$UsersTableOrderingComposer get authorId {
-    final $$UsersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.authorId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableOrderingComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$NotesTableAnnotationComposer
@@ -7875,6 +7185,14 @@ class $$NotesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get authorId =>
+      $composableBuilder(column: $table.authorId, builder: (column) => column);
+
+  GeneratedColumn<String> get authorName => $composableBuilder(
+    column: $table.authorName,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
@@ -7913,29 +7231,6 @@ class $$NotesTableAnnotationComposer
     );
     return composer;
   }
-
-  $$UsersTableAnnotationComposer get authorId {
-    final $$UsersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.authorId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$NotesTableTableManager
@@ -7951,7 +7246,7 @@ class $$NotesTableTableManager
           $$NotesTableUpdateCompanionBuilder,
           (Note, $$NotesTableReferences),
           Note,
-          PrefetchHooks Function({bool studentId, bool authorId})
+          PrefetchHooks Function({bool studentId})
         > {
   $$NotesTableTableManager(_$AppDatabase db, $NotesTable table)
     : super(
@@ -7969,6 +7264,7 @@ class $$NotesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> studentId = const Value.absent(),
                 Value<String> authorId = const Value.absent(),
+                Value<String?> authorName = const Value.absent(),
                 Value<String> content = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -7979,6 +7275,7 @@ class $$NotesTableTableManager
                 id: id,
                 studentId: studentId,
                 authorId: authorId,
+                authorName: authorName,
                 content: content,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -7991,6 +7288,7 @@ class $$NotesTableTableManager
                 required String id,
                 required String studentId,
                 required String authorId,
+                Value<String?> authorName = const Value.absent(),
                 required String content,
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -8001,6 +7299,7 @@ class $$NotesTableTableManager
                 id: id,
                 studentId: studentId,
                 authorId: authorId,
+                authorName: authorName,
                 content: content,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -8014,7 +7313,7 @@ class $$NotesTableTableManager
                     (e.readTable(table), $$NotesTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({studentId = false, authorId = false}) {
+          prefetchHooksCallback: ({studentId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -8047,19 +7346,6 @@ class $$NotesTableTableManager
                               )
                               as T;
                     }
-                    if (authorId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.authorId,
-                                referencedTable: $$NotesTableReferences
-                                    ._authorIdTable(db),
-                                referencedColumn: $$NotesTableReferences
-                                    ._authorIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
 
                     return state;
                   },
@@ -8084,7 +7370,7 @@ typedef $$NotesTableProcessedTableManager =
       $$NotesTableUpdateCompanionBuilder,
       (Note, $$NotesTableReferences),
       Note,
-      PrefetchHooks Function({bool studentId, bool authorId})
+      PrefetchHooks Function({bool studentId})
     >;
 typedef $$UserStudentPreferencesTableCreateCompanionBuilder =
     UserStudentPreferencesCompanion Function({
@@ -8118,24 +7404,6 @@ final class $$UserStudentPreferencesTableReferences
     super.$_typedResult,
   );
 
-  static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.userStudentPreferences.userId, db.users.id),
-  );
-
-  $$UsersTableProcessedTableManager get userId {
-    final $_column = $_itemColumn<String>('user_id')!;
-
-    final manager = $$UsersTableTableManager(
-      $_db,
-      $_db.users,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
   static $StudentsTable _studentIdTable(_$AppDatabase db) =>
       db.students.createAlias(
         $_aliasNameGenerator(
@@ -8168,6 +7436,11 @@ class $$UserStudentPreferencesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get customWhatsappMessage => $composableBuilder(
     column: $table.customWhatsappMessage,
     builder: (column) => ColumnFilters(column),
@@ -8182,29 +7455,6 @@ class $$UserStudentPreferencesTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$UsersTableFilterComposer get userId {
-    final $$UsersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.userId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableFilterComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 
   $$StudentsTableFilterComposer get studentId {
     final $$StudentsTableFilterComposer composer = $composerBuilder(
@@ -8239,6 +7489,11 @@ class $$UserStudentPreferencesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get customWhatsappMessage => $composableBuilder(
     column: $table.customWhatsappMessage,
     builder: (column) => ColumnOrderings(column),
@@ -8253,29 +7508,6 @@ class $$UserStudentPreferencesTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$UsersTableOrderingComposer get userId {
-    final $$UsersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.userId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableOrderingComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 
   $$StudentsTableOrderingComposer get studentId {
     final $$StudentsTableOrderingComposer composer = $composerBuilder(
@@ -8310,6 +7542,9 @@ class $$UserStudentPreferencesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
   GeneratedColumn<String> get customWhatsappMessage => $composableBuilder(
     column: $table.customWhatsappMessage,
     builder: (column) => column,
@@ -8320,29 +7555,6 @@ class $$UserStudentPreferencesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  $$UsersTableAnnotationComposer get userId {
-    final $$UsersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.userId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 
   $$StudentsTableAnnotationComposer get studentId {
     final $$StudentsTableAnnotationComposer composer = $composerBuilder(
@@ -8381,7 +7593,7 @@ class $$UserStudentPreferencesTableTableManager
           $$UserStudentPreferencesTableUpdateCompanionBuilder,
           (UserStudentPreference, $$UserStudentPreferencesTableReferences),
           UserStudentPreference,
-          PrefetchHooks Function({bool userId, bool studentId})
+          PrefetchHooks Function({bool studentId})
         > {
   $$UserStudentPreferencesTableTableManager(
     _$AppDatabase db,
@@ -8445,7 +7657,7 @@ class $$UserStudentPreferencesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({userId = false, studentId = false}) {
+          prefetchHooksCallback: ({studentId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -8465,21 +7677,6 @@ class $$UserStudentPreferencesTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (userId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.userId,
-                                referencedTable:
-                                    $$UserStudentPreferencesTableReferences
-                                        ._userIdTable(db),
-                                referencedColumn:
-                                    $$UserStudentPreferencesTableReferences
-                                        ._userIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
                     if (studentId) {
                       state =
                           state.withJoin(
@@ -8519,417 +7716,7 @@ typedef $$UserStudentPreferencesTableProcessedTableManager =
       $$UserStudentPreferencesTableUpdateCompanionBuilder,
       (UserStudentPreference, $$UserStudentPreferencesTableReferences),
       UserStudentPreference,
-      PrefetchHooks Function({bool userId, bool studentId})
-    >;
-typedef $$ClassManagersTableCreateCompanionBuilder =
-    ClassManagersCompanion Function({
-      required String id,
-      required String classId,
-      required String userId,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> rowid,
-    });
-typedef $$ClassManagersTableUpdateCompanionBuilder =
-    ClassManagersCompanion Function({
-      Value<String> id,
-      Value<String> classId,
-      Value<String> userId,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
-
-final class $$ClassManagersTableReferences
-    extends BaseReferences<_$AppDatabase, $ClassManagersTable, ClassManager> {
-  $$ClassManagersTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $ClassesTable _classIdTable(_$AppDatabase db) =>
-      db.classes.createAlias(
-        $_aliasNameGenerator(db.classManagers.classId, db.classes.id),
-      );
-
-  $$ClassesTableProcessedTableManager get classId {
-    final $_column = $_itemColumn<String>('class_id')!;
-
-    final manager = $$ClassesTableTableManager(
-      $_db,
-      $_db.classes,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_classIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.classManagers.userId, db.users.id),
-  );
-
-  $$UsersTableProcessedTableManager get userId {
-    final $_column = $_itemColumn<String>('user_id')!;
-
-    final manager = $$UsersTableTableManager(
-      $_db,
-      $_db.users,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$ClassManagersTableFilterComposer
-    extends Composer<_$AppDatabase, $ClassManagersTable> {
-  $$ClassManagersTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$ClassesTableFilterComposer get classId {
-    final $$ClassesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.classId,
-      referencedTable: $db.classes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassesTableFilterComposer(
-            $db: $db,
-            $table: $db.classes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableFilterComposer get userId {
-    final $$UsersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.userId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableFilterComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ClassManagersTableOrderingComposer
-    extends Composer<_$AppDatabase, $ClassManagersTable> {
-  $$ClassManagersTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$ClassesTableOrderingComposer get classId {
-    final $$ClassesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.classId,
-      referencedTable: $db.classes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassesTableOrderingComposer(
-            $db: $db,
-            $table: $db.classes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableOrderingComposer get userId {
-    final $$UsersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.userId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableOrderingComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ClassManagersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ClassManagersTable> {
-  $$ClassManagersTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  $$ClassesTableAnnotationComposer get classId {
-    final $$ClassesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.classId,
-      referencedTable: $db.classes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ClassesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.classes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$UsersTableAnnotationComposer get userId {
-    final $$UsersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.userId,
-      referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$UsersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$ClassManagersTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $ClassManagersTable,
-          ClassManager,
-          $$ClassManagersTableFilterComposer,
-          $$ClassManagersTableOrderingComposer,
-          $$ClassManagersTableAnnotationComposer,
-          $$ClassManagersTableCreateCompanionBuilder,
-          $$ClassManagersTableUpdateCompanionBuilder,
-          (ClassManager, $$ClassManagersTableReferences),
-          ClassManager,
-          PrefetchHooks Function({bool classId, bool userId})
-        > {
-  $$ClassManagersTableTableManager(_$AppDatabase db, $ClassManagersTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ClassManagersTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ClassManagersTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ClassManagersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> classId = const Value.absent(),
-                Value<String> userId = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => ClassManagersCompanion(
-                id: id,
-                classId: classId,
-                userId: userId,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String classId,
-                required String userId,
-                required DateTime createdAt,
-                required DateTime updatedAt,
-                Value<int> rowid = const Value.absent(),
-              }) => ClassManagersCompanion.insert(
-                id: id,
-                classId: classId,
-                userId: userId,
-                createdAt: createdAt,
-                updatedAt: updatedAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$ClassManagersTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({classId = false, userId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (classId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.classId,
-                                referencedTable: $$ClassManagersTableReferences
-                                    ._classIdTable(db),
-                                referencedColumn: $$ClassManagersTableReferences
-                                    ._classIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-                    if (userId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.userId,
-                                referencedTable: $$ClassManagersTableReferences
-                                    ._userIdTable(db),
-                                referencedColumn: $$ClassManagersTableReferences
-                                    ._userIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$ClassManagersTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $ClassManagersTable,
-      ClassManager,
-      $$ClassManagersTableFilterComposer,
-      $$ClassManagersTableOrderingComposer,
-      $$ClassManagersTableAnnotationComposer,
-      $$ClassManagersTableCreateCompanionBuilder,
-      $$ClassManagersTableUpdateCompanionBuilder,
-      (ClassManager, $$ClassManagersTableReferences),
-      ClassManager,
-      PrefetchHooks Function({bool classId, bool userId})
+      PrefetchHooks Function({bool studentId})
     >;
 
 class $AppDatabaseManager {
@@ -8954,6 +7741,4 @@ class $AppDatabaseManager {
         _db,
         _db.userStudentPreferences,
       );
-  $$ClassManagersTableTableManager get classManagers =>
-      $$ClassManagersTableTableManager(_db, _db.classManagers);
 }

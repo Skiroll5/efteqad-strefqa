@@ -18,7 +18,6 @@ part 'app_database.g.dart';
     Notes,
     Classes,
     UserStudentPreferences,
-    ClassManagers,
   ],
 )
 class AppDatabase extends _$AppDatabase {

@@ -573,6 +573,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get removeManager => 'إزالة المدير';
 
   @override
+  String removeManagerConfirmation(Object name) {
+    return 'هل أنت متأكد من إزالة $name كمدير من هذا الصف؟';
+  }
+
+  @override
   String get remove => 'إزالة';
 
   @override
@@ -769,10 +774,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل تريد تعطيل وصول هذا المستخدم؟ سيتم تسجيل خروجه فوراً.';
 
   @override
-  String get userEnabled => 'تم تمكين المستخدم بنجاح';
+  String get userEnabled => 'تم تفعيل المستخدم!';
 
   @override
-  String get userDisabled => 'تم تعطيل المستخدم بنجاح';
+  String get userDisabled => 'تم تعطيل المستخدم.';
 
   @override
   String get deleteUser => 'حذف المستخدم';
@@ -838,9 +843,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get managerRemoved => 'تم إزالة المدير';
-
-  @override
   String get enabled => 'مُفعّل';
 
   @override
@@ -859,4 +861,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get availableUsers => 'المستخدمون المتاحون';
+
+  @override
+  String get serverConnectionError =>
+      'لا يمكن الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
+
+  @override
+  String get tryAgain => 'حاول مجدداً';
+
+  @override
+  String get loadingData => 'جارٍ تحميل البيانات...';
+
+  @override
+  String get cannotConnect => 'لا يمكن الاتصال';
+
+  @override
+  String get somethingWentWrong => 'حدث خطأ ما';
+
+  @override
+  String get autoRetrying => 'جارٍ إعادة المحاولة تلقائياً...';
+
+  @override
+  String get willAutoRetry => 'ستتم إعادة المحاولة عند الاتصال';
+
+  @override
+  String get serverError => 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
+
+  @override
+  String get unauthorized => 'غير مصرح. يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get actionFailedCheckConnection =>
+      'فشل الإجراء. تحقق من اتصالك بالإنترنت.';
+
+  @override
+  String get managerAssigned => 'تم تعيين المدير!';
+
+  @override
+  String get managerRemoved => 'تمت إزالة المدير.';
+
+  @override
+  String get loadingAdminPanel => 'جارٍ تحميل لوحة الإدارة...';
+
+  @override
+  String get loadingClassManagers => 'جارٍ تحميل مديري الفصول...';
 }

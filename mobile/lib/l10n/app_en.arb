@@ -404,7 +404,6 @@
       "className": {}
     }
   },
-  "managerRemoved": "Manager removed",
   "enabled": "Enabled",
   "accountPendingActivationDesc": "Your account has been created successfully but is waiting for administrator approval. You will be notified once your account is active.",
   "removingManager": "Removing {name}...",
@@ -419,5 +418,21 @@
       "name": {}
     }
   },
-  "availableUsers": "Available Users"
+  "availableUsers": "Available Users",
+  "serverConnectionError": "Cannot connect to server. Please check your internet connection.",
+  "tryAgain": "Try Again",
+  "loadingData": "Loading data...",
+  "cannotConnect": "Cannot Connect",
+  "somethingWentWrong": "Something Went Wrong",
+  "autoRetrying": "Auto-retrying...",
+  "willAutoRetry": "Will auto-retry when connected",
+  "serverError": "Server error. Please try again later.",
+  "unauthorized": "Unauthorized. Please log in again.",
+  "actionFailedCheckConnection": "Action failed. Check your internet connection.",
+  "userEnabled": "User enabled!",
+  "userDisabled": "User disabled.",
+  "managerAssigned": "Manager assigned!",
+  "managerRemoved": "Manager removed.",
+  "loadingAdminPanel": "Loading Admin Panel...",
+  "loadingClassManagers": "Loading class managers..."
 }

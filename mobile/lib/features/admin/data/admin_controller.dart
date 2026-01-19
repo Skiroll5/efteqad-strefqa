@@ -153,7 +153,6 @@ class AdminController extends StateNotifier<AsyncValue<void>> {
     try {
       await _repository.assignClassManager(classId, userId);
       _ref.invalidate(classManagersProvider(classId));
-      _ref.invalidate(classManagerNamesProvider(classId));
       _ref.invalidate(adminClassesProvider);
       state = const AsyncValue.data(null);
       return true;
@@ -169,7 +168,6 @@ class AdminController extends StateNotifier<AsyncValue<void>> {
     try {
       await _repository.removeClassManager(classId, userId);
       _ref.invalidate(classManagersProvider(classId));
-      _ref.invalidate(classManagerNamesProvider(classId));
       _ref.invalidate(adminClassesProvider);
       state = const AsyncValue.data(null);
       return true;

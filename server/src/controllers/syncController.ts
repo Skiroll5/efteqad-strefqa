@@ -6,6 +6,8 @@ import { notifyClassManagers } from '../utils/notificationUtils';
 
 const prisma = new PrismaClient();
 
+import { getUserManagedClassIds, isClassManager } from '../utils/authUtils';
+
 export const syncChanges = async (req: AuthRequest, res: Response) => {
     if (req.method === 'POST') {
         return handlePush(req, res);
@@ -20,6 +22,12 @@ const handlePush = async (req: AuthRequest, res: Response) => {
     const { changes } = req.body;
     console.log(`SyncController: Received push request with ${changes?.length || 0} changes`);
     if (!Array.isArray(changes)) return res.status(400).json({ message: 'Invalid format' });
+
+    // Validate User Permissions
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId) return res.sendStatus(401);
 
     // Sort changes by dependency order: CLASS -> USER/STUDENT -> ATTENDANCE/NOTE
     // ATTENDANCE_SESSION should be processed before ATTENDANCE records that reference it
@@ -61,6 +69,63 @@ const handlePush = async (req: AuthRequest, res: Response) => {
 
         for (const change of batch) {
             const { uuid, entityType, entityId, operation, payload } = change;
+
+            // --- SECURITY CHECK ---
+            if (userRole !== 'ADMIN') {
+                const sanitizedPayload = sanitizePayload(payload);
+                let isAuthorized = false;
+
+                try {
+                    if (entityType === 'CLASS' || entityType === 'USER' || entityType === 'CLASS_MANAGER') {
+                        // Regular users generally shouldn't be pushing CLASS/USER changes
+                        // Exception: Maybe updating their own user profile?
+                        // For now, deny unless logic specifically allows (like class creation if we allowed it, but usually admin only)
+                        failedUuids.push({ uuid, error: 'Forbidden: Insufficient permissions for this entity type' });
+                        continue;
+                    } else if (entityType === 'student' || entityType === 'STUDENT') { // Normalize casing check
+                        if (sanitizedPayload.classId) {
+                            isAuthorized = await isClassManager(userId, sanitizedPayload.classId);
+                        }
+                    } else if (entityType === 'attendance_session' || entityType === 'ATTENDANCE_SESSION') {
+                        if (sanitizedPayload.classId) {
+                            isAuthorized = await isClassManager(userId, sanitizedPayload.classId);
+                        }
+                    } else if (entityType === 'note' || entityType === 'NOTE') {
+                        if (sanitizedPayload.studentId) {
+                            const student = await prisma.student.findUnique({
+                                where: { id: sanitizedPayload.studentId },
+                                select: { classId: true }
+                            });
+                            if (student?.classId) {
+                                isAuthorized = await isClassManager(userId, student.classId);
+                            }
+                        }
+                    } else if (entityType === 'attendance' || entityType === 'ATTENDANCE' || entityType === 'attendance_record') { // Normalize
+                        // For attendance, we need to check the session -> class
+                        if (sanitizedPayload.sessionId) {
+                            const session = await prisma.attendanceSession.findUnique({
+                                where: { id: sanitizedPayload.sessionId },
+                                select: { classId: true }
+                            });
+                            if (session?.classId) {
+                                isAuthorized = await isClassManager(userId, session.classId);
+                            }
+                        }
+                    }
+
+                    if (!isAuthorized) {
+                        console.warn(`SyncController: User ${userId} blocked from ${operation} on ${entityType}`);
+                        failedUuids.push({ uuid, error: 'Forbidden: You do not manage this class' });
+                        continue;
+                    }
+
+                } catch (err) {
+                    console.error('Security check error:', err);
+                    failedUuids.push({ uuid, error: 'Authorization check failed' });
+                    continue;
+                }
+            }
+
 
             const modelName = mapEntityToModel(entityType);
             if (!modelName) {
@@ -130,8 +195,8 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                     const authorName = author?.name || 'A servant';
 
                     for (const change of batch) {
-                         const { entityType, operation, payload } = change;
-                         const sanitizedPayload = sanitizePayload(payload);
+                        const { entityType, operation, payload } = change;
+                        const sanitizedPayload = sanitizePayload(payload);
 
                         if (entityType === 'NOTE' && operation === 'CREATE') {
                             const student: any = studentMap.get(sanitizedPayload.studentId);
@@ -146,7 +211,7 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                                 );
                             }
                         } else if (entityType === 'ATTENDANCE_SESSION' && operation === 'CREATE') {
-                             if (sanitizedPayload.classId && authorId) {
+                            if (sanitizedPayload.classId && authorId) {
                                 const cls: any = classMap.get(sanitizedPayload.classId);
                                 await notifyClassManagers(
                                     sanitizedPayload.classId,
@@ -203,32 +268,90 @@ const sanitizePayload = (payload: any) => {
 const handlePull = async (req: AuthRequest, res: Response) => {
     const since = req.query.since as string;
     const sinceDate = since ? new Date(since) : new Date(0);
-
     const serverTimestamp = new Date().toISOString();
 
-    // Fetch changes
+    const userId = req.user?.userId;
+    const role = req.user?.role;
+    let managedClassIds: string[] = [];
+
+    if (role !== 'ADMIN' && userId) {
+        managedClassIds = await getUserManagedClassIds(userId);
+    }
+
+    // Helper for where clauses
+    const classFilter = role === 'ADMIN' ? {} : { id: { in: managedClassIds } };
+    const studentFilter = role === 'ADMIN' ? {} : { classId: { in: managedClassIds } };
+    const sessionFilter = role === 'ADMIN' ? {} : { classId: { in: managedClassIds } };
+    // Attendance/Notes are fetched via join-like logic or simply fetching all if related to managed classes.
+    // Since Prisma findMany doesn't easily do deep joins for where clauses without include,
+    // we can fetch sessions first for attendance, or filter post-query (less efficient but safer for complex restrictions).
+    // Better: use where condition relations if possible.
+
+    // 1. Students
     const students = await prisma.student.findMany({
-        where: { updatedAt: { gt: sinceDate } },
+        where: {
+            updatedAt: { gt: sinceDate },
+            ...studentFilter
+        },
     });
 
+    // 2. Attendance Sessions
     const attendanceSessions = await prisma.attendanceSession.findMany({
-        where: { updatedAt: { gt: sinceDate } },
+        where: {
+            updatedAt: { gt: sinceDate },
+            ...sessionFilter
+        },
     });
 
-    const attendance = await prisma.attendanceRecord.findMany({
-        where: { updatedAt: { gt: sinceDate } },
-    });
-
-    const notes = await prisma.note.findMany({
-        where: { updatedAt: { gt: sinceDate } },
-    });
-
+    // 3. Classes
     const classes = await prisma.class.findMany({
-        where: { updatedAt: { gt: sinceDate } },
+        where: {
+            updatedAt: { gt: sinceDate },
+            ...classFilter
+        },
     });
+
+    // 4. Attendance Records
+    // For non-admins, valid records are those belonging to sessions in managed classes
+    const attendanceWhere: any = { updatedAt: { gt: sinceDate } };
+    if (role !== 'ADMIN') {
+        attendanceWhere.session = { classId: { in: managedClassIds } };
+    }
+    const attendance = await prisma.attendanceRecord.findMany({ where: attendanceWhere });
+
+
+    // 5. Notes
+    // For non-admins, notes regarding students in managed classes
+    const noteWhere: any = { updatedAt: { gt: sinceDate } };
+    if (role !== 'ADMIN') {
+        noteWhere.student = { classId: { in: managedClassIds } };
+    }
+    const notes = await prisma.note.findMany({ where: noteWhere });
+
+    // 6. Users
+    // Admins see all users. Managers see themselves + other managers of their classes?
+    // or just themselves. "Ghost data" issue suggests they see too many.
+    // Let's restrict to just themselves and maybe managers of shared classes if needed for UI.
+    // Safe bet: Admins see all. Servants see only themselves and maybe admins/managers relevant to their context.
+    // For now, let's restrict Servants to only users involved in their classes + themselves using a simpler logic if possible.
+    // But 'users' table is mainly for login. The 'class_managers' table links them.
+    // Let's keep it simple: Admins fetch all. Non-admins fetches themselves + users who are managers of their managed classes.
+
+    let userWhere: any = { updatedAt: { gt: sinceDate } };
+    if (role !== 'ADMIN') {
+        // Find users who manage the same classes
+        const managersOfMyClasses = await prisma.classManager.findMany({
+            where: { classId: { in: managedClassIds } },
+            select: { userId: true }
+        });
+        const allowedUserIds = managersOfMyClasses.map(m => m.userId);
+        if (userId) allowedUserIds.push(userId); // Ensure self is included
+
+        userWhere.id = { in: allowedUserIds };
+    }
 
     const users = await prisma.user.findMany({
-        where: { updatedAt: { gt: sinceDate } },
+        where: userWhere,
         select: {
             id: true,
             name: true,
@@ -246,10 +369,8 @@ const handlePull = async (req: AuthRequest, res: Response) => {
         }
     });
 
-    // Fetch class managers
-    const classManagers = await prisma.classManager.findMany({
-        where: { updatedAt: { gt: sinceDate } },
-    });
+    // 7. Class Managers - STOP SYNCING THIS TABLE
+    // const classManagers = await prisma.classManager.findMany({ where: cmWhere });
 
     res.json({
         serverTimestamp,
@@ -260,7 +381,6 @@ const handlePull = async (req: AuthRequest, res: Response) => {
             notes,
             classes,
             users,
-            class_managers: classManagers,
         },
     });
 };

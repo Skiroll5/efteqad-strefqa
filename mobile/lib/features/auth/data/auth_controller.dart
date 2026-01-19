@@ -7,6 +7,7 @@ import '../data/auth_repository.dart';
 import '../domain/user_model.dart';
 import 'package:mobile/core/services/notification_service.dart';
 import 'package:mobile/core/data/fcm_repository.dart';
+import '../../sync/data/sync_service.dart';
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<User?>>((ref) {
@@ -115,6 +116,13 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> logout() async {
+    // Clear local DB to prevent data leakage between users
+    try {
+      await _ref.read(syncServiceProvider).clearLocalData();
+    } catch (e) {
+      // print('Error clearing local data: $e');
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('user_data');

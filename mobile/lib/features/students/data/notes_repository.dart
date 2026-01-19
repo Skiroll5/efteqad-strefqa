@@ -19,6 +19,7 @@ class NotesRepository {
     String studentId,
     String content,
     String authorId,
+    String? authorName,
   ) async {
     final id = const Uuid().v4();
     await _db.transaction(() async {
@@ -29,6 +30,7 @@ class NotesRepository {
               id: Value(id),
               studentId: Value(studentId),
               authorId: Value(authorId),
+              authorName: Value(authorName),
               content: Value(content),
               isDeleted: const Value(false),
               createdAt: Value(DateTime.now()),
@@ -49,6 +51,7 @@ class NotesRepository {
                   'studentId': studentId,
                   'content': content,
                   'authorId': authorId,
+                  'authorName': authorName,
                   'createdAt': DateTime.now().toIso8601String(),
                   'updatedAt': DateTime.now().toIso8601String(),
                 }),
@@ -127,27 +130,17 @@ class NotesRepository {
   }
 
   Stream<List<NoteWithAuthor>> watchNotesForStudent(String studentId) {
-    final query =
-        _db.select(_db.notes).join([
-            leftOuterJoin(
-              _db.users,
-              _db.users.id.equalsExp(_db.notes.authorId),
-            ),
-          ])
-          ..where(_db.notes.studentId.equals(studentId))
-          ..where(_db.notes.isDeleted.equals(false))
-          ..orderBy([
-            OrderingTerm(
-              expression: _db.notes.createdAt,
-              mode: OrderingMode.desc,
-            ),
-          ]);
+    // Simplified query: No joins needed as authorName is embedded
+    final query = _db.select(_db.notes)
+      ..where((t) => t.studentId.equals(studentId))
+      ..where((t) => t.isDeleted.equals(false))
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc),
+      ]);
 
-    return query.watch().map((rows) {
-      return rows.map((row) {
-        final note = row.readTable(_db.notes);
-        final user = row.readTableOrNull(_db.users);
-        return NoteWithAuthor(note, user?.name);
+    return query.watch().map((notes) {
+      return notes.map((note) {
+        return NoteWithAuthor(note, note.authorName);
       }).toList();
     });
   }

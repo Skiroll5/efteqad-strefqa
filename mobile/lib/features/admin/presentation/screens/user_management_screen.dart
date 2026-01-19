@@ -536,8 +536,8 @@ class _SwitchAction extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: value
-                      ? Colors.green.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.1),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -555,7 +555,7 @@ class _SwitchAction extends StatelessWidget {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),

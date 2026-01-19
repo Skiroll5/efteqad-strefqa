@@ -34,13 +34,8 @@ final userClassesStreamProvider = StreamProvider<List<ClassesData>>((ref) {
         return Stream.value([]);
       }
 
-      if (user.role == 'ADMIN') {
-        // Admin sees all classes
-        return repository.watchAllClasses();
-      } else {
-        // Servant sees only assigned classes
-        return repository.watchClassesForUser(user.id);
-      }
+      // Simplify: All users see all classes locally (since DB is restricted to user's scope by sync)
+      return repository.watchAllClasses();
     },
     loading: () => Stream.value([]),
     error: (_, __) => Stream.value([]),
@@ -130,8 +125,5 @@ class ClassesController {
   }
 
   /// Get managers for a specific class
-  Future<List<User>> getManagersForClass(String classId) async {
-    final repository = _ref.read(classesRepositoryProvider);
-    return repository.getManagersForClass(classId);
-  }
+  // getManagersForClass removed - using de-normalized data
 }

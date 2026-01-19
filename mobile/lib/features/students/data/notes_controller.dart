@@ -32,7 +32,7 @@ class NotesController extends StateNotifier<AsyncValue<void>> {
       final user = _ref.read(authControllerProvider).value;
       if (user == null) throw Exception('User not logged in');
 
-      await _repo.addNote(studentId, content, user.id);
+      await _repo.addNote(studentId, content, user.id, user.name);
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);

@@ -63,7 +63,7 @@ class SyncService {
   }
 
   void _initSocket() {
-    // print('SyncService: Initializing Socket.io connection to $_baseUrl');
+    print('SyncService: Initializing Socket.io connection to $_baseUrl');
     _socket = io.io(
       _baseUrl,
       io.OptionBuilder()
@@ -72,11 +72,12 @@ class SyncService {
           .enableReconnection() // Reconnect on disconnect
           .setReconnectionAttempts(99999)
           .setReconnectionDelay(1000)
+          .enableForceNew()
           .build(),
     );
 
     _socket?.onConnect((_) {
-      // print('SyncService: Socket Connected');
+      print('SyncService: Socket Connected');
       // Pull changes on reconnect to catch up
       if (!_isSyncing) {
         pullChanges().catchError((_) {});
@@ -84,26 +85,32 @@ class SyncService {
     });
 
     _socket?.onDisconnect((_) {
-      // print('SyncService: Socket Disconnected');
+      print('SyncService: Socket Disconnected');
+    });
+
+    _socket?.on('connect_error', (data) {
+      print('SyncService: Connection Error: $data');
     });
 
     _socket?.on('sync_update', (_) async {
-      // print('SyncService: Received sync_update event from server');
+      print('SyncService: Received sync_update event from server');
       if (!_isSyncing) {
         try {
           await pullChanges();
         } catch (e) {
-          // print('SyncService: Automatic pull failed: $e');
+          print('SyncService: Automatic pull failed: $e');
         }
       }
     });
 
     // Listen for user disabled event - auto logout
     _socket?.on('user_disabled', (data) async {
+      print('SyncService: Received user_disabled: $data');
       if (data != null && data['userId'] != null) {
         final currentUser = _ref.read(authControllerProvider).asData?.value;
         if (currentUser != null && currentUser.id == data['userId']) {
           // User was disabled, logout immediately
+          print('SyncService: Logging out disabled user');
           await _ref.read(authControllerProvider.notifier).logout();
         }
       }
@@ -111,16 +118,19 @@ class SyncService {
 
     // Listen for user deleted event - auto logout
     _socket?.on('user_deleted', (data) async {
+      print('SyncService: Received user_deleted: $data');
       if (data != null && data['userId'] != null) {
         final currentUser = _ref.read(authControllerProvider).asData?.value;
         if (currentUser != null && currentUser.id == data['userId']) {
+          print('SyncService: Logging out deleted user');
           await _ref.read(authControllerProvider.notifier).logout();
         }
       }
     });
 
     // Listen for user status changes to refresh providers
-    _socket?.on('user_status_changed', (_) async {
+    _socket?.on('user_status_changed', (data) async {
+      print('SyncService: Received user_status_changed: $data');
       if (!_isSyncing) {
         try {
           await pullChanges();
@@ -379,12 +389,7 @@ class SyncService {
             await _upsertAttendanceSession(s);
           }
         }
-        // Sync class managers
-        if (changes['class_managers'] != null) {
-          for (var cm in changes['class_managers']) {
-            await _upsertClassManager(cm);
-          }
-        }
+        // Class Managers table removed for security - no longer synced
       });
 
       await prefs.setString('last_sync_timestamp', serverTimestamp);
@@ -439,6 +444,7 @@ class SyncService {
       id: Value(data['id']),
       studentId: Value(data['studentId']),
       authorId: Value(data['authorId']),
+      authorName: Value(data['authorName']), // De-normalized
       content: Value(data['content']),
       createdAt: Value(DateTime.parse(data['createdAt'])),
       updatedAt: Value(DateTime.parse(data['updatedAt'])),
@@ -471,22 +477,14 @@ class SyncService {
     await _db.into(_db.users).insertOnConflictUpdate(entity);
   }
 
-  Future<void> _upsertClassManager(Map<String, dynamic> data) async {
-    final entity = ClassManagersCompanion(
-      id: Value(data['id']),
-      classId: Value(data['classId']),
-      userId: Value(data['userId']),
-      createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
-    );
-    await _db.into(_db.classManagers).insertOnConflictUpdate(entity);
-  }
+  // ClassManager upsert removed
 
   Future<void> _upsertClassFromSync(Map<String, dynamic> data) async {
     final entity = ClassesCompanion(
       id: Value(data['id']),
       name: Value(data['name']),
       grade: Value(data['grade']),
+      managerNames: Value(data['managerNames']), // De-normalized
       createdAt: Value(DateTime.parse(data['createdAt'])),
       updatedAt: Value(DateTime.parse(data['updatedAt'])),
       isDeleted: Value(data['isDeleted'] ?? false),

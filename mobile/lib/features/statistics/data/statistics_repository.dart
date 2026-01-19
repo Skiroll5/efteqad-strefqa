@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rxdart/rxdart.dart';
 import '../../../core/database/app_database.dart';
 
 import '../../settings/data/settings_controller.dart';
@@ -8,10 +9,10 @@ final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
   return StatisticsRepository(ref.read(appDatabaseProvider));
 });
 
-final atRiskStudentsProvider = FutureProvider<List<AtRiskStudent>>((ref) async {
+final atRiskStudentsProvider = StreamProvider<List<AtRiskStudent>>((ref) {
   final repo = ref.watch(statisticsRepositoryProvider);
   final threshold = ref.watch(statisticsSettingsProvider);
-  return repo.getAtRiskStudents(threshold);
+  return repo.watchAtRiskStudents(threshold);
 });
 
 final weeklyStatsProvider = FutureProvider<List<WeeklyStats>>((ref) async {
@@ -24,6 +25,24 @@ class StatisticsRepository {
 
   StatisticsRepository(this._db);
 
+  /// Watch at risk students reactive to database changes
+  Stream<List<AtRiskStudent>> watchAtRiskStudents(int threshold) {
+    // Watch for changes in any of the relevant tables
+    final changesStream = Rx.merge([
+      _db.select(_db.students).watch(),
+      _db.select(_db.attendanceSessions).watch(),
+      _db.select(_db.attendanceRecords).watch(),
+    ]);
+
+    // When any table changes, re-fetch the calculated data
+    // Use debounce to avoid thrashing if multiple inserts happen quickly
+    return changesStream
+        .debounceTime(const Duration(milliseconds: 300))
+        .asyncMap((_) {
+          return getAtRiskStudents(threshold);
+        });
+  }
+
   /// Get students who have missed the last [threshold] consecutive sessions of their class.
   Future<List<AtRiskStudent>> getAtRiskStudents(int threshold) async {
     final atRiskList = <AtRiskStudent>[];
@@ -31,7 +50,10 @@ class StatisticsRepository {
     // 1. Fetch all active students joined with their class info
     //    Query: SELECT s.*, c.name FROM students s LEFT JOIN classes c ON s.classId = c.id WHERE s.isDeleted = 0
     final studentsQuery = _db.select(_db.students).join([
-      leftOuterJoin(_db.classes, _db.classes.id.equalsExp(_db.students.classId))
+      leftOuterJoin(
+        _db.classes,
+        _db.classes.id.equalsExp(_db.students.classId),
+      ),
     ]);
     studentsQuery.where(_db.students.isDeleted.equals(false));
 
@@ -60,12 +82,16 @@ class StatisticsRepository {
     // 2. Fetch all sessions for these classes
     //    Query: SELECT * FROM attendance_sessions WHERE classId IN (...) AND isDeleted = 0 ORDER BY date DESC
     //    We fetch all sessions to calculate total stats, not just recent ones.
-    final allSessionsList = await (_db.select(_db.attendanceSessions)
-          ..where((t) => t.classId.isIn(classIds) & t.isDeleted.equals(false))
-          ..orderBy([
-            (t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)
-          ]))
-        .get();
+    final allSessionsList =
+        await (_db.select(_db.attendanceSessions)
+              ..where(
+                (t) => t.classId.isIn(classIds) & t.isDeleted.equals(false),
+              )
+              ..orderBy([
+                (t) =>
+                    OrderingTerm(expression: t.date, mode: OrderingMode.desc),
+              ]))
+            .get();
 
     // Group sessions by classId
     final sessionsByClass = <String, List<AttendanceSession>>{};
@@ -86,9 +112,11 @@ class StatisticsRepository {
           : allSessionIds.length;
       final batch = allSessionIds.sublist(i, end);
 
-      final batchRecords = await (_db.select(_db.attendanceRecords)
-            ..where((t) => t.sessionId.isIn(batch) & t.isDeleted.equals(false)))
-          .get();
+      final batchRecords =
+          await (_db.select(_db.attendanceRecords)..where(
+                (t) => t.sessionId.isIn(batch) & t.isDeleted.equals(false),
+              ))
+              .get();
       allRecords.addAll(batchRecords);
     }
 
@@ -127,10 +155,12 @@ class StatisticsRepository {
 
         // Calculate Attendance Percentage
         final totalSessions = relevantRecords.length;
-        final totalPresences =
-            relevantRecords.where((r) => r.status == 'PRESENT').length;
-        final attendancePercentage =
-            totalSessions > 0 ? (totalPresences / totalSessions) * 100 : 0.0;
+        final totalPresences = relevantRecords
+            .where((r) => r.status == 'PRESENT')
+            .length;
+        final attendancePercentage = totalSessions > 0
+            ? (totalPresences / totalSessions) * 100
+            : 0.0;
 
         // Calculate Consecutive Absences
         int currentConsecutive = 0;
@@ -175,16 +205,19 @@ class StatisticsRepository {
 
   /// Get aggregated weekly attendance percentage for the last 12 weeks
   Future<List<WeeklyStats>> getWeeklyAttendanceStats() async {
-    final cutoffDate = DateTime.now().subtract(const Duration(days: 84)); // 12 weeks
+    final cutoffDate = DateTime.now().subtract(
+      const Duration(days: 84),
+    ); // 12 weeks
 
-    final sessions = await (_db.select(_db.attendanceSessions)
-          ..where(
-            (t) =>
-                t.date.isBiggerOrEqualValue(cutoffDate) &
-                t.isDeleted.equals(false),
-          )
-          ..orderBy([(t) => OrderingTerm(expression: t.date)]))
-        .get();
+    final sessions =
+        await (_db.select(_db.attendanceSessions)
+              ..where(
+                (t) =>
+                    t.date.isBiggerOrEqualValue(cutoffDate) &
+                    t.isDeleted.equals(false),
+              )
+              ..orderBy([(t) => OrderingTerm(expression: t.date)]))
+            .get();
 
     if (sessions.isEmpty) return [];
 
@@ -198,9 +231,11 @@ class StatisticsRepository {
           ? i + batchSize
           : sessionIds.length;
       final batch = sessionIds.sublist(i, end);
-      final batchRecords = await (_db.select(_db.attendanceRecords)
-            ..where((t) => t.sessionId.isIn(batch) & t.isDeleted.equals(false)))
-          .get();
+      final batchRecords =
+          await (_db.select(_db.attendanceRecords)..where(
+                (t) => t.sessionId.isIn(batch) & t.isDeleted.equals(false),
+              ))
+              .get();
       allRecords.addAll(batchRecords);
     }
 

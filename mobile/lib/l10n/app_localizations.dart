@@ -1154,6 +1154,12 @@ abstract class AppLocalizations {
   /// **'Remove Manager'**
   String get removeManager;
 
+  /// No description provided for @removeManagerConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove {name} as a manager from this class?'**
+  String removeManagerConfirmation(Object name);
+
   /// No description provided for @remove.
   ///
   /// In en, this message translates to:
@@ -1529,13 +1535,13 @@ abstract class AppLocalizations {
   /// No description provided for @userEnabled.
   ///
   /// In en, this message translates to:
-  /// **'User enabled successfully'**
+  /// **'User enabled!'**
   String get userEnabled;
 
   /// No description provided for @userDisabled.
   ///
   /// In en, this message translates to:
-  /// **'User disabled successfully'**
+  /// **'User disabled.'**
   String get userDisabled;
 
   /// No description provided for @deleteUser.
@@ -1658,12 +1664,6 @@ abstract class AppLocalizations {
   /// **'Managers for {className}'**
   String classManagersDescription(Object className);
 
-  /// No description provided for @managerRemoved.
-  ///
-  /// In en, this message translates to:
-  /// **'Manager removed'**
-  String get managerRemoved;
-
   /// No description provided for @enabled.
   ///
   /// In en, this message translates to:
@@ -1693,6 +1693,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Available Users'**
   String get availableUsers;
+
+  /// No description provided for @serverConnectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot connect to server. Please check your internet connection.'**
+  String get serverConnectionError;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
+
+  /// No description provided for @loadingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading data...'**
+  String get loadingData;
+
+  /// No description provided for @cannotConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot Connect'**
+  String get cannotConnect;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something Went Wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @autoRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-retrying...'**
+  String get autoRetrying;
+
+  /// No description provided for @willAutoRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Will auto-retry when connected'**
+  String get willAutoRetry;
+
+  /// No description provided for @serverError.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later.'**
+  String get serverError;
+
+  /// No description provided for @unauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Unauthorized. Please log in again.'**
+  String get unauthorized;
+
+  /// No description provided for @actionFailedCheckConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Check your internet connection.'**
+  String get actionFailedCheckConnection;
+
+  /// No description provided for @managerAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager assigned!'**
+  String get managerAssigned;
+
+  /// No description provided for @managerRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager removed.'**
+  String get managerRemoved;
+
+  /// No description provided for @loadingAdminPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading Admin Panel...'**
+  String get loadingAdminPanel;
+
+  /// No description provided for @loadingClassManagers.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading class managers...'**
+  String get loadingClassManagers;
 }
 
 class _AppLocalizationsDelegate

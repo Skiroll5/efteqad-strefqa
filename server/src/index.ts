@@ -14,12 +14,6 @@ import { initScheduledJobs } from './jobs/scheduledJobs';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Firebase Admin SDK
-initFirebase();
-
-// Initialize Scheduled Jobs
-initScheduledJobs();
-
 // Create HTTP server and Socket.io instance
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -53,6 +47,21 @@ io.on('connection', (socket) => {
     });
 });
 
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const startServer = async () => {
+    try {
+        // Initialize Firebase Admin SDK
+        await initFirebase();
+
+        // Initialize Scheduled Jobs
+        initScheduledJobs();
+
+        httpServer.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+startServer();

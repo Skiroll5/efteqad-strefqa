@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import 'package:mobile/features/home/data/home_insights_repository.dart';
-
-import 'premium_card.dart';
 
 class LastSessionCard extends ConsumerWidget {
   final ClassSessionStatus? sessionStatus;
@@ -26,142 +23,193 @@ class LastSessionCard extends ConsumerWidget {
     final status = sessionStatus!;
 
     final locale = Localizations.localeOf(context);
+    final rateColor = _getRateColor(status.attendanceRate);
 
-    return PremiumCard(
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: () {
-          // Navigate to session details: /attendance/:sessionId
-          if (status.session != null) {
-            context.push('/attendance/${status.session!.id}');
-          }
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n?.lastSession ?? 'Last Session',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? Colors.white54 : Colors.black54,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          status.className,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? AppColors.goldPrimary
-                                : AppColors.goldDark,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.goldPrimary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.history,
-                      color: isDark
-                          ? AppColors.goldPrimary
-                          : AppColors.goldDark,
-                      size: 20,
-                    ),
-                  ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Material(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            if (status.session != null) {
+              context.push('/attendance/${status.session!.id}');
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.06),
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _formatDate(status.lastSessionDate!, locale),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: Class name + Label
+                Row(
+                  children: [
+                    // Session icon
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.goldPrimary.withValues(alpha: 0.15)
+                            : AppColors.goldPrimary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.calendar_today_rounded,
+                          color: AppColors.goldPrimary,
+                          size: 18,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _formatTime(status.lastSessionDate!, locale),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.white54 : Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Class info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            status.className,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n?.lastSession ?? 'Last Session',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white54 : Colors.black45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Arrow
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 22,
+                      color: isDark ? Colors.white38 : Colors.black26,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 10),
+                
+                // Date/Time and Stats row
+                Row(
+                  children: [
+                    // Date & Time combined
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: _formatDate(status.lastSessionDate!, locale),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '  •  ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.white38 : Colors.black26,
+                              ),
+                            ),
+                            TextSpan(
+                              text: _formatTime(status.lastSessionDate!, locale),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.white54 : Colors.black45,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    ),
+                    // Attendance stats
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: rateColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${status.presentCount}/${status.totalStudents}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 1,
+                            height: 14,
+                            color: isDark ? Colors.white24 : Colors.black12,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${(status.attendanceRate * 100).toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: rateColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 10),
+                
+                // Progress bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: status.attendanceRate,
+                    minHeight: 5,
+                    backgroundColor: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.06),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      rateColor.withValues(alpha: 0.8),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getRateColor(
-                        status.attendanceRate,
-                      ).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.percent, // Changed from pie_chart_outline
-                          size: 14,
-                          color: _getRateColor(status.attendanceRate),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "${(status.attendanceRate * 100).toStringAsFixed(0)}%",
-                          style: TextStyle(
-                            color: _getRateColor(status.attendanceRate),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ).animate().fade().slideY(begin: 0.1, duration: 400.ms);
+    );
   }
 
   String _formatDate(DateTime date, Locale locale) {
-    // Force specific locale but we want day name localized
-    final fmt = DateFormat('EEEE, MMM d', locale.toString());
+    // Arabic: "الأحد، 15 يناير" (day name, day month)
+    // English: "Sunday, Jan 15" (day name, month day)
+    final isArabic = locale.languageCode == 'ar';
+    final pattern = isArabic ? 'EEEE، d MMM' : 'EEEE, MMM d';
+    final fmt = DateFormat(pattern, locale.toString());
     return _toWesternDigits(fmt.format(date));
   }
 

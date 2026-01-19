@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/app_database.dart';
+import '../../classes/data/class_order_service.dart';
 
 final homeInsightsRepositoryProvider = Provider<HomeInsightsRepository>((ref) {
   return HomeInsightsRepository(ref.read(appDatabaseProvider));
@@ -10,7 +11,9 @@ final classesLatestSessionsProvider = FutureProvider<List<ClassSessionStatus>>((
   ref,
 ) async {
   final repo = ref.read(homeInsightsRepositoryProvider);
-  return repo.getClassesLatestSessions();
+  final classOrderService = ref.read(classOrderServiceProvider);
+  final classOrder = await classOrderService.getClassOrder();
+  return repo.getClassesLatestSessions(classOrder: classOrder);
 });
 
 class HomeInsightsRepository {
@@ -18,7 +21,7 @@ class HomeInsightsRepository {
 
   HomeInsightsRepository(this._db);
 
-  Future<List<ClassSessionStatus>> getClassesLatestSessions() async {
+  Future<List<ClassSessionStatus>> getClassesLatestSessions({List<String> classOrder = const []}) async {
     final result = <ClassSessionStatus>[];
 
     // 1. Get all active classes
@@ -113,13 +116,33 @@ class HomeInsightsRepository {
       );
     }
 
-    // Sort by date descending (most recent first), sessions first
-    result.sort((a, b) {
-      if (!a.hasSession && !b.hasSession) return 0;
-      if (!a.hasSession) return 1;
-      if (!b.hasSession) return -1;
-      return b.lastSessionDate!.compareTo(a.lastSessionDate!);
-    });
+    // Sort by user-defined class order (if available)
+    // Classes not in the order list go to the end, sorted by name
+    if (classOrder.isNotEmpty) {
+      result.sort((a, b) {
+        final indexA = classOrder.indexOf(a.classId);
+        final indexB = classOrder.indexOf(b.classId);
+        
+        // Both in order list - sort by order
+        if (indexA >= 0 && indexB >= 0) {
+          return indexA.compareTo(indexB);
+        }
+        // Only a is in order list - a comes first
+        if (indexA >= 0) return -1;
+        // Only b is in order list - b comes first
+        if (indexB >= 0) return 1;
+        // Neither in order list - sort by class name
+        return a.className.compareTo(b.className);
+      });
+    } else {
+      // No user-defined order - sort by date descending (most recent first)
+      result.sort((a, b) {
+        if (!a.hasSession && !b.hasSession) return 0;
+        if (!a.hasSession) return 1;
+        if (!b.hasSession) return -1;
+        return b.lastSessionDate!.compareTo(a.lastSessionDate!);
+      });
+    }
 
     return result;
   }

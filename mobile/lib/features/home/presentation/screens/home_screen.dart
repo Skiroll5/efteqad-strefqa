@@ -416,7 +416,7 @@ class _InsightsSection extends ConsumerWidget {
             if (activeSessions.isEmpty) return const SizedBox.shrink();
 
             return Container(
-              height: 160,
+              height: 145,
               margin: const EdgeInsets.only(bottom: 24),
               child: PageView.builder(
                 controller: PageController(viewportFraction: 0.92),

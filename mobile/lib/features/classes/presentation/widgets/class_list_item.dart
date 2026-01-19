@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/components/premium_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/database/app_database.dart';
 import 'class_dialogs.dart';
@@ -37,217 +36,218 @@ class ClassListItem extends ConsumerWidget {
       classAttendancePercentageProvider(cls.id),
     );
 
-    return PremiumCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: onTap,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Class Icon
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? [
-                            AppColors.goldPrimary.withValues(alpha: 0.3),
-                            AppColors.goldDark.withValues(alpha: 0.2),
-                          ]
-                        : [
-                            AppColors.goldPrimary.withValues(alpha: 0.15),
-                            AppColors.goldLight.withValues(alpha: 0.1),
-                          ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.class_,
-                  color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
-                  size: 28,
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.06),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      cls.name,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                    // Grade subtitle
-                    if (cls.grade != null && cls.grade!.isNotEmpty)
-                      Text(
-                        cls.grade!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                    // Managers subtitle
-                    if (managers.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.person_outline,
-                              size: 12,
-                              color: isDark
-                                  ? AppColors.goldPrimary.withValues(alpha: 0.7)
-                                  : AppColors.goldDark.withValues(alpha: 0.7),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                managers,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: 11,
-                                  color: isDark
-                                      ? AppColors.goldPrimary.withValues(
-                                          alpha: 0.7,
-                                        )
-                                      : AppColors.goldDark.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              // Circular Progress (Admin only) or Arrow (User)
-              if (isAdmin)
+            ),
+            child: Column(
+              children: [
                 Row(
                   children: [
-                    percentageAsync.when(
-                      data: (percentage) {
-                        // Determine color based on percentage
-                        Color progressColor = Colors.green;
-                        if (percentage < 50) {
-                          progressColor = AppColors.redPrimary;
-                        } else if (percentage < 80) {
-                          progressColor = Colors.orange;
-                        }
-
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 36,
-                              height: 36,
-                              child: CircularProgressIndicator(
-                                value: percentage / 100,
-                                strokeWidth: 3,
-                                backgroundColor: isDark
-                                    ? Colors.white10
-                                    : Colors.black12,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  progressColor,
+                    // Class Icon - Simplified
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.goldPrimary.withValues(alpha: 0.15)
+                            : AppColors.goldPrimary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.class_rounded,
+                          color: AppColors.goldPrimary,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    // Class Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cls.name,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          if (cls.grade != null && cls.grade!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                cls.grade!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white54 : Colors.black45,
                                 ),
                               ),
                             ),
-                            Text(
-                              '${percentage.toInt()}%',
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white70 : Colors.black54,
+                          // Managers subtitle
+                          if (managers.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.person_outline_rounded,
+                                    size: 12,
+                                    color: isDark
+                                        ? AppColors.goldPrimary.withValues(alpha: 0.7)
+                                        : AppColors.goldDark.withValues(alpha: 0.7),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      managers,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? AppColors.goldPrimary.withValues(alpha: 0.7)
+                                            : AppColors.goldDark.withValues(alpha: 0.7),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Actions
+                    if (isAdmin)
+                      // Menu button only
+                      PopupMenuButton<String>(
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          color: isDark ? Colors.white54 : Colors.black45,
+                          size: 20,
+                        ),
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        onSelected: (value) async {
+                          if (value == 'rename') {
+                            await showRenameClassDialog(context, ref, cls);
+                            onRefresh?.call();
+                          } else if (value == 'delete') {
+                            await showDeleteClassDialog(context, ref, cls);
+                            onRefresh?.call();
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'rename',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_rounded, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                                const SizedBox(width: 10),
+                                Text(l10n.rename),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.redPrimary),
+                                const SizedBox(width: 10),
+                                Text(
+                                  l10n.delete,
+                                  style: TextStyle(color: AppColors.redPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      // Simple arrow for non-admin
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 24,
+                        color: isDark ? Colors.white38 : Colors.black26,
+                      ),
+                  ],
+                ),
+                // Attendance progress bar with percentage (Admin only)
+                if (isAdmin)
+                  percentageAsync.when(
+                    data: (percentage) {
+                      Color progressColor = Colors.green;
+                      if (percentage < 50) {
+                        progressColor = AppColors.redPrimary;
+                      } else if (percentage < 80) {
+                        progressColor = Colors.orange;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Row(
+                          children: [
+                            // Progress bar
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: percentage / 100,
+                                  minHeight: 6,
+                                  backgroundColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : Colors.black.withValues(alpha: 0.06),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    progressColor.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            // Percentage chip
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: progressColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${percentage.toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: progressColor,
+                                ),
                               ),
                             ),
                           ],
-                        );
-                      },
-                      loading: () => const SizedBox(width: 36, height: 36),
-                      error: (_, __) => const SizedBox.shrink(),
-                    ),
-                    PopupMenuButton<String>(
-                      icon: Icon(
-                        Icons.more_vert,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                      ),
-                      onSelected: (value) async {
-                        if (value == 'rename') {
-                          await showRenameClassDialog(context, ref, cls);
-                          onRefresh?.call();
-                        } else if (value == 'delete') {
-                          await showDeleteClassDialog(context, ref, cls);
-                          onRefresh?.call();
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'rename',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.edit, size: 20),
-                              const SizedBox(width: 8),
-                              Text(l10n.rename),
-                            ],
-                          ),
                         ),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.delete,
-                                size: 20,
-                                color: isDark
-                                    ? AppColors.redLight
-                                    : AppColors.redPrimary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                l10n.delete,
-                                style: TextStyle(
-                                  color: isDark
-                                      ? AppColors.redLight
-                                      : AppColors.redPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white10
-                        : Colors.black.withValues(alpha: 0.05),
-                    shape: BoxShape.circle,
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
                   ),
-                  child: Icon(
-                    Icons.arrow_forward,
-                    size: 18,
-                    color: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.goldPrimary,
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

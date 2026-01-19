@@ -223,7 +223,9 @@ class _ManagerCard extends ConsumerWidget {
           leading: CircleAvatar(
             backgroundColor: AppColors.goldPrimary.withValues(alpha: 0.2),
             child: Text(
-              (manager['name'] as String).substring(0, 1).toUpperCase(),
+              ((manager['name'] as String?) ?? '?')
+                  .substring(0, 1)
+                  .toUpperCase(),
               style: const TextStyle(
                 color: AppColors.goldPrimary,
                 fontWeight: FontWeight.bold,
@@ -231,7 +233,7 @@ class _ManagerCard extends ConsumerWidget {
             ),
           ),
           title: Text(
-            manager['name'],
+            manager['name'] ?? 'Unknown',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Text(manager['email'] ?? ''),
@@ -252,7 +254,7 @@ class _ManagerCard extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.removeManagerTitle),
-        content: Text(l10n.removeManagerConfirm(manager['name'])),
+        content: Text(l10n.removeManagerConfirm(manager['name'] ?? 'Unknown')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),

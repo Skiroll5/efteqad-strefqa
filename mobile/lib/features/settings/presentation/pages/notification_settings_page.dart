@@ -45,7 +45,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _NotificationSwitchTile(
-                      title: l10n?.notesNotification ?? '📝 Notes',
+                      title: l10n?.notesNotification ?? 'Notes',
+                      icon: Icons.note_alt_outlined,
                       description:
                           l10n?.notesNotificationDesc ??
                           'Get notified when a note is added', // Fallback
@@ -62,7 +63,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                       color: isDark ? Colors.white10 : Colors.grey.shade100,
                     ),
                     _NotificationSwitchTile(
-                      title: l10n?.attendanceNotification ?? '📊 Attendance',
+                      title: l10n?.attendanceNotification ?? 'Attendance',
+                      icon: Icons.fact_check_outlined,
                       description: 'Get notified when attendance is recorded',
                       value: prefs.attendanceRecorded,
                       onChanged: (val) => ref
@@ -80,7 +82,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                     ),
                     _NotificationSwitchTile(
                       title:
-                          l10n?.birthdayNotification ?? '🎂 Birthday Reminders',
+                          l10n?.birthdayNotification ?? 'Birthday Reminders',
+                      icon: Icons.cake_outlined,
                       description: 'Get reminders for student birthdays',
                       value: prefs.birthdayReminder,
                       onChanged: (val) => ref
@@ -107,7 +110,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _NotificationSwitchTile(
                       title:
-                          l10n?.inactiveNotification ?? '⚠️ Inactive Students',
+                          l10n?.inactiveNotification ?? 'Inactive Students',
+                      icon: Icons.person_off_outlined,
                       description: 'Alert when a student becomes inactive',
                       value: prefs.inactiveStudent,
                       onChanged: (val) => ref
@@ -126,7 +130,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                       ),
                       _NotificationSwitchTile(
                         title:
-                            l10n?.newUserNotification ?? '👤 New Registrations',
+                            l10n?.newUserNotification ?? 'New Registrations',
+                        icon: Icons.person_add_outlined,
                         description: 'Notify when a new user registers',
                         value: prefs.newUserRegistered,
                         onChanged: (val) => ref
@@ -298,6 +303,7 @@ class _SectionHeader extends StatelessWidget {
 
 class _NotificationSwitchTile extends StatelessWidget {
   final String title;
+  final IconData icon;
   final String description;
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -305,6 +311,7 @@ class _NotificationSwitchTile extends StatelessWidget {
 
   const _NotificationSwitchTile({
     required this.title,
+    required this.icon,
     required this.description,
     required this.value,
     required this.onChanged,
@@ -317,20 +324,29 @@ class _NotificationSwitchTile extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       activeColor: AppColors.goldPrimary,
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white : AppColors.textPrimaryLight,
-        ),
+      title: Row(
+        children: [
+          Icon(icon, size: 20, color: isDark ? AppColors.goldPrimary : AppColors.goldDark),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+            ),
+          ),
+        ],
       ),
-      subtitle: Text(
-        description,
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark
-              ? AppColors.textSecondaryDark
-              : AppColors.textSecondaryLight,
+      subtitle: Padding(
+        padding: const EdgeInsets.only(left: 32.0),
+        child: Text(
+          description,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
+          ),
         ),
       ),
     );

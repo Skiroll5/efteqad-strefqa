@@ -9,6 +9,7 @@ import '../../data/admin_controller.dart';
 import '../../data/classes_controller.dart';
 import '../../../classes/data/classes_controller.dart';
 import 'package:mobile/l10n/app_localizations.dart';
+import 'class_manager_assignment_screen.dart';
 
 class ClassManagementScreen extends ConsumerStatefulWidget {
   const ClassManagementScreen({super.key});
@@ -121,10 +122,48 @@ class _ClassManagementScreenState extends ConsumerState<ClassManagementScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddClassDialog(context, ref, l10n),
-        backgroundColor: isDark ? AppColors.goldPrimary : AppColors.goldPrimary,
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showAddClassDialog(context, ref, l10n),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.goldPrimary.withValues(alpha: 0.1)
+                  : AppColors.goldPrimary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.goldPrimary.withValues(alpha: 0.2)
+                    : AppColors.goldPrimary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 18,
+                  color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  l10n.addClass,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: isDark ? AppColors.goldPrimary : AppColors.goldDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -318,14 +357,25 @@ class _AdminClassCard extends ConsumerWidget {
             childrenPadding: const EdgeInsets.all(16),
             children: [
               // Attendance Progress
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         l10n.attendanceRate,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getAttendanceStatusText(attendancePercentage, l10n),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark
@@ -333,28 +383,32 @@ class _AdminClassCard extends ConsumerWidget {
                               : AppColors.textSecondaryLight,
                         ),
                       ),
+                    ],
+                  ),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: CircularProgressIndicator(
+                          value: attendancePercentage,
+                          strokeWidth: 5,
+                          backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation(
+                            _getColorForPercentage(attendancePercentage),
+                          ),
+                        ),
+                      ),
                       Text(
                         '${(attendancePercentage * 100).toInt()}%',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: _getColorForPercentage(attendancePercentage),
+                          fontSize: 12,
+                          color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: attendancePercentage,
-                      backgroundColor: isDark
-                          ? Colors.grey[800]
-                          : Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation(
-                        _getColorForPercentage(attendancePercentage),
-                      ),
-                      minHeight: 6,
-                    ),
                   ),
                 ],
               ),
@@ -374,14 +428,25 @@ class _AdminClassCard extends ConsumerWidget {
                           : AppColors.textPrimaryLight,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.person_add,
-                      size: 20,
-                      color: AppColors.goldPrimary,
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ClassManagerAssignmentScreen(
+                            classId: classId,
+                            className: classData['name'],
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: Text(l10n.manage, style: const TextStyle(fontSize: 12)),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.goldPrimary,
+                      padding: EdgeInsets.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    onPressed: () =>
-                        _showAddManagerDialog(context, ref, classId, l10n),
                   ),
                 ],
               ),
@@ -399,43 +464,48 @@ class _AdminClassCard extends ConsumerWidget {
                       ),
                     );
                   }
+                  // Show preview of managers (limit 3)
+                  final displayManagers = managers.take(3).toList();
                   return Column(
-                    children: managers.map((manager) {
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          radius: 16,
-                          backgroundColor:
-                              AppColors.goldPrimary.withValues(alpha: 0.2),
+                    children: [
+                      ...displayManagers.map((manager) {
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            radius: 12,
+                            backgroundColor:
+                                AppColors.goldPrimary.withValues(alpha: 0.2),
+                            child: Text(
+                              manager['name'].substring(0, 1).toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.goldPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            manager['name'],
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                        );
+                      }),
+                      if (managers.length > 3)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            manager['name'].substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.goldPrimary,
-                              fontWeight: FontWeight.bold,
+                            '+ ${managers.length - 3} more',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         ),
-                        title: Text(
-                          manager['name'],
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle_outline,
-                            color: AppColors.redPrimary,
-                            size: 20,
-                          ),
-                          onPressed: () => _confirmRemoveManager(
-                            context,
-                            ref,
-                            classId,
-                            manager,
-                            l10n,
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                    ],
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -452,6 +522,12 @@ class _AdminClassCard extends ConsumerWidget {
     if (percentage >= 0.8) return Colors.green;
     if (percentage >= 0.5) return Colors.orange;
     return AppColors.redPrimary;
+  }
+
+  String _getAttendanceStatusText(double percentage, AppLocalizations l10n) {
+    if (percentage >= 0.8) return l10n.good;
+    if (percentage >= 0.5) return l10n.average;
+    return l10n.poor;
   }
 
   Future<void> _showAddManagerDialog(

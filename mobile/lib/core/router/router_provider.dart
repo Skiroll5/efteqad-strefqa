@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/data/auth_controller.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/pending_activation_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/students/presentation/screens/student_list_screen.dart';
 import '../../features/students/presentation/screens/student_detail_screen.dart';
@@ -40,6 +41,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (isLoggedIn && (isLoggingIn || isRegistering)) {
+        return '/';
+      }
+
+      // Handle inactive users
+      final user = authState.asData?.value;
+      final isActive = user?.isActive ?? false;
+      final isPending = state.uri.toString() == '/pending-activation';
+
+      if (isLoggedIn && !isActive && !isPending) {
+        // If user is logged in but not active, redirect to pending screen
+        // unless they are already there
+        return '/pending-activation';
+      }
+
+      if (isLoggedIn && isActive && isPending) {
+        // If user became active but is on pending screen, go home
         return '/';
       }
 
@@ -124,6 +141,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/pending-activation',
+        builder: (context, state) => const PendingActivationScreen(),
       ),
     ],
   );

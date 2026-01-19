@@ -145,57 +145,95 @@ class ClassListItem extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Menu or arrow
+              // Circular Progress (Admin only) or Arrow (User)
               if (isAdmin)
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
-                  onSelected: (value) async {
-                    if (value == 'rename') {
-                      await showRenameClassDialog(context, ref, cls);
-                      onRefresh?.call();
-                    } else if (value == 'delete') {
-                      await showDeleteClassDialog(context, ref, cls);
-                      onRefresh?.call();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'rename',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.edit, size: 20),
-                          const SizedBox(width: 8),
-                          Text(l10n.rename),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete,
-                            size: 20,
-                            color: isDark
-                                ? AppColors.redLight
-                                : AppColors.redPrimary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            l10n.delete,
-                            style: TextStyle(
-                              color: isDark
-                                  ? AppColors.redLight
-                                  : AppColors.redPrimary,
+                Row(
+                  children: [
+                    percentageAsync.when(
+                      data: (percentage) {
+                         // Determine color based on percentage
+                        Color progressColor = Colors.green;
+                        if (percentage < 50) progressColor = AppColors.redPrimary;
+                        else if (percentage < 80) progressColor = Colors.orange;
+
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: CircularProgressIndicator(
+                                value: percentage / 100,
+                                strokeWidth: 3,
+                                backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                                valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                              ),
                             ),
-                          ),
-                        ],
+                            Text(
+                              '${percentage.toInt()}%',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white70 : Colors.black54,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const SizedBox(width: 36, height: 36),
+                      error: (_,__) => const SizedBox.shrink(),
+                    ),
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
+                      onSelected: (value) async {
+                        if (value == 'rename') {
+                          await showRenameClassDialog(context, ref, cls);
+                          onRefresh?.call();
+                        } else if (value == 'delete') {
+                          await showDeleteClassDialog(context, ref, cls);
+                          onRefresh?.call();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'rename',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit, size: 20),
+                              const SizedBox(width: 8),
+                              Text(l10n.rename),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.delete,
+                                size: 20,
+                                color: isDark
+                                    ? AppColors.redLight
+                                    : AppColors.redPrimary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.delete,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? AppColors.redLight
+                                      : AppColors.redPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 )
@@ -218,46 +256,6 @@ class ClassListItem extends ConsumerWidget {
                 ),
             ],
           ),
-          // Progress Bar
-          if (isAdmin) ...[
-            const SizedBox(height: 12),
-            percentageAsync.when(
-              data: (percentage) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: percentage / 100,
-                          backgroundColor: isDark
-                              ? Colors.white10
-                              : Colors.black.withOpacity(0.05),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            isDark ? AppColors.goldPrimary : AppColors.goldDark,
-                          ),
-                          minHeight: 4,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${percentage.toStringAsFixed(1)}%',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.goldPrimary
-                            : AppColors.goldDark,
-                      ),
-                    ),
-                  ],
-                );
-              },
-              loading: () => const SizedBox(height: 4), // Placeholder height
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-          ],
         ],
       ),
     );

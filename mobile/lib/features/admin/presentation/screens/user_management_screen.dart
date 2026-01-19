@@ -228,123 +228,126 @@ class _AllUsersTab extends ConsumerWidget {
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index];
-              final isActive = user['isActive'] == true;
-              final isEnabled = user['isEnabled'] == true;
-              final isAdmin = user['role'] == 'ADMIN';
-
-              return _UserCard(
-                    user: user,
-                    isDark: isDark,
-                    delay: index * 0.1,
-                    showStatusBadge: true,
-                    isActive: isActive,
-                    isEnabled: isEnabled,
-                    isAdmin: isAdmin,
-                    actions: isAdmin
-                        ? [] // Admin users cannot be modified
-                        : [
-                            if (isEnabled)
-                              _ActionButton(
-                                icon: Icons.block,
-                                label: l10n.disableUser,
-                                color: AppColors.redPrimary,
-                                onPressed: () => _showDisableConfirmation(
-                                  context,
-                                  ref,
-                                  user,
-                                  l10n,
-                                ),
-                              )
-                            else
-                              _ActionButton(
-                                icon: Icons.check_circle,
-                                label: l10n.enableUser,
-                                color: Colors.green,
-                                onPressed: () =>
-                                    _enableUser(context, ref, user['id'], l10n),
-                              ),
-                            _ActionButton(
-                              icon: Icons.delete,
-                              label: l10n.deleteUser,
-                              color: Colors.grey,
-                              onPressed: () => _showDeleteConfirmation(
-                                context,
-                                ref,
-                                user,
-                                l10n,
-                              ),
-                            ),
-                          ],
-                  )
-                  .animate()
-                  .fade(delay: Duration(milliseconds: (index * 100)))
-                  .slideX(begin: 0.1);
+              return _UserManagementItem(
+                key: ValueKey(user['id']),
+                user: user,
+                isDark: isDark,
+                index: index,
+              );
             },
           ),
         );
       },
     );
   }
+}
 
-  Future<void> _enableUser(
-    BuildContext context,
-    WidgetRef ref,
-    String userId,
-    AppLocalizations l10n,
-  ) async {
-    final success = await ref
-        .read(adminControllerProvider.notifier)
-        .enableUser(userId);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? l10n.userEnabled : l10n.errorUpdateUser),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
+class _UserManagementItem extends ConsumerStatefulWidget {
+  final Map<String, dynamic> user;
+  final bool isDark;
+  final int index;
+
+  const _UserManagementItem({
+    super.key,
+    required this.user,
+    required this.isDark,
+    required this.index,
+  });
+
+  @override
+  ConsumerState<_UserManagementItem> createState() =>
+      _UserManagementItemState();
+}
+
+class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
+  // Optimistic state for the switch
+  late bool _isEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEnabled = widget.user['isEnabled'] == true;
+  }
+
+  @override
+  void didUpdateWidget(covariant _UserManagementItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.user['isEnabled'] != widget.user['isEnabled']) {
+      _isEnabled = widget.user['isEnabled'] == true;
     }
   }
 
-  Future<void> _showDisableConfirmation(
-    BuildContext context,
-    WidgetRef ref,
-    Map<String, dynamic> user,
-    AppLocalizations l10n,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.disableUser),
-        content: Text(l10n.disableUserConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.redPrimary,
-            ),
-            child: Text(l10n.disableUser),
-          ),
-        ],
-      ),
-    );
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isActive = widget.user['isActive'] == true;
+    final isAdmin = widget.user['role'] == 'ADMIN';
 
-    if (confirmed == true && context.mounted) {
-      final success = await ref
-          .read(adminControllerProvider.notifier)
-          .disableUser(user['id']);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? l10n.userDisabled : l10n.errorUpdateUser),
-            backgroundColor: success ? Colors.orange : Colors.red,
-          ),
-        );
-      }
-    }
+    // The user card already handles some display, but for better control over the toggle
+    // we'll build the actions here properly or wrap the switch.
+    // However, _UserCard takes a list of widgets.
+
+    // We can't use Switch in _UserCard's actions list easily if we want optimistic updates
+    // unless we pass a stateful widget as an action.
+
+    return _UserCard(
+      user: widget.user,
+      isDark: widget.isDark,
+      delay: widget.index * 0.1,
+      showStatusBadge: true,
+      isActive: isActive,
+      isEnabled: _isEnabled, // Use optimistic state for visual consistency
+      isAdmin: isAdmin,
+      actions: isAdmin
+          ? []
+          : [
+              // Use a custom widget for the toggle action to handle state
+              _SwitchAction(
+                value: _isEnabled,
+                label: _isEnabled ? l10n.enabled : l10n.disabled,
+                onChanged: (val) async {
+                  setState(() {
+                    _isEnabled = val;
+                  });
+
+                  final success = val
+                      ? await ref
+                          .read(adminControllerProvider.notifier)
+                          .enableUser(widget.user['id'])
+                      : await ref
+                          .read(adminControllerProvider.notifier)
+                          .disableUser(widget.user['id']);
+
+                  if (!success && mounted) {
+                    // Revert if failed
+                    setState(() {
+                      _isEnabled = !val;
+                    });
+                     ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.errorUpdateUser),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
+              _ActionButton(
+                icon: Icons.delete,
+                label: l10n.deleteUser,
+                color: Colors.grey,
+                onPressed: () => _showDeleteConfirmation(
+                  context,
+                  ref,
+                  widget.user,
+                  l10n,
+                ),
+              ),
+            ],
+    )
+    .animate()
+    .fade(delay: Duration(milliseconds: (widget.index * 100)))
+    .slideX(begin: 0.1);
   }
 
   Future<void> _showDeleteConfirmation(
@@ -535,6 +538,41 @@ class _EmptyState extends StatelessWidget {
           Text(message, style: const TextStyle(fontSize: 18)),
         ],
       ).animate().fade().scale(begin: const Offset(0.9, 0.9)),
+    );
+  }
+}
+
+class _SwitchAction extends StatelessWidget {
+  final bool value;
+  final String label;
+  final ValueChanged<bool> onChanged;
+
+  const _SwitchAction({
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12)),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Colors.green,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -259,88 +259,96 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
 
                   if (classes.isNotEmpty || user?.role == 'ADMIN') ...[
-                    Row(
-                      children: [
-                        Text(
-                          user?.role == 'ADMIN'
-                              ? (l10n?.yourClasses ?? 'Your Classes')
-                              : (l10n?.yourClass ?? 'Your Class'),
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                        const Spacer(),
-                        if (user?.role == 'ADMIN')
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () => showAddClassDialog(context, ref),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                user?.role == 'ADMIN'
+                                    ? (l10n?.yourClasses ?? 'Your Classes')
+                                    : (l10n?.yourClass ?? 'Your Class'),
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
                                   color: isDark
-                                      ? AppColors.goldPrimary.withValues(
-                                          alpha: 0.1,
-                                        )
-                                      : AppColors.goldPrimary.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? AppColors.goldPrimary.withValues(
-                                            alpha: 0.2,
-                                          )
-                                        : AppColors.goldPrimary.withValues(
-                                            alpha: 0.3,
-                                          ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.add,
-                                      size: 18,
-                                      color: isDark
-                                          ? AppColors.goldPrimary
-                                          : AppColors.goldDark,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      l10n?.createClass ?? 'Create Class',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        color: isDark
-                                            ? AppColors.goldPrimary
-                                            : AppColors.goldDark,
-                                      ),
-                                    ),
-                                  ],
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
                                 ),
                               ),
+                              const Spacer(),
+                              if (user?.role == 'ADMIN')
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => showAddClassDialog(context, ref),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppColors.goldPrimary.withValues(
+                                                alpha: 0.1,
+                                              )
+                                            : AppColors.goldPrimary.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? AppColors.goldPrimary.withValues(
+                                                  alpha: 0.2,
+                                                )
+                                              : AppColors.goldPrimary.withValues(
+                                                  alpha: 0.3,
+                                                ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.add,
+                                            size: 18,
+                                            color: isDark
+                                                ? AppColors.goldPrimary
+                                                : AppColors.goldDark,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            l10n?.createClass ?? 'Create Class',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              color: isDark
+                                                  ? AppColors.goldPrimary
+                                                  : AppColors.goldDark,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ).animate().fade(),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n?.selectClassToManage ??
+                                'Select a class to manage students and attendance',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
-                          ),
-                      ],
-                    ).animate().fade(),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n?.selectClassToManage ??
-                          'Select a class to manage students and attendance',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
+                          ).animate().fade(delay: 100.ms),
+                        ],
                       ),
-                    ).animate().fade(delay: 100.ms),
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ],

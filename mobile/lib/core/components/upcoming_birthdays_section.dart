@@ -89,11 +89,34 @@ class UpcomingBirthdaysSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            l10n?.noUpcomingBirthdays ?? "No birthdays in the next 30 days.",
-            style: TextStyle(
-              color: isDark ? Colors.white38 : Colors.black38,
-              fontSize: 13,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? Colors.white10 : Colors.grey.shade200,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.event_busy,
+                  size: 20,
+                  color: isDark ? Colors.white38 : Colors.grey.shade400,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n?.noUpcomingBirthdays ?? "No upcoming birthdays in the next 30 days.",
+                    style: TextStyle(
+                      color: isDark ? Colors.white54 : Colors.grey.shade600,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

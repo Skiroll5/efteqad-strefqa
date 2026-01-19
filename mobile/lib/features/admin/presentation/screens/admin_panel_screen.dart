@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mobile/features/admin/data/admin_controller.dart';
 import 'package:mobile/features/admin/presentation/screens/class_management_screen.dart';
+import 'package:mobile/features/admin/presentation/screens/class_manager_assignment_screen.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/database/app_database.dart';
@@ -11,12 +12,27 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/auth_controller.dart';
 import '../../../classes/presentation/widgets/class_list_item.dart';
 import '../../../classes/presentation/widgets/class_dialogs.dart';
+import '../../../sync/data/sync_service.dart';
 
-class AdminPanelScreen extends ConsumerWidget {
+class AdminPanelScreen extends ConsumerStatefulWidget {
   const AdminPanelScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminPanelScreen> createState() => _AdminPanelScreenState();
+}
+
+class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Trigger sync on admin panel load to ensure fresh data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(syncServiceProvider).pullChanges();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.asData?.value;
     final theme = Theme.of(context);

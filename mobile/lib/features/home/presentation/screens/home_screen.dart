@@ -106,13 +106,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               classes.length == 1 &&
               user?.role != 'ADMIN') {
             _hasAutoNavigated = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            // Navigate synchronously in the next microtask to avoid visible flash
+            Future.microtask(() {
               ref.read(selectedClassIdProvider.notifier).state =
                   classes.first.id;
               context.go('/students');
             });
-            // Return loading indicator while navigating
-            return const Center(child: CircularProgressIndicator());
+            // Return blank scaffold (not spinner) for seamless transition
+            return const SizedBox.shrink();
           }
 
           if (classes.isEmpty && user?.role != 'ADMIN') {

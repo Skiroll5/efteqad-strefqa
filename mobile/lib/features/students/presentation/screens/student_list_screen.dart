@@ -83,6 +83,8 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
     final studentsAsync = ref.watch(classStudentsProvider);
     final selectedClassId = ref.watch(selectedClassIdProvider);
     final classesAsync = ref.watch(classesStreamProvider);
+    final userClassesAsync = ref.watch(userClassesStreamProvider);
+    final user = ref.watch(authControllerProvider).asData?.value;
     final attendanceStatsAsync = selectedClassId != null
         ? ref.watch(classAttendanceStatsProvider(selectedClassId))
         : const AsyncValue.data(<String, StudentAttendanceStats>{});
@@ -93,25 +95,44 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Get class name
+    // Get class name and determine if single-class manager
     String? className;
+    int userClassCount = 0;
     classesAsync.whenData((classes) {
       final cls = classes.where((c) => c.id == selectedClassId).firstOrNull;
       className = cls?.name;
     });
+    userClassesAsync.whenData((classes) {
+      userClassCount = classes.length;
+    });
+
+    // Single-class manager: no back button, show settings
+    final isSingleClassManager = user?.role != 'ADMIN' && userClassCount == 1;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            ref.read(selectedClassIdProvider.notifier).state = null;
-            context.go('/');
-          },
-        ),
+        // Only show back button if user has multiple classes or is admin
+        leading: isSingleClassManager
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  ref.read(selectedClassIdProvider.notifier).state = null;
+                  context.go('/');
+                },
+              ),
+        automaticallyImplyLeading: !isSingleClassManager,
         title: Text(className ?? l10n?.students ?? 'Class Dashboard'),
-        actions: [],
+        actions: [
+          // Show settings for single-class managers
+          if (isSingleClassManager)
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: l10n?.settings ?? 'Settings',
+              onPressed: () => context.push('/settings'),
+            ),
+        ],
       ),
       body: studentsAsync.when(
         data: (students) {

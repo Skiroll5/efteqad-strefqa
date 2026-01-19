@@ -4,7 +4,19 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/database/app_database.dart';
+import '../../data/classes_controller.dart';
 import 'class_dialogs.dart';
+
+/// Provider to get managers for a specific class
+final classManagerNamesProvider = FutureProvider.family<String, String>((
+  ref,
+  classId,
+) async {
+  final controller = ref.watch(classesControllerProvider);
+  final managers = await controller.getManagersForClass(classId);
+  if (managers.isEmpty) return '';
+  return managers.map((m) => m.name).join(', ');
+});
 
 class ClassListItem extends ConsumerWidget {
   final ClassesData cls;
@@ -25,7 +37,8 @@ class ClassListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final managersAsync = ref.watch(classManagerNamesProvider(cls.id));
 
     return PremiumCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -71,6 +84,7 @@ class ClassListItem extends ConsumerWidget {
                         : AppColors.textPrimaryLight,
                   ),
                 ),
+                // Grade subtitle
                 if (cls.grade != null && cls.grade!.isNotEmpty)
                   Text(
                     cls.grade!,
@@ -80,6 +94,43 @@ class ClassListItem extends ConsumerWidget {
                           : AppColors.textSecondaryLight,
                     ),
                   ),
+                // Managers subtitle (only show if there are managers)
+                managersAsync.when(
+                  data: (managers) {
+                    if (managers.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 12,
+                            color: isDark
+                                ? AppColors.goldPrimary.withValues(alpha: 0.7)
+                                : AppColors.goldDark.withValues(alpha: 0.7),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              managers,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.goldPrimary.withValues(
+                                        alpha: 0.7,
+                                      )
+                                    : AppColors.goldDark.withValues(alpha: 0.7),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
               ],
             ),
           ),
@@ -108,7 +159,7 @@ class ClassListItem extends ConsumerWidget {
                     children: [
                       const Icon(Icons.edit, size: 20),
                       const SizedBox(width: 8),
-                      Text(l10n?.rename ?? 'Rename'),
+                      Text(l10n.rename),
                     ],
                   ),
                 ),
@@ -125,7 +176,7 @@ class ClassListItem extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        l10n?.delete ?? 'Delete',
+                        l10n.delete,
                         style: TextStyle(
                           color: isDark
                               ? AppColors.redLight

@@ -750,6 +750,7 @@ class SettingsScreen extends ConsumerWidget {
     AppLocalizations? l10n,
     bool isDark,
   ) async {
+    final localizations = l10n ?? AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -798,7 +799,7 @@ class SettingsScreen extends ConsumerWidget {
         if (context.mounted) {
           AppSnackBar.show(
             context,
-            message: l10n?.successResetData ?? 'Success: Local data reset.',
+            message: localizations.successResetData,
             type: AppSnackBarType.success,
           );
         }
@@ -806,7 +807,7 @@ class SettingsScreen extends ConsumerWidget {
         if (context.mounted) {
           AppSnackBar.show(
             context,
-            message: l10n?.errorResetData(e.toString()) ?? 'Error: $e',
+            message: localizations.errorResetData(e.toString()),
             type: AppSnackBarType.error,
           );
         }

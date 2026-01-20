@@ -37,7 +37,7 @@ class UpcomingBirthdaysSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final theme = Theme.of(context);
 
@@ -61,7 +61,7 @@ class UpcomingBirthdaysSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l10n?.upcomingBirthdays ?? "Upcoming Birthdays",
+            l10n.upcomingBirthdays,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : AppColors.textPrimaryLight,
@@ -91,8 +91,7 @@ class UpcomingBirthdaysSection extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    l10n?.noUpcomingBirthdays ??
-                        "No upcoming birthdays in the next 30 days.",
+                    l10n.noUpcomingBirthdays,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: isDark ? Colors.white54 : Colors.black45,
                     ),
@@ -109,7 +108,7 @@ class UpcomingBirthdaysSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n?.upcomingBirthdays ?? "Upcoming Birthdays",
+          l10n.upcomingBirthdays,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : AppColors.textPrimaryLight,
@@ -300,10 +299,10 @@ class _BirthdayCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             isToday
-                                ? "🎉 ${l10n?.today ?? 'Today!'}"
+                                ? "🎉 ${l10n.today}"
                                 : isTomorrow
-                                    ? (l10n?.tomorrow ?? "Tomorrow")
-                                    : (l10n?.daysLeft(daysLeft) ?? "$daysLeft days"),
+                                    ? l10n.tomorrow
+                                    : l10n.daysLeft(daysLeft),
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: isToday || isTomorrow

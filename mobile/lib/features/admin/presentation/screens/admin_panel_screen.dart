@@ -317,7 +317,7 @@ class _ClassesSection extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           l10n?.noClassesFoundAdd ??
-                              'No classes found. Add one!',
+                              AppLocalizations.of(context)!.noClassesFoundAdd,
                           style: TextStyle(
                             color: isDark
                                 ? AppColors.textSecondaryDark
@@ -336,7 +336,9 @@ class _ClassesSection extends ConsumerWidget {
                 // Manually construct ClassesData from Map since Admin logic uses Map
                 final cls = ClassesData(
                   id: classData['id'] as String? ?? '',
-                  name: classData['name'] as String? ?? 'Unknown',
+                  name:
+                      classData['name'] as String? ??
+                      AppLocalizations.of(context)!.unknown,
                   grade: classData['grade'] as String?,
                   managerNames: classData['managerNames'] as String?,
                   createdAt: DateTime.now(), // Dummy for display
@@ -436,7 +438,11 @@ class _UsersSection extends ConsumerWidget {
                         leading: const CircleAvatar(
                           child: Icon(Icons.person_outline),
                         ),
-                        title: Text(user['name'] ?? 'Unknown'),
+                        title: Text(
+                          user['name'] ??
+                              (l10n?.unknown ??
+                                  AppLocalizations.of(context)!.unknown),
+                        ),
                         subtitle: Text(user['email'] ?? ''),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -667,7 +673,9 @@ class _UserCardState extends State<_UserCard> {
 
     final newValue = !_optimisticEnabled;
     final l10n = widget.l10n;
-    final userName = widget.user['name'] ?? 'Unknown';
+    final userName =
+        widget.user['name'] ??
+        (l10n?.unknown ?? AppLocalizations.of(context)!.unknown);
 
     // Show confirmation dialog
     final isDark = widget.isDark;
@@ -813,7 +821,9 @@ class _UserCardState extends State<_UserCard> {
                       children: [
                         Flexible(
                           child: Text(
-                            widget.user['name'] ?? 'Unknown',
+                            widget.user['name'] ??
+                                (l10n?.unknown ??
+                                    AppLocalizations.of(context)!.unknown),
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: isDark ? Colors.white : Colors.black87,

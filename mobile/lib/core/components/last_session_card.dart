@@ -19,7 +19,7 @@ class LastSessionCard extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final status = sessionStatus!;
 
     final locale = Localizations.localeOf(context);
@@ -88,7 +88,7 @@ class LastSessionCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            l10n?.lastSession ?? 'Last Session',
+                            l10n.lastSession,
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark ? Colors.white54 : Colors.black45,

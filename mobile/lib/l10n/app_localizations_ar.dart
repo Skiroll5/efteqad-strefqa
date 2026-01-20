@@ -103,6 +103,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hi => 'مرحباً';
 
   @override
+  String get user => 'مستخدم';
+
+  @override
+  String get search => 'بحث';
+
+  @override
   String get call => 'اتصال';
 
   @override
@@ -326,6 +332,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attendanceSessions => 'جلسات الحضور';
 
   @override
+  String get noAttendanceSessionsYet => 'لا توجد جلسات حضور بعد';
+
+  @override
+  String get tapBelowToTakeAttendance => 'اضغط بالأسفل لتسجيل الحضور';
+
+  @override
+  String get addStudentsFirst => 'أضف الطلاب أولاً';
+
+  @override
+  String get addStudentsFirstToTakeAttendance =>
+      'أضف الطلاب أولاً لتسجيل الحضور';
+
+  @override
   String get noUpcomingBirthdays => 'لا توجد أعياد ميلاد قادمة';
 
   @override
@@ -470,6 +489,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get unknown => 'مجهول';
+
+  @override
+  String get unknownClass => 'فصل غير معروف';
 
   @override
   String get discardChanges => 'تجاهل التغييرات؟';

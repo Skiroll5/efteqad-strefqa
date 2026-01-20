@@ -105,6 +105,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hi => 'Hi';
 
   @override
+  String get user => 'User';
+
+  @override
+  String get search => 'Search';
+
+  @override
   String get call => 'Call';
 
   @override
@@ -328,6 +334,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceSessions => 'Attendance Sessions';
 
   @override
+  String get noAttendanceSessionsYet => 'No attendance sessions yet';
+
+  @override
+  String get tapBelowToTakeAttendance => 'Tap below to take attendance';
+
+  @override
+  String get addStudentsFirst => 'Add students first';
+
+  @override
+  String get addStudentsFirstToTakeAttendance =>
+      'Add students first to take attendance';
+
+  @override
   String get noUpcomingBirthdays => 'No upcoming birthdays';
 
   @override
@@ -473,6 +492,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknown => 'Unknown';
+
+  @override
+  String get unknownClass => 'Unknown class';
 
   @override
   String get discardChanges => 'Discard Changes?';

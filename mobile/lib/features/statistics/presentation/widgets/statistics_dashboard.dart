@@ -241,7 +241,9 @@ class _AttendanceLineChart extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => Center(child: Text(AppLocalizations.of(context)?.genericError ?? "Error")),
+      error: (_, __) => Center(
+        child: Text(AppLocalizations.of(context)!.genericError),
+      ),
     );
   }
 }
@@ -255,7 +257,7 @@ class _AtRiskStudentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return PremiumCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -279,7 +281,7 @@ class _AtRiskStudentCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              item.className,
+              item.className ?? l10n.unknownClass,
               style: TextStyle(
                 color: isDark ? Colors.white54 : Colors.black87,
                 fontSize: 12,
@@ -293,8 +295,7 @@ class _AtRiskStudentCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                l10n?.absentTimes(item.consecutiveAbsences) ??
-                    "Absent ${item.consecutiveAbsences}",
+                l10n.absentTimes(item.consecutiveAbsences),
                 style: const TextStyle(
                   color: AppColors.redPrimary,
                   fontSize: 11,

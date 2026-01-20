@@ -37,7 +37,7 @@ class _AttendanceSessionListScreenState
     final isDark = theme.brightness == Brightness.dark;
     final selectedClassId = ref.watch(selectedClassIdProvider);
     final classesAsync = ref.watch(classesStreamProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // Check if class has students
     final hasStudents = studentsAsync.maybeWhen(
@@ -53,8 +53,8 @@ class _AttendanceSessionListScreenState
     });
 
     final title = className != null
-        ? '$className - ${l10n?.attendance ?? 'Attendance'}'
-        : (l10n?.attendance ?? 'Attendance');
+        ? '$className - ${l10n.attendance}'
+        : l10n.attendance;
 
     return Scaffold(
       appBar: AppBar(
@@ -86,7 +86,7 @@ class _AttendanceSessionListScreenState
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No attendance sessions yet',
+                          l10n.noAttendanceSessionsYet,
                           style: theme.textTheme.titleLarge?.copyWith(
                             color: isDark
                                 ? AppColors.textSecondaryDark
@@ -96,8 +96,8 @@ class _AttendanceSessionListScreenState
                         const SizedBox(height: 8),
                         Text(
                           hasStudents
-                              ? 'Tap below to take attendance'
-                              : 'Add students first to take attendance',
+                              ? l10n.tapBelowToTakeAttendance
+                              : l10n.addStudentsFirstToTakeAttendance,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: isDark
                                 ? AppColors.textSecondaryDark
@@ -141,7 +141,9 @@ class _AttendanceSessionListScreenState
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, st) => Center(child: Text('Error: $err')),
+              error: (err, st) => Center(
+                child: Text(l10n.errorGeneric(err.toString())),
+              ),
             ),
           ),
           Container(
@@ -158,8 +160,8 @@ class _AttendanceSessionListScreenState
             ),
             child: PremiumButton(
               label: hasStudents
-                  ? (l10n?.takeAttendance ?? 'Take Attendance')
-                  : 'Add students first',
+                ? l10n.takeAttendance
+                : l10n.addStudentsFirst,
               icon: hasStudents ? Icons.add : Icons.warning_amber_rounded,
               isFullWidth: true,
               onPressed: hasStudents

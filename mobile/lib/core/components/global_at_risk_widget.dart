@@ -22,7 +22,7 @@ class GlobalAtRiskWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (atRiskStudents.isEmpty) {
       return PremiumCard(
@@ -165,7 +165,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final percentColor = _getPercentageColor(item.attendancePercentage);
 
     return SizedBox(
@@ -228,7 +228,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            item.className,
+                            item.className ?? l10n.unknownClass,
                             style: TextStyle(
                               color: isDark ? Colors.white54 : Colors.black54,
                               fontSize: 11,
@@ -315,7 +315,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              l10n?.present ?? 'present',
+                              l10n.present,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: isDark ? Colors.white38 : Colors.black45,
@@ -357,7 +357,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              l10n?.consecutiveAbsences ?? 'consecutive',
+                              l10n.consecutiveAbsences,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: isDark ? Colors.white38 : Colors.black45,
@@ -380,7 +380,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                       Expanded(
                         child: _ActionButton(
                           icon: FontAwesomeIcons.phone,
-                          label: l10n?.call ?? 'Call',
+                          label: l10n.call,
                           color: Colors.teal,
                           onTap: () => _makePhoneCall(item.phoneNumber!),
                           isDark: isDark,
@@ -390,7 +390,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                       Expanded(
                         child: _ActionButton(
                           icon: FontAwesomeIcons.whatsapp,
-                          label: 'WhatsApp',
+                          label: l10n.whatsappButton,
                           color: const Color(0xFF25D366),
                           onTap: () => _openWhatsApp(ref, item.phoneNumber!),
                           isDark: isDark,
@@ -407,7 +407,7 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                           ),
                           child: Center(
                             child: Text(
-                              l10n?.noPhone ?? 'No phone number',
+                              l10n.noPhone,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white38 : Colors.black38,

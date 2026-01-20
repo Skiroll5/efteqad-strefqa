@@ -65,7 +65,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
       return;
     }
 
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -652,7 +652,9 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) => Center(child: Text('Error: $err')),
+          error: (err, st) => Center(
+            child: Text(l10n.errorGeneric(err.toString())),
+          ),
         ),
         // Bottom Action Bar - Just Save Button
         bottomNavigationBar: SafeArea(
@@ -707,12 +709,12 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
 
   void _saveAttendance() async {
     final selectedClassId = ref.read(selectedClassIdProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (selectedClassId == null) {
       AppSnackBar.show(
         context,
-        message: l10n?.noClassSelected ?? 'No class selected',
+        message: l10n.noClassSelected,
         type: AppSnackBarType.warning,
       ); // Should be impossible in flow, but kept safe.
       return;
@@ -747,7 +749,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
       if (session != null) {
         AppSnackBar.show(
           context,
-          message: l10n?.attendanceSaved ?? 'Attendance saved!',
+          message: l10n.attendanceSaved,
           type: AppSnackBarType.success,
         );
         context.pop();

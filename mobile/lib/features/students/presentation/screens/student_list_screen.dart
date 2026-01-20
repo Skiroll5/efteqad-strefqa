@@ -1163,7 +1163,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                         searchFieldInputDecoration: InputDecoration(
-                          labelText: 'Search',
+                          labelText: l10n?.search ?? 'Search',
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey : Colors.black54,
                           ),

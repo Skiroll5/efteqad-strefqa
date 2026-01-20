@@ -138,7 +138,7 @@ class _AttendanceDetailScreenState
     DateTime selectedDate = session.date;
     TimeOfDay selectedTime = TimeOfDay.fromDateTime(session.date);
 
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     await showDialog(
@@ -1012,7 +1012,9 @@ class _AttendanceDetailScreenState
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(child: Text('Error: $err')),
+        error: (err, st) => Center(
+          child: Text(l10n.errorGeneric(err.toString())),
+        ),
       ),
     );
   }

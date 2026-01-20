@@ -741,7 +741,7 @@ class _UserCard extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                user['name'] ?? 'Unknown',
+                                user['name'] ?? l10n.unknown,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: isDark

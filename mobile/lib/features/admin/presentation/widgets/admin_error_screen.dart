@@ -22,7 +22,7 @@ class AdminErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     final errorMessage = _getErrorMessage(error, l10n);
     final isConnectionError = _isConnectionError(error);
@@ -70,8 +70,8 @@ class AdminErrorScreen extends StatelessWidget {
               // Title
               Text(
                 isConnectionError
-                    ? (l10n?.cannotConnect ?? 'Cannot Connect')
-                    : (l10n?.somethingWentWrong ?? 'Something Went Wrong'),
+                    ? l10n.cannotConnect
+                    : l10n.somethingWentWrong,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: isDark
@@ -114,7 +114,7 @@ class AdminErrorScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      l10n?.autoRetrying ?? 'Retrying...',
+                      l10n.autoRetrying,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: isDark
                             ? AppColors.textSecondaryDark
@@ -127,7 +127,7 @@ class AdminErrorScreen extends StatelessWidget {
 
               const SizedBox(height: 6),
               Text(
-                l10n?.willAutoRetry ?? 'Will auto-retry when connected',
+                    l10n.willAutoRetry,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: isDark ? Colors.white30 : Colors.black26,
                   fontSize: 11,
@@ -172,25 +172,24 @@ class AdminErrorScreen extends StatelessWidget {
   }
 
   /// Get user-friendly error message
-  static String _getErrorMessage(Object error, AppLocalizations? l10n) {
+  static String _getErrorMessage(Object error, AppLocalizations l10n) {
     if (_isConnectionError(error)) {
-      return l10n?.serverConnectionError ??
-          'Cannot connect to server. Please check your internet connection.';
+      return l10n.serverConnectionError;
     }
 
     if (error is DioException) {
       final statusCode = error.response?.statusCode;
       if (statusCode != null) {
         if (statusCode >= 500) {
-          return l10n?.serverError ?? 'Server error. Please try again later.';
+          return l10n.serverError;
         }
         if (statusCode == 401 || statusCode == 403) {
-          return l10n?.unauthorized ?? 'Unauthorized. Please log in again.';
+          return l10n.unauthorized;
         }
       }
     }
 
-    return l10n?.errorGeneric(error.toString()) ?? 'Error: $error';
+    return l10n.errorGeneric(error.toString());
   }
 }
 
@@ -200,6 +199,6 @@ bool isConnectionError(Object error) {
 }
 
 /// Helper function to get error message (exported for use elsewhere)
-String getAdminErrorMessage(Object error, AppLocalizations? l10n) {
+String getAdminErrorMessage(Object error, AppLocalizations l10n) {
   return AdminErrorScreen._getErrorMessage(error, l10n);
 }

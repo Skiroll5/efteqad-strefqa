@@ -55,13 +55,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // Get first name for greeting
-    final rawName = user?.name.split(' ').first ?? 'User';
+    final fallbackName = l10n?.user ?? 'User';
+    final rawName = user?.name.split(' ').first ?? fallbackName;
     final firstName = rawName.isNotEmpty
         ? rawName[0].toUpperCase() + rawName.substring(1).toLowerCase()
-        : 'User';
+        : fallbackName;
 
     return Scaffold(
       appBar: AppBar(
@@ -480,7 +481,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         },
 
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(child: Text('Error: $err')),
+        error: (err, st) => Center(
+          child: Text(l10n.errorGeneric(err.toString())),
+        ),
       ),
     );
   }

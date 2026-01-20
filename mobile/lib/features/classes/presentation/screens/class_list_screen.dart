@@ -11,7 +11,7 @@ class ClassListScreen extends ConsumerWidget {
   void _showAddClassDialog(BuildContext context, WidgetRef ref) {
     final nameController = TextEditingController();
     final gradeController = TextEditingController();
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
@@ -107,7 +107,7 @@ class ClassListScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(
-          child: Text(l10n?.errorGeneric(e.toString()) ?? 'Error: $e'),
+          child: Text(l10n.errorGeneric(e.toString())),
         ),
       ),
       floatingActionButton: FloatingActionButton(

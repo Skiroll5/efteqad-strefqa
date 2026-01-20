@@ -143,7 +143,7 @@ class StatisticsRepository {
     for (var entry in studentsByClass.entries) {
       final classId = entry.key;
       final classStudents = entry.value;
-      final className = classNames[classId] ?? 'Unknown Class';
+      final className = classNames[classId];
 
       final classSessions = sessionsByClass[classId] ?? [];
 
@@ -309,7 +309,7 @@ class _WeeklyAggregator {
 
 class AtRiskStudent {
   final Student student;
-  final String className;
+  final String? className;
   final int consecutiveAbsences;
   final String? phoneNumber;
   final int totalPresences;

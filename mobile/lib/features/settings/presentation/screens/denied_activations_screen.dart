@@ -106,8 +106,13 @@ class DeniedActivationsScreen extends ConsumerWidget {
                   return _DeniedUserCard(
                     user: user,
                     isDark: isDark,
-                    onReactivate: () =>
-                        _reactivateUser(context, ref, user['id'], user['name'] ?? 'Unknown', l10n),
+                    onReactivate: () => _reactivateUser(
+                      context,
+                      ref,
+                      user['id'],
+                      user['name'] ?? l10n.unknown,
+                      l10n,
+                    ),
                   )
                       .animate()
                       .fade(delay: Duration(milliseconds: (index * 100)))
@@ -219,7 +224,7 @@ class _DeniedUserCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user['name'] ?? 'Unknown',
+                    user['name'] ?? l10n.unknown,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black87,

@@ -26,7 +26,7 @@ class NotificationSettingsPage extends ConsumerWidget {
     final settingsAsync = ref.watch(notificationSettingsProvider);
     final user = ref.watch(authControllerProvider).value;
     final isAdmin = user?.role == 'ADMIN';
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -134,7 +134,7 @@ class NotificationSettingsPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Error: $err',
+                        l10n.errorGeneric(err.toString()),
                         style: TextStyle(
                           color: isDark ? Colors.white70 : Colors.black54,
                         ),

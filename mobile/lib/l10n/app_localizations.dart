@@ -278,6 +278,18 @@ abstract class AppLocalizations {
   /// **'Hi'**
   String get hi;
 
+  /// No description provided for @user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get user;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
   /// No description provided for @call.
   ///
   /// In en, this message translates to:
@@ -704,6 +716,30 @@ abstract class AppLocalizations {
   /// **'Attendance Sessions'**
   String get attendanceSessions;
 
+  /// No description provided for @noAttendanceSessionsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendance sessions yet'**
+  String get noAttendanceSessionsYet;
+
+  /// No description provided for @tapBelowToTakeAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap below to take attendance'**
+  String get tapBelowToTakeAttendance;
+
+  /// No description provided for @addStudentsFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Add students first'**
+  String get addStudentsFirst;
+
+  /// No description provided for @addStudentsFirstToTakeAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Add students first to take attendance'**
+  String get addStudentsFirstToTakeAttendance;
+
   /// No description provided for @noUpcomingBirthdays.
   ///
   /// In en, this message translates to:
@@ -979,6 +1015,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get unknown;
+
+  /// No description provided for @unknownClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown class'**
+  String get unknownClass;
 
   /// No description provided for @discardChanges.
   ///

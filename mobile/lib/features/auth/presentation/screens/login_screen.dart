@@ -70,10 +70,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             message = l10n.invalidCredentials;
             break;
           default:
-            message = e.message;
+            message = l10n.errorGeneric(e.message);
         }
       } else {
-        message = e.toString();
+        message = l10n.errorGeneric(e.toString());
       }
 
       setState(() {

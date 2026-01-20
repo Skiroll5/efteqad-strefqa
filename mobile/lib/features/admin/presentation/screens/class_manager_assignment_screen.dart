@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/components/app_snackbar.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import 'package:mobile/features/admin/data/admin_controller.dart';
@@ -705,15 +706,11 @@ class _ManagerCard extends ConsumerWidget {
       if (confirmed != true || !context.mounted) return;
 
       // Show processing feedback - clear all queued snackbars for fast response
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.removingManager(displayName)),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
+      AppSnackBar.show(
+        context,
+        message: l10n.removingManager(displayName),
+        type: AppSnackBarType.info,
+        duration: const Duration(seconds: 1),
       );
 
       final success = await ref
@@ -804,15 +801,11 @@ class _ManagerCard extends ConsumerWidget {
       if (confirmed != true || !context.mounted) return;
 
       // Show processing feedback - clear all queued snackbars for fast response
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.addingManager(displayName)),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
+      AppSnackBar.show(
+        context,
+        message: l10n.addingManager(displayName),
+        type: AppSnackBarType.info,
+        duration: const Duration(seconds: 1),
       );
 
       final success = await ref
@@ -842,31 +835,10 @@ void _showActionFeedback(
   required String successMessage,
   required String failureMessage,
 }) {
-  // Clear all queued snackbars for instant response on rapid actions
-  ScaffoldMessenger.of(context).clearSnackBars();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          Icon(
-            success ? Icons.check_circle : Icons.error_outline,
-            color: Colors.white,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              success ? successMessage : failureMessage,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: success ? Colors.green.shade600 : Colors.red.shade600,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      duration: Duration(seconds: success ? 2 : 4),
-    ),
+  AppSnackBar.show(
+    context,
+    message: success ? successMessage : failureMessage,
+    type: success ? AppSnackBarType.success : AppSnackBarType.error,
+    duration: Duration(seconds: success ? 2 : 4),
   );
 }

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/database/app_database.dart';
@@ -174,15 +175,12 @@ class StudentDetailScreen extends ConsumerWidget {
                                                   text: student.phone!,
                                                 ),
                                               );
-                                              ScaffoldMessenger.of(
+                                              AppSnackBar.show(
                                                 context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
+                                                message:
                                                     l10n?.phoneNumberCopied ??
                                                         'Phone number copied',
-                                                  ),
-                                                ),
+                                                type: AppSnackBarType.info,
                                               );
                                             },
                                             borderRadius: BorderRadius.circular(
@@ -621,10 +619,10 @@ class StudentDetailScreen extends ConsumerWidget {
           await launchUrl(webUrl, mode: LaunchMode.externalApplication);
         } else {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.errorWhatsApp),
-              ),
+            AppSnackBar.show(
+              context,
+              message: AppLocalizations.of(context)!.errorWhatsApp,
+              type: AppSnackBarType.error,
             );
           }
         }
@@ -635,12 +633,10 @@ class StudentDetailScreen extends ConsumerWidget {
         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       } catch (e2) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.errorGeneric(e.toString()),
-              ),
-            ),
+          AppSnackBar.show(
+            context,
+            message: AppLocalizations.of(context)!.errorGeneric(e.toString()),
+            type: AppSnackBarType.error,
           );
         }
       }
@@ -793,24 +789,22 @@ class StudentDetailScreen extends ConsumerWidget {
                               );
                               if (context.mounted) {
                                 Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
+                                AppSnackBar.show(
+                                  context,
+                                  message:
                                       l10n?.messageSaved ?? 'Message saved',
-                                    ),
-                                  ),
+                                  type: AppSnackBarType.success,
                                 );
                               }
                             } catch (e) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.errorSave(e.toString()),
-                                    ),
-                                  ),
+                                AppSnackBar.show(
+                                  context,
+                                  message: AppLocalizations.of(
+                                    context,
+                                  )!
+                                      .errorSave(e.toString()),
+                                  type: AppSnackBarType.error,
                                 );
                               }
                             }

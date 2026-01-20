@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../data/admin_controller.dart';
@@ -147,13 +148,10 @@ class _PendingUsersTab extends ConsumerWidget {
         .read(adminControllerProvider.notifier)
         .activateUser(userId);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? l10n.userActivated : l10n.userActivationFailed,
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        message: success ? l10n.userActivated : l10n.userActivationFailed,
+        type: success ? AppSnackBarType.success : AppSnackBarType.error,
       );
     }
   }
@@ -190,13 +188,10 @@ class _PendingUsersTab extends ConsumerWidget {
           .read(adminControllerProvider.notifier)
           .abortActivation(user['id']);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? l10n.userActivationAborted : l10n.errorUpdateUser,
-            ),
-            backgroundColor: success ? Colors.orange : Colors.red,
-          ),
+        AppSnackBar.show(
+          context,
+          message: success ? l10n.userActivationAborted : l10n.errorUpdateUser,
+          type: success ? AppSnackBarType.warning : AppSnackBarType.error,
         );
       }
     }
@@ -309,13 +304,10 @@ class _AbortedUsersTab extends ConsumerWidget {
         .read(adminControllerProvider.notifier)
         .activateUser(userId);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? l10n.userActivated : l10n.userActivationFailed,
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        message: success ? l10n.userActivated : l10n.userActivationFailed,
+        type: success ? AppSnackBarType.success : AppSnackBarType.error,
       );
     }
   }
@@ -396,11 +388,10 @@ class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
                             setState(() {
                               _isEnabled = !val;
                             });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(l10n.errorUpdateUser),
-                                backgroundColor: Colors.red,
-                              ),
+                            AppSnackBar.show(
+                              context,
+                              message: l10n.errorUpdateUser,
+                              type: AppSnackBarType.error,
                             );
                           }
                         },
@@ -473,13 +464,10 @@ class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
         .read(adminControllerProvider.notifier)
         .activateUser(widget.user['id']);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? l10n.userActivated : l10n.userActivationFailed,
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        message: success ? l10n.userActivated : l10n.userActivationFailed,
+        type: success ? AppSnackBarType.success : AppSnackBarType.error,
       );
     }
   }
@@ -516,13 +504,10 @@ class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
           .read(adminControllerProvider.notifier)
           .abortActivation(user['id']);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? l10n.userActivationAborted : l10n.errorUpdateUser,
-            ),
-            backgroundColor: success ? Colors.orange : Colors.red,
-          ),
+        AppSnackBar.show(
+          context,
+          message: success ? l10n.userActivationAborted : l10n.errorUpdateUser,
+          type: success ? AppSnackBarType.warning : AppSnackBarType.error,
         );
       }
     }
@@ -560,11 +545,10 @@ class _UserManagementItemState extends ConsumerState<_UserManagementItem> {
           .read(adminControllerProvider.notifier)
           .deleteUser(user['id']);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? l10n.userDeleted : l10n.errorUpdateUser),
-            backgroundColor: success ? Colors.green : Colors.red,
-          ),
+        AppSnackBar.show(
+          context,
+          message: success ? l10n.userDeleted : l10n.errorUpdateUser,
+          type: success ? AppSnackBarType.success : AppSnackBarType.error,
         );
       }
     }

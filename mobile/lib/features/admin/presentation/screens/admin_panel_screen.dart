@@ -8,6 +8,7 @@ import 'package:mobile/features/admin/presentation/screens/class_manager_assignm
 import 'package:mobile/features/admin/presentation/widgets/admin_loading_screen.dart';
 import 'package:mobile/features/admin/presentation/widgets/admin_error_screen.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -609,31 +610,11 @@ void _showActionFeedback(
   required String successMessage,
   required String failureMessage,
 }) {
-  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          Icon(
-            success ? Icons.check_circle : Icons.error_outline,
-            color: Colors.white,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              success ? successMessage : failureMessage,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: success ? Colors.green.shade600 : Colors.red.shade600,
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      duration: Duration(seconds: success ? 2 : 4),
-    ),
+  AppSnackBar.show(
+    context,
+    message: success ? successMessage : failureMessage,
+    type: success ? AppSnackBarType.success : AppSnackBarType.error,
+    duration: Duration(seconds: success ? 2 : 4),
   );
 }
 

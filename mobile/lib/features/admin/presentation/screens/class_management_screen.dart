@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 // import '../../../../core/components/premium_button.dart';
@@ -214,18 +215,16 @@ class _ClassManagementScreenState extends ConsumerState<ClassManagementScreen> {
                 if (context.mounted) {
                   Navigator.pop(context);
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.classCreated),
-                        backgroundColor: Colors.green,
-                      ),
+                    AppSnackBar.show(
+                      context,
+                      message: l10n.classCreated,
+                      type: AppSnackBarType.success,
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.classCreationError),
-                        backgroundColor: Colors.red,
-                      ),
+                    AppSnackBar.show(
+                      context,
+                      message: l10n.classCreationError,
+                      type: AppSnackBarType.error,
                     );
                   }
                 }
@@ -622,15 +621,14 @@ class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
                       .assignClassManager(widget.classId, _selectedUserId!);
                   if (context.mounted) {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          success
-                              ? l10n.managerAdded('') // Placeholder
-                              : l10n.managerAddFailed,
-                        ),
-                        backgroundColor: success ? Colors.green : Colors.red,
-                      ),
+                    AppSnackBar.show(
+                      context,
+                      message: success
+                          ? l10n.managerAdded('') // Placeholder
+                          : l10n.managerAddFailed,
+                      type: success
+                          ? AppSnackBarType.success
+                          : AppSnackBarType.error,
                     );
                   }
                 },

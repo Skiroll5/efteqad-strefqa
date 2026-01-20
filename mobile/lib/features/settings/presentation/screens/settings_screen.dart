@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../auth/data/auth_controller.dart';
@@ -795,24 +796,18 @@ class SettingsScreen extends ConsumerWidget {
       try {
         await ref.read(syncServiceProvider).clearLocalData();
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                l10n?.successResetData ?? 'Success: Local data reset.',
-              ),
-              backgroundColor: Colors.green,
-            ),
+          AppSnackBar.show(
+            context,
+            message: l10n?.successResetData ?? 'Success: Local data reset.',
+            type: AppSnackBarType.success,
           );
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                l10n?.errorResetData(e.toString()) ?? 'Error: $e',
-              ),
-              backgroundColor: Colors.red,
-            ),
+          AppSnackBar.show(
+            context,
+            message: l10n?.errorResetData(e.toString()) ?? 'Error: $e',
+            type: AppSnackBarType.error,
           );
         }
       }

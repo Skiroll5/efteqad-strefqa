@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/components/app_snackbar.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/features/auth/data/auth_controller.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -40,19 +41,17 @@ class _WhatsAppTemplateScreenState
     setState(() => _isLoading = false);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.successSaveTemplate),
-          backgroundColor: AppColors.goldPrimary,
-        ),
+      AppSnackBar.show(
+        context,
+        message: AppLocalizations.of(context)!.successSaveTemplate,
+        type: AppSnackBarType.success,
       );
       Navigator.pop(context);
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.errorSaveTemplate),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        message: AppLocalizations.of(context)!.errorSaveTemplate,
+        type: AppSnackBarType.error,
       );
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../data/attendance_controller.dart';
@@ -709,8 +710,10 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
     final l10n = AppLocalizations.of(context);
 
     if (selectedClassId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n?.noClassSelected ?? 'No class selected')),
+      AppSnackBar.show(
+        context,
+        message: l10n?.noClassSelected ?? 'No class selected',
+        type: AppSnackBarType.warning,
       ); // Should be impossible in flow, but kept safe.
       return;
     }
@@ -742,15 +745,10 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
     if (mounted) {
       setState(() => _isSaving = false);
       if (session != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n?.attendanceSaved ?? 'Attendance saved!'),
-            backgroundColor: AppColors.goldPrimary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        AppSnackBar.show(
+          context,
+          message: l10n?.attendanceSaved ?? 'Attendance saved!',
+          type: AppSnackBarType.success,
         );
         context.pop();
       }

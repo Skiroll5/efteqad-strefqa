@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mobile/features/attendance/data/attendance_controller.dart';
 import 'package:mobile/features/attendance/data/attendance_repository.dart';
 
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/upcoming_birthdays_section.dart';
 import '../../../../core/components/global_at_risk_widget.dart';
@@ -1406,15 +1407,13 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                   );
 
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.successAddStudent,
-                                    ),
-                                    backgroundColor: AppColors.goldPrimary,
-                                  ),
+                                AppSnackBar.show(
+                                  context,
+                                  message: AppLocalizations.of(
+                                    context,
+                                  )!
+                                      .successAddStudent,
+                                  type: AppSnackBarType.success,
                                 );
                               }
                             } catch (e) {
@@ -1422,15 +1421,13 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               // So maybe don't pop? But optimistically popping is better UX usually.
                               // Let's show snackbar error if pop happened.
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.errorAddStudent(e.toString()),
-                                    ),
-                                    backgroundColor: AppColors.goldPrimary,
-                                  ),
+                                AppSnackBar.show(
+                                  context,
+                                  message: AppLocalizations.of(
+                                    context,
+                                  )!
+                                      .errorAddStudent(e.toString()),
+                                  type: AppSnackBarType.error,
                                 );
                               }
                             }

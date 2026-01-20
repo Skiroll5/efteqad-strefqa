@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/components/app_snackbar.dart';
 
 final uiNotificationServiceProvider = Provider<UiNotificationService>((ref) {
   return UiNotificationService();
@@ -19,33 +20,33 @@ class UiNotificationService {
     final messenger = messengerKey.currentState;
     if (messenger == null) return;
 
-    final color = _backgroundFor(level);
     final text = title == null || title.trim().isEmpty
         ? message
         : '$title: $message';
+    final type = _typeFor(level);
 
     messenger
       ..clearSnackBars()
       ..showSnackBar(
-        SnackBar(
-          content: Text(text),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: color,
+        AppSnackBar.build(
+          messenger.context,
+          message: text,
+          type: type,
         ),
       );
   }
 
-  Color _backgroundFor(UiNotificationLevel level) {
+  AppSnackBarType _typeFor(UiNotificationLevel level) {
     switch (level) {
       case UiNotificationLevel.success:
-        return Colors.green.shade600;
+        return AppSnackBarType.success;
       case UiNotificationLevel.warning:
-        return Colors.orange.shade700;
+        return AppSnackBarType.warning;
       case UiNotificationLevel.error:
-        return Colors.red.shade700;
+        return AppSnackBarType.error;
       case UiNotificationLevel.info:
       default:
-        return Colors.blueGrey.shade700;
+        return AppSnackBarType.info;
     }
   }
 }

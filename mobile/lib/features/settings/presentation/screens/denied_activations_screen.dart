@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../admin/data/admin_controller.dart';
@@ -158,13 +159,10 @@ class DeniedActivationsScreen extends ConsumerWidget {
     final success =
         await ref.read(adminControllerProvider.notifier).activateUser(userId);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? l10n.userActivated : l10n.userActivationFailed,
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        message: success ? l10n.userActivated : l10n.userActivationFailed,
+        type: success ? AppSnackBarType.success : AppSnackBarType.error,
       );
     }
   }

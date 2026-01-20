@@ -47,7 +47,7 @@ class GlobalAtRiskWidget extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  l10n?.noAtRiskStudents ?? "No students at risk! 🎉",
+                  l10n.noAtRiskStudents,
                   style: TextStyle(
                     color: isDark ? Colors.white70 : Colors.black87,
                     fontWeight: FontWeight.w600,
@@ -82,7 +82,7 @@ class GlobalAtRiskWidget extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                l10n?.atRiskStudents ?? "At Risk Students",
+                l10n.atRiskStudents,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.black87,

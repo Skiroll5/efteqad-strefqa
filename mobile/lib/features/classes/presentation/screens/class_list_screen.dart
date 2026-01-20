@@ -16,28 +16,24 @@ class ClassListScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n?.addNewClassTitle ?? 'Add New Class'),
+        title: Text(l10n.addNewClassTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: InputDecoration(
-                labelText: l10n?.className ?? 'Class Name',
-              ),
+              decoration: InputDecoration(labelText: l10n.className),
             ),
             TextField(
               controller: gradeController,
-              decoration: InputDecoration(
-                labelText: l10n?.gradeOptional ?? 'Grade (Optional)',
-              ),
+              decoration: InputDecoration(labelText: l10n.gradeOptional),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n?.cancel ?? 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -53,7 +49,7 @@ class ClassListScreen extends ConsumerWidget {
                 if (context.mounted) Navigator.pop(context);
               }
             },
-            child: Text(l10n?.add ?? 'Add'),
+            child: Text(l10n.add),
           ),
         ],
       ),
@@ -63,18 +59,14 @@ class ClassListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(classesStreamProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n?.manageClasses ?? 'Manage Classes')),
+      appBar: AppBar(title: Text(l10n.manageClasses)),
       body: classesAsync.when(
         data: (classes) {
           if (classes.isEmpty) {
-            return Center(
-              child: Text(
-                l10n?.noClassesFoundAdd ?? 'No classes found. Add one!',
-              ),
-            );
+            return Center(child: Text(l10n.noClassesFoundAdd));
           }
           return ListView.builder(
             itemCount: classes.length,
@@ -106,9 +98,7 @@ class ClassListScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(
-          child: Text(l10n.errorGeneric(e.toString())),
-        ),
+        error: (e, s) => Center(child: Text(l10n.errorGeneric(e.toString()))),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddClassDialog(context, ref),

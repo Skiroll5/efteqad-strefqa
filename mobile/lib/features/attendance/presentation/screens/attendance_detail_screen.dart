@@ -146,7 +146,7 @@ class _AttendanceDetailScreenState
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(
-            l10n?.editSessionNote ?? 'Edit Session Note',
+            l10n.editSessionNote,
             style: TextStyle(color: isDark ? Colors.white : Colors.black),
           ),
           content: Column(
@@ -349,7 +349,7 @@ class _AttendanceDetailScreenState
                 controller: noteController,
                 style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 decoration: InputDecoration(
-                  hintText: l10n?.sessionNote ?? 'Session Note',
+                  hintText: l10n.sessionNote,
                   filled: true,
                   fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
                   border: OutlineInputBorder(
@@ -364,7 +364,7 @@ class _AttendanceDetailScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(l10n?.cancel ?? 'Cancel'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -388,7 +388,7 @@ class _AttendanceDetailScreenState
 
                 if (context.mounted) Navigator.pop(context);
               },
-              child: Text(l10n?.save ?? 'Save'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -402,13 +402,13 @@ class _AttendanceDetailScreenState
       sessionRecordsWithStudentsProvider(widget.sessionId),
     );
     final sessionsAsync = ref.watch(attendanceSessionsProvider);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     // Get session info for date display
     // Get session info for date display and title
-    String titleText = l10n?.attendanceDetails ?? 'Attendance Details';
+    String titleText = l10n.attendanceDetails;
     String? subtitleText; // If empty, no subtitle
 
     sessionsAsync.whenData((sessions) {
@@ -418,7 +418,7 @@ class _AttendanceDetailScreenState
       if (session != null) {
         String dateText;
         // Custom date formatting logic to match TakeAttendanceScreen
-        final localeCode = l10n?.localeName ?? 'en';
+        final localeCode = l10n.localeName;
         final year = DateFormat('yyyy', 'en').format(session.date);
         var time = DateFormat(
           'hh:mm a',
@@ -447,7 +447,7 @@ class _AttendanceDetailScreenState
           subtitleText = dateText;
         } else {
           titleText = dateText;
-          subtitleText = l10n?.attendanceDetails ?? 'Attendance Details';
+          subtitleText = l10n.attendanceDetails;
         }
       }
     });
@@ -542,7 +542,7 @@ class _AttendanceDetailScreenState
                 child: records.isEmpty
                     ? Center(
                         child: Text(
-                          l10n?.noAttendanceRecords ?? 'No attendance records',
+                          l10n.noAttendanceRecords,
                           style: TextStyle(
                             color: isDark
                                 ? AppColors.textSecondaryDark
@@ -849,7 +849,7 @@ class _AttendanceDetailScreenState
                                 if (newStudents.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   Text(
-                                    "${l10n?.newArrivals ?? 'New Arrivals'} (${newStudents.length})",
+                                    "${l10n.newArrivals} (${newStudents.length})",
                                     style: theme.textTheme.titleSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: isDark
@@ -860,10 +860,8 @@ class _AttendanceDetailScreenState
                                   const SizedBox(height: 4),
                                   Text(
                                     _isEditMode
-                                        ? (l10n?.tapToAddToSession ??
-                                              'Tap to add to this session')
-                                        : (l10n?.notInSession ??
-                                              'Not in this session'),
+                                        ? l10n.tapToAddToSession
+                                        : l10n.notInSession,
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: isDark
                                           ? Colors.grey.shade600
@@ -954,8 +952,7 @@ class _AttendanceDetailScreenState
                                                       ),
                                                 ),
                                                 Text(
-                                                  l10n?.notInSession ??
-                                                      'Not in this session',
+                                                  l10n.notInSession,
                                                   style: theme
                                                       .textTheme
                                                       .bodySmall
@@ -1012,9 +1009,8 @@ class _AttendanceDetailScreenState
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(
-          child: Text(l10n.errorGeneric(err.toString())),
-        ),
+        error: (err, st) =>
+            Center(child: Text(l10n.errorGeneric(err.toString()))),
       ),
     );
   }
@@ -1031,7 +1027,7 @@ class _AttendanceDetailScreenState
   Widget _buildActionButtons(
     BuildContext context,
     bool isDark,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
   ) {
     return AnimatedCrossFade(
           firstChild: Row(
@@ -1053,7 +1049,7 @@ class _AttendanceDetailScreenState
                     ),
                   ),
                   icon: const Icon(Icons.edit, size: 18),
-                  label: Text(l10n?.edit ?? 'Edit'),
+                  label: Text(l10n.edit),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1079,7 +1075,7 @@ class _AttendanceDetailScreenState
                     ),
                   ),
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: Text(l10n?.delete ?? 'Delete'),
+                  label: Text(l10n.delete),
                 ),
               ),
             ],
@@ -1105,7 +1101,7 @@ class _AttendanceDetailScreenState
                     ),
                   ),
                   icon: const Icon(Icons.close, size: 18),
-                  label: Text(l10n?.cancel ?? 'Cancel'),
+                  label: Text(l10n.cancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1121,7 +1117,7 @@ class _AttendanceDetailScreenState
                     ),
                   ),
                   icon: const Icon(Icons.check, size: 18),
-                  label: Text(l10n?.save ?? 'Save'),
+                  label: Text(l10n.save),
                 ),
               ),
             ],
@@ -1143,7 +1139,7 @@ class _AttendanceDetailScreenState
     double percentage,
     int presentCount,
     int total,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
   ) {
     return Container(
           padding: const EdgeInsets.all(16),
@@ -1176,7 +1172,7 @@ class _AttendanceDetailScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n?.attendanceRate ?? 'Attendance Rate',
+                        l10n.attendanceRate,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: isDark
                               ? AppColors.textSecondaryDark
@@ -1201,7 +1197,7 @@ class _AttendanceDetailScreenState
                     children: [
                       _StatChip(
                         icon: Icons.check_circle,
-                        label: l10n?.present ?? 'Present',
+                        label: l10n.present,
                         count: presentCount,
                         color: AppColors.goldPrimary,
                         isDark: isDark,
@@ -1214,7 +1210,7 @@ class _AttendanceDetailScreenState
                       ),
                       _StatChip(
                         icon: Icons.cancel,
-                        label: l10n?.absent ?? 'Absent',
+                        label: l10n.absent,
                         count: total > 0 ? total - presentCount : 0,
                         color: Colors.grey,
                         isDark: isDark,
@@ -1271,13 +1267,13 @@ class _AttendanceDetailScreenState
     ThemeData theme,
     bool isDark,
     int total,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-              "${l10n?.students ?? 'Students'} ($total)",
+              "${l10n.students} ($total)",
               key: const ValueKey('students_title'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -1303,7 +1299,7 @@ class _AttendanceDetailScreenState
   void _showDeleteSheet(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
@@ -1341,7 +1337,7 @@ class _AttendanceDetailScreenState
               ),
               const SizedBox(height: 16),
               Text(
-                l10n?.deleteSessionConfirmTitle ?? 'Delete this session?',
+                l10n.deleteSessionConfirmTitle,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -1349,8 +1345,7 @@ class _AttendanceDetailScreenState
               ),
               const SizedBox(height: 8),
               Text(
-                l10n?.deleteSessionConfirmMessage ??
-                    'This attendance session and all its records will be permanently deleted.',
+                l10n.deleteSessionConfirmMessage,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isDark
                       ? AppColors.textSecondaryDark
@@ -1370,7 +1365,7 @@ class _AttendanceDetailScreenState
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(l10n?.cancel ?? 'Cancel'),
+                      child: Text(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1392,7 +1387,7 @@ class _AttendanceDetailScreenState
                         ),
                       ),
                       child: Text(
-                        l10n?.delete ?? 'Delete',
+                        l10n.delete,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -1460,7 +1455,7 @@ class _StatChip extends StatelessWidget {
 class _SortingToggle extends StatelessWidget {
   final AttendanceSortOption current;
   final ValueChanged<AttendanceSortOption> onChanged;
-  final AppLocalizations? l10n;
+  final AppLocalizations l10n;
   final bool isDark;
 
   const _SortingToggle({
@@ -1483,16 +1478,8 @@ class _SortingToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildOption(
-            context,
-            AttendanceSortOption.name,
-            l10n?.sortByName ?? 'Name',
-          ),
-          _buildOption(
-            context,
-            AttendanceSortOption.status,
-            l10n?.sortByStatus ?? 'Status',
-          ),
+          _buildOption(context, AttendanceSortOption.name, l10n.sortByName),
+          _buildOption(context, AttendanceSortOption.status, l10n.sortByStatus),
         ],
       ),
     );

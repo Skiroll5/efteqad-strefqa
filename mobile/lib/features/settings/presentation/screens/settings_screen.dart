@@ -20,7 +20,7 @@ class SettingsScreen extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: CustomScrollView(
@@ -35,18 +35,22 @@ class SettingsScreen extends ConsumerWidget {
               builder: (context, constraints) {
                 // Calculate collapse ratio (0 = expanded, 1 = collapsed)
                 final expandedHeight = 220.0;
-                final collapsedHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
+                final collapsedHeight =
+                    kToolbarHeight + MediaQuery.of(context).padding.top;
                 final currentHeight = constraints.maxHeight;
-                final collapseRatio = ((expandedHeight - currentHeight) / (expandedHeight - collapsedHeight)).clamp(0.0, 1.0);
-                
+                final collapseRatio =
+                    ((expandedHeight - currentHeight) /
+                            (expandedHeight - collapsedHeight))
+                        .clamp(0.0, 1.0);
+
                 // Interpolate padding from 20 (expanded) to 56 (collapsed)
                 final startPadding = 20.0 + (36.0 * collapseRatio);
                 // Interpolate font size from 24 (expanded) to 20 (collapsed)
                 final fontSize = 24.0 - (4.0 * collapseRatio);
-                
+
                 return FlexibleSpaceBar(
                   title: Text(
-                    l10n?.settings ?? 'Settings',
+                    l10n.settings,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontSize: fontSize,
                       fontWeight: FontWeight.w600,
@@ -115,17 +119,18 @@ class SettingsScreen extends ConsumerWidget {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           user.name,
-                                          style:
-                                              theme.textTheme.titleLarge?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark
-                                                ? Colors.white
-                                                : Colors.black87,
-                                          ),
+                                          style: theme.textTheme.titleLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : Colors.black87,
+                                              ),
                                         ),
                                         const SizedBox(height: 6),
                                         Container(
@@ -136,7 +141,9 @@ class SettingsScreen extends ConsumerWidget {
                                           decoration: BoxDecoration(
                                             color: AppColors.goldPrimary
                                                 .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -144,7 +151,7 @@ class SettingsScreen extends ConsumerWidget {
                                               Icon(
                                                 user.role == 'ADMIN'
                                                     ? Icons
-                                                        .admin_panel_settings_rounded
+                                                          .admin_panel_settings_rounded
                                                     : Icons.person_rounded,
                                                 size: 14,
                                                 color: AppColors.goldPrimary,
@@ -152,8 +159,8 @@ class SettingsScreen extends ConsumerWidget {
                                               const SizedBox(width: 4),
                                               Text(
                                                 user.role == 'ADMIN'
-                                                    ? (l10n?.admin ?? 'Admin')
-                                                    : (l10n?.servant ?? 'Servant'),
+                                                    ? l10n.admin
+                                                    : l10n.servant,
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w600,
@@ -186,14 +193,14 @@ class SettingsScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 // Appearance Section
                 _SettingsSection(
-                  title: l10n?.appearance ?? 'Appearance',
+                  title: l10n.appearance,
                   icon: Icons.palette_outlined,
                   isDark: isDark,
                   children: [
                     _ModernSettingsTile(
                       icon: Icons.brightness_6_rounded,
                       iconColor: Colors.orange,
-                      title: l10n?.theme ?? 'Theme',
+                      title: l10n.theme,
                       subtitle: _getThemeName(context, themeMode),
                       isDark: isDark,
                       onTap: () =>
@@ -202,7 +209,7 @@ class SettingsScreen extends ConsumerWidget {
                     _ModernSettingsTile(
                       icon: Icons.translate_rounded,
                       iconColor: Colors.blue,
-                      title: l10n?.language ?? 'Language',
+                      title: l10n.language,
                       subtitle: _getLanguageName(locale.languageCode),
                       isDark: isDark,
                       onTap: () =>
@@ -215,26 +222,23 @@ class SettingsScreen extends ConsumerWidget {
 
                 // Preferences Section
                 _SettingsSection(
-                  title: l10n?.preferences ?? 'Preferences',
+                  title: l10n.preferences,
                   icon: Icons.tune_rounded,
                   isDark: isDark,
                   children: [
                     _ModernSettingsTile(
                       icon: Icons.chat_bubble_outline_rounded,
                       iconColor: Colors.green,
-                      title: l10n?.whatsappTemplate ?? 'WhatsApp Template',
-                      subtitle: l10n?.whatsappTemplateDesc ??
-                          'Customize default message',
+                      title: l10n.whatsappTemplate,
+                      subtitle: l10n.whatsappTemplateDesc,
                       isDark: isDark,
                       onTap: () => context.push('/settings/whatsapp-template'),
                     ),
                     _ModernSettingsTile(
                       icon: Icons.notifications_none_rounded,
                       iconColor: Colors.purple,
-                      title:
-                          l10n?.notificationSettings ?? 'Notification Settings',
-                      subtitle: l10n?.notificationSettingsDesc ??
-                          'Manage push notifications',
+                      title: l10n.notificationSettings,
+                      subtitle: l10n.notificationSettingsDesc,
                       isDark: isDark,
                       onTap: () => context.push('/settings/notifications'),
                     ),
@@ -244,12 +248,10 @@ class SettingsScreen extends ConsumerWidget {
                         return _ModernSettingsTile(
                           icon: Icons.edit_note_rounded,
                           iconColor: Colors.teal,
-                          title: l10n?.defaultAttendanceNote ??
-                              'Default Attendance Note',
+                          title: l10n.defaultAttendanceNote,
                           subtitle: defaultNote.isNotEmpty
                               ? defaultNote
-                              : (l10n?.defaultAttendanceNoteDesc ??
-                                  'Set default note'),
+                              : l10n.defaultAttendanceNoteDesc,
                           isDark: isDark,
                           onTap: () =>
                               _showDefaultNoteEditor(context, ref, defaultNote),
@@ -266,7 +268,7 @@ class SettingsScreen extends ConsumerWidget {
                   builder: (context, ref, child) {
                     final threshold = ref.watch(statisticsSettingsProvider);
                     return _SettingsSection(
-                      title: l10n?.statistics ?? 'Statistics',
+                      title: l10n.statistics,
                       icon: Icons.analytics_outlined,
                       isDark: isDark,
                       children: [
@@ -296,8 +298,7 @@ class SettingsScreen extends ConsumerWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          l10n?.atRiskThreshold ??
-                                              'At Risk Threshold',
+                                          l10n.atRiskThreshold,
                                           style: TextStyle(
                                             fontWeight: FontWeight.w600,
                                             color: isDark
@@ -307,8 +308,7 @@ class SettingsScreen extends ConsumerWidget {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          l10n?.thresholdCaption(threshold) ??
-                                              'Flag after $threshold consecutive absences',
+                                          l10n.thresholdCaption(threshold),
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: isDark
@@ -325,8 +325,9 @@ class SettingsScreen extends ConsumerWidget {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.goldPrimary
-                                          .withValues(alpha: 0.15),
+                                      color: AppColors.goldPrimary.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
@@ -348,8 +349,8 @@ class SettingsScreen extends ConsumerWidget {
                                       ? Colors.white12
                                       : Colors.grey.shade200,
                                   thumbColor: AppColors.goldPrimary,
-                                  overlayColor:
-                                      AppColors.goldPrimary.withValues(alpha: 0.2),
+                                  overlayColor: AppColors.goldPrimary
+                                      .withValues(alpha: 0.2),
                                   trackHeight: 6,
                                   thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 10,
@@ -363,7 +364,8 @@ class SettingsScreen extends ConsumerWidget {
                                   onChanged: (val) {
                                     ref
                                         .read(
-                                            statisticsSettingsProvider.notifier)
+                                          statisticsSettingsProvider.notifier,
+                                        )
                                         .setThreshold(val.toInt());
                                   },
                                 ),
@@ -380,7 +382,7 @@ class SettingsScreen extends ConsumerWidget {
                 if (user?.role == 'ADMIN') ...[
                   const SizedBox(height: 16),
                   _SettingsSection(
-                    title: l10n?.adminPanel ?? 'Admin Panel',
+                    title: l10n.adminPanel,
                     icon: Icons.admin_panel_settings_outlined,
                     isDark: isDark,
                     accentColor: AppColors.goldPrimary,
@@ -388,9 +390,8 @@ class SettingsScreen extends ConsumerWidget {
                       _ModernSettingsTile(
                         icon: Icons.person_off_rounded,
                         iconColor: Colors.orange,
-                        title: l10n?.abortedActivations ?? 'Denied Activations',
-                        subtitle: l10n?.viewDeniedUsersDesc ??
-                            'View denied activation requests',
+                        title: l10n.abortedActivations,
+                        subtitle: l10n.viewDeniedUsersDesc,
                         isDark: isDark,
                         onTap: () =>
                             context.push('/settings/denied-activations'),
@@ -402,7 +403,7 @@ class SettingsScreen extends ConsumerWidget {
 
                   // Danger Zone
                   _SettingsSection(
-                    title: l10n?.dangerZone ?? 'Danger Zone',
+                    title: l10n.dangerZone,
                     icon: Icons.warning_amber_rounded,
                     isDark: isDark,
                     accentColor: AppColors.redPrimary,
@@ -429,17 +430,17 @@ class SettingsScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    l10n?.resetAllData ?? 'Reset Session Data',
+                                    l10n.resetAllData,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color:
-                                          isDark ? Colors.white : Colors.black87,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    l10n?.resetAllDataDesc ??
-                                        'Delete all attendance records',
+                                    l10n.resetAllDataDesc,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark
@@ -452,8 +453,9 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                             FilledButton(
                               style: FilledButton.styleFrom(
-                                backgroundColor:
-                                    Colors.red.withValues(alpha: 0.15),
+                                backgroundColor: Colors.red.withValues(
+                                  alpha: 0.15,
+                                ),
                                 foregroundColor: Colors.red,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -461,8 +463,12 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                               ),
                               onPressed: () => _showResetConfirmation(
-                                  context, ref, l10n, isDark),
-                              child: Text(l10n?.reset ?? 'Reset'),
+                                context,
+                                ref,
+                                l10n,
+                                isDark,
+                              ),
+                              child: Text(l10n.reset),
                             ),
                           ],
                         ),
@@ -475,7 +481,7 @@ class SettingsScreen extends ConsumerWidget {
 
                 // App Info
                 _SettingsSection(
-                  title: l10n?.about ?? 'About',
+                  title: l10n.about,
                   icon: Icons.info_outline_rounded,
                   isDark: isDark,
                   children: [
@@ -510,12 +516,13 @@ class SettingsScreen extends ConsumerWidget {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color:
-                                        isDark ? Colors.white : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
                                   ),
                                 ),
                                 Text(
-                                  '${l10n?.version ?? 'Version'} 1.0.0',
+                                  '${l10n.version} 1.0.0',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: isDark
@@ -541,7 +548,7 @@ class SettingsScreen extends ConsumerWidget {
                         ref.read(authControllerProvider.notifier).logout(),
                     icon: const Icon(Icons.logout_rounded),
                     label: Text(
-                      l10n?.logout ?? 'Logout',
+                      l10n.logout,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     style: FilledButton.styleFrom(
@@ -566,14 +573,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _getThemeName(BuildContext context, ThemeMode mode) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     switch (mode) {
       case ThemeMode.light:
-        return l10n?.light ?? 'Light';
+        return l10n.light;
       case ThemeMode.dark:
-        return l10n?.dark ?? 'Dark';
+        return l10n.dark;
       case ThemeMode.system:
-        return l10n?.system ?? 'System';
+        return l10n.system;
     }
   }
 
@@ -589,18 +596,18 @@ class SettingsScreen extends ConsumerWidget {
     ThemeMode current,
     bool isDark,
   ) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _ModernPickerSheet(
-        title: l10n?.theme ?? 'Theme',
+        title: l10n.theme,
         isDark: isDark,
         options: [
           _PickerOption(
             icon: Icons.brightness_auto_rounded,
-            title: l10n?.system ?? 'System',
-            subtitle: l10n?.systemThemeDesc ?? 'Follow device settings',
+            title: l10n.system,
+            subtitle: l10n.systemThemeDesc,
             selected: current == ThemeMode.system,
             onTap: () {
               ref.read(themeModeProvider.notifier).setTheme(ThemeMode.system);
@@ -609,8 +616,8 @@ class SettingsScreen extends ConsumerWidget {
           ),
           _PickerOption(
             icon: Icons.light_mode_rounded,
-            title: l10n?.light ?? 'Light',
-            subtitle: l10n?.lightThemeDesc ?? 'Bright appearance',
+            title: l10n.light,
+            subtitle: l10n.lightThemeDesc,
             selected: current == ThemeMode.light,
             onTap: () {
               ref.read(themeModeProvider.notifier).setTheme(ThemeMode.light);
@@ -619,8 +626,8 @@ class SettingsScreen extends ConsumerWidget {
           ),
           _PickerOption(
             icon: Icons.dark_mode_rounded,
-            title: l10n?.dark ?? 'Dark',
-            subtitle: l10n?.darkThemeDesc ?? 'Dark appearance',
+            title: l10n.dark,
+            subtitle: l10n.darkThemeDesc,
             selected: current == ThemeMode.dark,
             onTap: () {
               ref.read(themeModeProvider.notifier).setTheme(ThemeMode.dark);
@@ -638,18 +645,18 @@ class SettingsScreen extends ConsumerWidget {
     Locale current,
     bool isDark,
   ) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _ModernPickerSheet(
-        title: l10n?.language ?? 'Language',
+        title: l10n.language,
         isDark: isDark,
         options: [
           _PickerOption(
             icon: Icons.language_rounded,
             title: 'English',
-            subtitle: l10n?.englishLanguageDesc ?? 'English language',
+            subtitle: l10n.englishLanguageDesc,
             selected: current.languageCode == 'en',
             onTap: () {
               ref.read(localeProvider.notifier).setLocale(const Locale('en'));
@@ -659,7 +666,7 @@ class SettingsScreen extends ConsumerWidget {
           _PickerOption(
             icon: Icons.language_rounded,
             title: 'العربية',
-            subtitle: l10n?.arabicLanguageDesc ?? 'Arabic language',
+            subtitle: l10n.arabicLanguageDesc,
             selected: current.languageCode == 'ar',
             onTap: () {
               ref.read(localeProvider.notifier).setLocale(const Locale('ar'));
@@ -677,7 +684,7 @@ class SettingsScreen extends ConsumerWidget {
     String currentNote,
   ) {
     final controller = TextEditingController(text: currentNote);
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -702,7 +709,7 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                l10n?.defaultAttendanceNote ?? 'Default Attendance Note',
+                l10n.defaultAttendanceNote,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -715,7 +722,7 @@ class SettingsScreen extends ConsumerWidget {
           maxLines: 3,
           style: TextStyle(color: isDark ? Colors.white : Colors.black),
           decoration: InputDecoration(
-            hintText: l10n?.defaultNoteHint ?? 'Enter default note...',
+            hintText: l10n.defaultNoteHint,
             filled: true,
             fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
             border: OutlineInputBorder(
@@ -727,7 +734,7 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n?.cancel ?? 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -737,7 +744,7 @@ class SettingsScreen extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.goldPrimary,
             ),
-            child: Text(l10n?.save ?? 'Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -747,10 +754,10 @@ class SettingsScreen extends ConsumerWidget {
   void _showResetConfirmation(
     BuildContext context,
     WidgetRef ref,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
     bool isDark,
   ) async {
-    final localizations = l10n ?? AppLocalizations.of(context)!;
+    final localizations = l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -761,33 +768,20 @@ class SettingsScreen extends ConsumerWidget {
             color: Colors.red.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            Icons.warning_rounded,
-            color: Colors.red,
-            size: 32,
-          ),
+          child: Icon(Icons.warning_rounded, color: Colors.red, size: 32),
         ),
-        title: Text(
-          l10n?.resetDataTitle ?? 'Reset All Session Data?',
-          textAlign: TextAlign.center,
-        ),
-        content: Text(
-          l10n?.resetDataConfirm ??
-              'This action cannot be undone. All attendance sessions and records will be permanently deleted.',
-          textAlign: TextAlign.center,
-        ),
+        title: Text(l10n.resetDataTitle, textAlign: TextAlign.center),
+        content: Text(l10n.resetDataConfirm, textAlign: TextAlign.center),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n?.cancel ?? 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n?.delete ?? 'Delete Everything'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -980,10 +974,12 @@ class _ModernPickerSheet extends StatelessWidget {
             ),
           ),
           // Options
-          ...options.map((option) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: option,
-              )),
+          ...options.map(
+            (option) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: option,
+            ),
+          ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
         ],
       ),
@@ -1033,8 +1029,9 @@ class _PickerOption extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color:
-                      selected ? AppColors.goldPrimary : (isDark ? Colors.white54 : Colors.black45),
+                  color: selected
+                      ? AppColors.goldPrimary
+                      : (isDark ? Colors.white54 : Colors.black45),
                   size: 22,
                 ),
               ),
@@ -1046,7 +1043,9 @@ class _PickerOption extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                        fontWeight: selected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
                         color: selected
                             ? AppColors.goldPrimary
                             : (isDark ? Colors.white : Colors.black87),

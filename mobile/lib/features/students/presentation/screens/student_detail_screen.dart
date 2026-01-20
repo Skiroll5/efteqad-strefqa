@@ -37,21 +37,16 @@ class StudentDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final studentAsync = ref.watch(studentProvider(studentId));
     final historyAsync = ref.watch(studentAttendanceHistoryProvider(studentId));
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n?.studentDetails ?? 'Student Details'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(l10n.studentDetails), centerTitle: true),
       body: studentAsync.when(
         data: (student) {
           if (student == null) {
-            return Center(
-              child: Text(l10n?.studentNotFound ?? 'Student not found'),
-            );
+            return Center(child: Text(l10n.studentNotFound));
           }
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -177,9 +172,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                               );
                                               AppSnackBar.show(
                                                 context,
-                                                message:
-                                                    l10n?.phoneNumberCopied ??
-                                                        'Phone number copied',
+                                                message: l10n.phoneNumberCopied,
                                                 type: AppSnackBarType.info,
                                               );
                                             },
@@ -267,8 +260,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              l10n?.whatsappButton ??
-                                                  'WhatsApp',
+                                              l10n.whatsappButton,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 14,
@@ -347,7 +339,7 @@ class StudentDetailScreen extends ConsumerWidget {
                               ),
                             ),
                             icon: const Icon(Icons.edit_outlined, size: 20),
-                            label: Text(l10n?.edit ?? 'Edit'),
+                            label: Text(l10n.edit),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -363,7 +355,7 @@ class StudentDetailScreen extends ConsumerWidget {
                               ),
                             ),
                             icon: const Icon(Icons.delete_outline, size: 20),
-                            label: Text(l10n?.delete ?? 'Delete'),
+                            label: Text(l10n.delete),
                           ),
                         ),
                       ],
@@ -420,11 +412,7 @@ class StudentDetailScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildSectionHeader(
-                          context,
-                          l10n?.visitationNotes ?? "Visitation Notes",
-                          isDark,
-                        )
+                    _buildSectionHeader(context, l10n.visitationNotes, isDark)
                         .animate()
                         .fade(duration: 400.ms, delay: 500.ms)
                         .slideX(
@@ -471,7 +459,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    l10n?.addNote ?? 'Add Note',
+                                    l10n.addNote,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -509,9 +497,7 @@ class StudentDetailScreen extends ConsumerWidget {
                             child: Center(
                               child: Padding(
                                 padding: EdgeInsets.all(16),
-                                child: Text(
-                                  l10n?.noNotes ?? 'No visitation notes yet.',
-                                ),
+                                child: Text(l10n.noNotes),
                               ),
                             ),
                           );
@@ -694,7 +680,7 @@ class StudentDetailScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          final l10n = AppLocalizations.of(context);
+          final l10n = AppLocalizations.of(context)!;
           ui.TextDirection getDirection(String text) {
             if (text.trim().isEmpty) return ui.TextDirection.ltr;
             final firstChar = text.trim()[0];
@@ -732,7 +718,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    l10n?.whatsappCustomize ?? 'Customize Message',
+                    l10n.whatsappCustomize,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black87,
@@ -748,7 +734,7 @@ class StudentDetailScreen extends ConsumerWidget {
                       setState(() {});
                     },
                     decoration: InputDecoration(
-                      hintText: l10n?.typeMessageHint ?? 'Type your message...',
+                      hintText: l10n.typeMessageHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -770,7 +756,7 @@ class StudentDetailScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Text(l10n?.cancel ?? 'Cancel'),
+                          child: Text(l10n.cancel),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -791,8 +777,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                 Navigator.pop(context);
                                 AppSnackBar.show(
                                   context,
-                                  message:
-                                      l10n?.messageSaved ?? 'Message saved',
+                                  message: l10n.messageSaved,
                                   type: AppSnackBarType.success,
                                 );
                               }
@@ -802,8 +787,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                   context,
                                   message: AppLocalizations.of(
                                     context,
-                                  )!
-                                      .errorSave(e.toString()),
+                                  )!.errorSave(e.toString()),
                                   type: AppSnackBarType.error,
                                 );
                               }
@@ -818,7 +802,7 @@ class StudentDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           icon: const Icon(Icons.check_rounded),
-                          label: Text(l10n?.save ?? 'Save'),
+                          label: Text(l10n.save),
                         ),
                       ),
                     ],
@@ -836,14 +820,14 @@ class StudentDetailScreen extends ConsumerWidget {
   Widget _buildBirthdayCard(
     BuildContext context,
     Student student,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
     bool isDark,
   ) {
     final hasBirthday = student.birthdate != null;
     final now = DateTime.now();
 
     String ageText = "--";
-    String nextBirthdayText = l10n?.notSet ?? "Not Set";
+    String nextBirthdayText = l10n.notSet;
     bool isToday = false;
 
     if (hasBirthday) {
@@ -853,7 +837,7 @@ class StudentDetailScreen extends ConsumerWidget {
           (now.month == birthdate.month && now.day < birthdate.day)) {
         age--;
       }
-      ageText = l10n?.yearsOld(age) ?? "$age years old";
+      ageText = l10n.yearsOld(age);
 
       DateTime nextBirthday = DateTime(
         now.year,
@@ -871,12 +855,9 @@ class StudentDetailScreen extends ConsumerWidget {
 
       isToday = daysUntil == 0;
       if (isToday) {
-        nextBirthdayText =
-            l10n?.todayIsBirthday ?? "Today is their birthday! 🎉";
+        nextBirthdayText = l10n.todayIsBirthday;
       } else {
-        nextBirthdayText =
-            l10n?.birthdayCountdown(months, days) ??
-            "In $months months, $days days";
+        l10n.birthdayCountdown(months, days);
       }
     }
 
@@ -940,7 +921,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            l10n?.birthdate ?? "Birthdate",
+                            l10n.birthdate,
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark
@@ -955,7 +936,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                 ? intl.DateFormat(
                                     'dd/MM/yyyy',
                                   ).format(student.birthdate!)
-                                : (l10n?.notSet ?? "Not Set"),
+                                : l10n.notSet,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: hasBirthday ? 16 : 14,
@@ -1000,7 +981,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        l10n?.nextBirthday ?? "Next Birthday",
+                        l10n.nextBirthday,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -1036,7 +1017,7 @@ class StudentDetailScreen extends ConsumerWidget {
   Widget _buildAddressCard(
     BuildContext context,
     Student student,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
     bool isDark,
   ) {
     return Container(
@@ -1065,7 +1046,7 @@ class StudentDetailScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n?.address ?? "Address",
+                  l10n.address,
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -1075,7 +1056,7 @@ class StudentDetailScreen extends ConsumerWidget {
                 Text(
                   (student.address?.isNotEmpty == true)
                       ? student.address!
-                      : (l10n?.noAddress ?? "No address provided"),
+                      : l10n.noAddress,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -1094,7 +1075,7 @@ class StudentDetailScreen extends ConsumerWidget {
     BuildContext context,
     List<AttendanceRecordWithSession> history,
     bool isDark,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
   ) {
     // 1. Sort History (Descending Date)
     final sortedHistory = List<AttendanceRecordWithSession>.from(history);
@@ -1123,11 +1104,7 @@ class StudentDetailScreen extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionHeader(
-                  context,
-                  l10n?.attendanceHistory ?? "Attendance History",
-                  isDark,
-                )
+            _buildSectionHeader(context, l10n.attendanceHistory, isDark)
                 .animate()
                 .fade(duration: 400.ms, delay: 300.ms)
                 .slideX(
@@ -1143,7 +1120,7 @@ class StudentDetailScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                "$overallRate% ${l10n?.present ?? 'Present'}",
+                "$overallRate% ${l10n.present}",
                 style: const TextStyle(
                   color: AppColors.goldDark,
                   fontWeight: FontWeight.bold,
@@ -1532,7 +1509,7 @@ class StudentDetailScreen extends ConsumerWidget {
     DateTime? selectedBirthdate = student.birthdate;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     final inputDecoration = InputDecoration(
       filled: true,
@@ -1588,7 +1565,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    l10n?.editStudent ?? 'Edit Student',
+                    l10n.editStudent,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1600,7 +1577,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     controller: nameController,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: l10n?.name ?? 'Name',
+                      labelText: l10n.name,
                       prefixIcon: Icon(
                         Icons.person_outline,
                         color: isDark
@@ -1619,11 +1596,11 @@ class StudentDetailScreen extends ConsumerWidget {
                       initialCountryCode: 'EG',
                       textAlign: TextAlign.left,
                       decoration: inputDecoration.copyWith(
-                        labelText: l10n?.phone ?? 'Phone',
+                        labelText: l10n.phone,
                         counterText: '',
                       ),
                       disableLengthCheck: true,
-                      languageCode: l10n?.localeName ?? 'en',
+                      languageCode: l10n.localeName,
                       style: const TextStyle(fontWeight: FontWeight.w500),
                       dropdownTextStyle: TextStyle(
                         color: isDark ? Colors.white : Colors.black87,
@@ -1639,7 +1616,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                         searchFieldInputDecoration: InputDecoration(
-                          labelText: l10n?.search ?? 'Search',
+                          labelText: l10n.search,
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey : Colors.black54,
                           ),
@@ -1672,7 +1649,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     controller: addressController,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: l10n?.address ?? 'Address',
+                      labelText: l10n.address,
                       prefixIcon: Icon(
                         Icons.location_on_outlined,
                         color: isDark
@@ -1743,7 +1720,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    l10n?.dateOfBirth ?? 'Date of Birth',
+                                    l10n.dateOfBirth,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark
@@ -1755,7 +1732,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                   Text(
                                     selectedBirthdate != null
                                         ? '${selectedBirthdate!.day}/${selectedBirthdate!.month}/${selectedBirthdate!.year}'
-                                        : (l10n?.notSet ?? 'Not set'),
+                                        : l10n.notSet,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16,
@@ -1795,7 +1772,7 @@ class StudentDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           child: Text(
-                            l10n?.cancel ?? 'Cancel',
+                            l10n.cancel,
                             style: TextStyle(
                               color: isDark
                                   ? Colors.white70
@@ -1855,7 +1832,7 @@ class StudentDetailScreen extends ConsumerWidget {
                               ),
                             ),
                             child: Text(
-                              l10n?.save ?? 'Save Changes',
+                              l10n.save,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -1879,7 +1856,7 @@ class StudentDetailScreen extends ConsumerWidget {
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
@@ -1917,7 +1894,7 @@ class StudentDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                l10n?.deleteStudentQuestion ?? 'Delete Student?',
+                l10n.deleteStudentQuestion,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isDark
@@ -1928,8 +1905,7 @@ class StudentDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                l10n?.deleteStudentWarning ??
-                    'This student and all their records will be permanently removed. This action cannot be undone.',
+                l10n.deleteStudentWarning,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isDark
                       ? AppColors.textSecondaryDark
@@ -1949,7 +1925,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(l10n?.cancel ?? 'Cancel'),
+                      child: Text(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1975,7 +1951,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       child: Text(
-                        l10n?.delete ?? 'Delete',
+                        l10n.delete,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -2420,7 +2396,7 @@ class _NoteItemState extends ConsumerState<_NoteItem> {
 
   void _showEditNoteDialog(
     BuildContext context,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
     bool isDark,
   ) {
     final controller = TextEditingController(
@@ -2445,7 +2421,7 @@ class _NoteItemState extends ConsumerState<_NoteItem> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n?.edit ?? 'Edit Note',
+                l10n.edit,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: isDark ? Colors.white : Colors.black87,
                 ),
@@ -2456,7 +2432,7 @@ class _NoteItemState extends ConsumerState<_NoteItem> {
                 autofocus: true,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: l10n?.whatHappened ?? 'What happened?',
+                  hintText: l10n.whatHappened,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -2468,7 +2444,7 @@ class _NoteItemState extends ConsumerState<_NoteItem> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text(l10n?.cancel ?? 'Cancel'),
+                      child: Text(l10n.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -2489,7 +2465,7 @@ class _NoteItemState extends ConsumerState<_NoteItem> {
                         backgroundColor: AppColors.goldPrimary,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text(l10n?.save ?? 'Save'),
+                      child: Text(l10n.save),
                     ),
                   ),
                 ],

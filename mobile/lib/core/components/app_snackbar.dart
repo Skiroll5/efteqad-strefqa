@@ -90,7 +90,7 @@ class AppSnackBar {
                 children: [
                   if (hasTitle)
                     Text(
-                      titleText!,
+                      titleText,
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
@@ -119,7 +119,6 @@ class AppSnackBar {
       case AppSnackBarType.error:
         return const Duration(seconds: 4);
       case AppSnackBarType.info:
-      default:
         return const Duration(seconds: 3);
     }
   }
@@ -133,7 +132,6 @@ class AppSnackBar {
       case AppSnackBarType.error:
         return Icons.error_rounded;
       case AppSnackBarType.info:
-      default:
         return Icons.info_rounded;
     }
   }
@@ -147,7 +145,6 @@ class AppSnackBar {
       case AppSnackBarType.error:
         return const Color(0xFFC62828);
       case AppSnackBarType.info:
-      default:
         return const Color(0xFF1565C0);
     }
   }

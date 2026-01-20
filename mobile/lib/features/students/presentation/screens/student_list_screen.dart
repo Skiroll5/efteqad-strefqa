@@ -92,7 +92,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
     final sessionsAsync = ref.watch(attendanceSessionsProvider);
     final atRiskThreshold = ref.watch(statisticsSettingsProvider);
 
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -124,13 +124,13 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                 },
               ),
         automaticallyImplyLeading: !isSingleClassManager,
-        title: Text(className ?? l10n?.students ?? 'Class Dashboard'),
+        title: Text(className ?? l10n.students),
         actions: [
           // Show settings for single-class managers
           if (isSingleClassManager)
             IconButton(
               icon: const Icon(Icons.settings_outlined),
-              tooltip: l10n?.settings ?? 'Settings',
+              tooltip: l10n.settings,
               onPressed: () => context.push('/settings'),
             ),
         ],
@@ -179,7 +179,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     child: Consumer(
                       builder: (context, ref, _) {
                         final atRiskAsync = ref.watch(
-                          classAtRiskStudentsProvider(selectedClassId!),
+                          classAtRiskStudentsProvider(selectedClassId),
                         );
                         return atRiskAsync.when(
                           data: (atRiskStudents) => GlobalAtRiskWidget(
@@ -206,7 +206,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                                "${l10n?.students ?? 'Students'} (${students.length})",
+                                "${l10n.students} (${students.length})",
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: isDark
@@ -259,7 +259,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          l10n?.addNewStudent ?? 'Add Student',
+                                          l10n.addNewStudent,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13,
@@ -295,7 +295,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                   children: [
                                     _buildSortChip(
                                       context: context,
-                                      label: l10n?.name ?? 'Name',
+                                      label: l10n.name,
                                       isActive:
                                           sortState.field ==
                                           StudentSortField.name,
@@ -323,9 +323,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                     const SizedBox(width: 4),
                                     _buildSortChip(
                                       context: context,
-                                      label:
-                                          l10n?.attendancePercentage ??
-                                          'Attendance %',
+                                      label: l10n.attendancePercentage,
                                       isActive:
                                           sortState.field ==
                                           StudentSortField.percentage,
@@ -470,8 +468,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                l10n?.noAtRiskStudents ??
-                                    'No at-risk students! 🎉',
+                                l10n.noAtRiskStudents,
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   color: isDark ? Colors.white : Colors.black87,
                                 ),
@@ -501,7 +498,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                l10n?.noStudentsYet ?? 'No students yet',
+                                l10n.noStudentsYet,
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   color: isDark
                                       ? Colors.grey.shade400
@@ -511,8 +508,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                l10n?.tapAddStudentsAbove ??
-                                    'Tap the + button above to add students',
+                                l10n.tapAddStudentsAbove,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: isDark
                                       ? Colors.grey.shade500
@@ -565,7 +561,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
     List<AttendanceSession> sessions,
     WidgetRef ref,
     bool isDark,
-    AppLocalizations? l10n,
+    AppLocalizations l10n,
     String? classId,
   ) {
     // Sort sessions by date descending
@@ -585,7 +581,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    l10n?.attendance ?? "Attendance",
+                    l10n.attendance,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isDark
@@ -628,7 +624,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  l10n?.viewAll ?? 'View All',
+                                  l10n.viewAll,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
@@ -730,7 +726,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        l10n?.newAttendance ?? 'New Attendance',
+                        l10n.newAttendance,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: isDark
@@ -782,7 +778,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
     final absentCount = stats?.absentCount ?? 0;
     final consecutiveAbsences = stats?.consecutiveAbsences ?? 0;
     final isCritical = consecutiveAbsences >= threshold;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // At Risk if consecutive absences exceed threshold
     final isAtRisk = stats != null && stats.totalRecords > 0 && isCritical;
@@ -861,7 +857,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                   )
                 else
                   Text(
-                    l10n?.noPhone ?? "No Phone",
+                    l10n.noPhone,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark
@@ -900,7 +896,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                 ),
                 child: (stats == null)
                     ? Text(
-                        l10n?.notSet ?? "No Data",
+                        l10n.notSet,
                         style: TextStyle(
                           fontSize: 10,
                           color: isDark
@@ -934,17 +930,11 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                   ),
                   children: [
-                    TextSpan(
-                      text:
-                          l10n?.absencesTotal(absentCount) ??
-                          "$absentCount Absences (Total)",
-                    ),
+                    TextSpan(text: l10n.absencesTotal(absentCount)),
                     if (consecutiveAbsences > 0) ...[
                       const TextSpan(text: " • "),
                       TextSpan(
-                        text:
-                            l10n?.consecutive(consecutiveAbsences) ??
-                            "$consecutiveAbsences Consecutive",
+                        text: l10n.consecutive(consecutiveAbsences),
                         style: TextStyle(
                           color: isCritical
                               ? AppColors.redLight
@@ -994,7 +984,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     final inputDecoration = InputDecoration(
       filled: true,
@@ -1058,14 +1048,14 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     ),
                   ),
                   Text(
-                    l10n?.addNewStudent ?? 'Add New Student',
+                    l10n.addNewStudent,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n?.addStudentCaption ?? 'Add a student to this class',
+                    l10n.addStudentCaption,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: isDark
                           ? AppColors.textSecondaryDark
@@ -1115,7 +1105,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     autofocus: true,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: l10n?.studentName ?? 'Student Name',
+                      labelText: l10n.studentName,
                       errorText: nameError,
                       prefixIcon: Icon(
                         Icons.person_outline,
@@ -1140,14 +1130,12 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                       initialCountryCode: 'EG',
                       textAlign: TextAlign.left,
                       decoration: inputDecoration.copyWith(
-                        labelText:
-                            l10n?.phoneNumberOptional ??
-                            'Phone Number (optional)',
+                        labelText: l10n.phoneNumberOptional,
                         counterText: '', // Hide length counter
                         alignLabelWithHint: true,
                       ),
                       disableLengthCheck: true,
-                      languageCode: l10n?.localeName ?? 'en',
+                      languageCode: l10n.localeName,
                       style: const TextStyle(fontWeight: FontWeight.w500),
                       dropdownTextStyle: TextStyle(
                         color: isDark ? Colors.white : Colors.black87,
@@ -1163,7 +1151,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                           color: isDark ? Colors.white : Colors.black87,
                         ),
                         searchFieldInputDecoration: InputDecoration(
-                          labelText: l10n?.search ?? 'Search',
+                          labelText: l10n.search,
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey : Colors.black54,
                           ),
@@ -1199,7 +1187,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                     controller: addressController,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                     decoration: inputDecoration.copyWith(
-                      labelText: l10n?.addressOptional ?? 'Address (optional)',
+                      labelText: l10n.addressOptional,
                       prefixIcon: Icon(
                         Icons.location_on_outlined,
                         color: isDark
@@ -1272,7 +1260,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    l10n?.dateOfBirth ?? 'Date of Birth',
+                                    l10n.dateOfBirth,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark
@@ -1284,7 +1272,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                   Text(
                                     selectedBirthdate != null
                                         ? '${selectedBirthdate!.day}/${selectedBirthdate!.month}/${selectedBirthdate!.year}'
-                                        : (l10n?.notSet ?? 'Not set'),
+                                        : l10n.notSet,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16,
@@ -1318,15 +1306,14 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                       setSheetState(() => markAbsentPast = val ?? false);
                     },
                     title: Text(
-                      l10n?.markAbsentPast ?? "Mark absent for past sessions",
+                      l10n.markAbsentPast,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
                     subtitle: Text(
-                      l10n?.markAbsentPastCaption ??
-                          "Student will be recorded as ABSENT for all previous sessions.",
+                      l10n.markAbsentPastCaption,
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark
@@ -1359,7 +1346,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                             ),
                           ),
                           child: Text(
-                            l10n?.cancel ?? 'Cancel',
+                            l10n.cancel,
                             style: TextStyle(
                               color: isDark ? Colors.white : Colors.black87,
                             ),
@@ -1373,9 +1360,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                             final name = nameController.text.trim();
                             if (name.isEmpty) {
                               setSheetState(
-                                () => nameError =
-                                    l10n?.pleaseEnterName ??
-                                    'Please enter a name',
+                                () => nameError = l10n.pleaseEnterName,
                               );
                               return;
                             }
@@ -1411,8 +1396,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                   context,
                                   message: AppLocalizations.of(
                                     context,
-                                  )!
-                                      .successAddStudent,
+                                  )!.successAddStudent,
                                   type: AppSnackBarType.success,
                                 );
                               }
@@ -1425,8 +1409,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                                   context,
                                   message: AppLocalizations.of(
                                     context,
-                                  )!
-                                      .errorAddStudent(e.toString()),
+                                  )!.errorAddStudent(e.toString()),
                                   type: AppSnackBarType.error,
                                 );
                               }
@@ -1442,7 +1425,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                             ),
                           ),
                           child: Text(
-                            l10n?.addStudentAction ?? 'Add Student',
+                            l10n.addStudentAction,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

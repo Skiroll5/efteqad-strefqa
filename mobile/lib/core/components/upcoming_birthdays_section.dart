@@ -26,12 +26,12 @@ class UpcomingBirthdaysSection extends StatelessWidget {
     final now = DateTime.now();
     // Normalize to start of day for accurate day counting
     final today = DateTime(now.year, now.month, now.day);
-    
+
     var nextBirthday = DateTime(today.year, birthdate.month, birthdate.day);
     if (nextBirthday.isBefore(today)) {
       nextBirthday = DateTime(today.year + 1, birthdate.month, birthdate.day);
     }
-    
+
     return nextBirthday.difference(today).inDays;
   }
 
@@ -108,12 +108,15 @@ class UpcomingBirthdaysSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.upcomingBirthdays,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : AppColors.textPrimaryLight,
-          ),
-        ).animate().fade(delay: 100.ms).slideY(begin: 0.2, curve: Curves.easeOut),
+              l10n.upcomingBirthdays,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppColors.textPrimaryLight,
+              ),
+            )
+            .animate()
+            .fade(delay: 100.ms)
+            .slideY(begin: 0.2, curve: Curves.easeOut),
         const SizedBox(height: 12),
         SizedBox(
           height: 74,
@@ -160,7 +163,7 @@ class _BirthdayCard extends StatelessWidget {
   final bool isTomorrow;
   final bool isDark;
   final Locale locale;
-  final AppLocalizations? l10n;
+  final AppLocalizations l10n;
   final String Function(int, Locale) getMonthAbbr;
 
   const _BirthdayCard({
@@ -178,7 +181,7 @@ class _BirthdayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return SizedBox(
       width: 180,
       child: Material(
@@ -196,7 +199,9 @@ class _BirthdayCard extends StatelessWidget {
                 child: Icon(
                   Icons.auto_awesome,
                   size: 14,
-                  color: AppColors.goldPrimary.withValues(alpha: isToday ? 0.4 : 0.15),
+                  color: AppColors.goldPrimary.withValues(
+                    alpha: isToday ? 0.4 : 0.15,
+                  ),
                 ),
               ),
               Positioned(
@@ -205,7 +210,9 @@ class _BirthdayCard extends StatelessWidget {
                 child: Icon(
                   Icons.celebration,
                   size: 12,
-                  color: AppColors.goldPrimary.withValues(alpha: isToday ? 0.3 : 0.1),
+                  color: AppColors.goldPrimary.withValues(
+                    alpha: isToday ? 0.3 : 0.1,
+                  ),
                 ),
               ),
               Positioned(
@@ -215,7 +222,9 @@ class _BirthdayCard extends StatelessWidget {
                   width: 4,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.goldPrimary.withValues(alpha: isToday ? 0.5 : 0.2),
+                    color: AppColors.goldPrimary.withValues(
+                      alpha: isToday ? 0.5 : 0.2,
+                    ),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -227,22 +236,27 @@ class _BirthdayCard extends StatelessWidget {
                   width: 3,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: AppColors.goldPrimary.withValues(alpha: isToday ? 0.4 : 0.15),
+                    color: AppColors.goldPrimary.withValues(
+                      alpha: isToday ? 0.4 : 0.15,
+                    ),
                     shape: BoxShape.circle,
                   ),
                 ),
               ),
               // Main content
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isToday
                         ? AppColors.goldPrimary.withValues(alpha: 0.5)
                         : (isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.black.withValues(alpha: 0.06)),
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06)),
                     width: isToday ? 1.5 : 1,
                   ),
                 ),
@@ -256,8 +270,12 @@ class _BirthdayCard extends StatelessWidget {
                         color: isToday
                             ? AppColors.goldPrimary
                             : (isDark
-                                ? AppColors.goldPrimary.withValues(alpha: 0.15)
-                                : AppColors.goldPrimary.withValues(alpha: 0.1)),
+                                  ? AppColors.goldPrimary.withValues(
+                                      alpha: 0.15,
+                                    )
+                                  : AppColors.goldPrimary.withValues(
+                                      alpha: 0.1,
+                                    )),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Column(
@@ -267,14 +285,18 @@ class _BirthdayCard extends StatelessWidget {
                             birthdate.day.toString(),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isToday ? Colors.white : AppColors.goldDark,
+                              color: isToday
+                                  ? Colors.white
+                                  : AppColors.goldDark,
                             ),
                           ),
                           Text(
                             getMonthAbbr(birthdate.month, locale),
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: isToday ? Colors.white70 : AppColors.goldPrimary,
+                              color: isToday
+                                  ? Colors.white70
+                                  : AppColors.goldPrimary,
                             ),
                           ),
                         ],
@@ -293,7 +315,9 @@ class _BirthdayCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.textPrimaryLight,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -301,8 +325,8 @@ class _BirthdayCard extends StatelessWidget {
                             isToday
                                 ? "🎉 ${l10n.today}"
                                 : isTomorrow
-                                    ? l10n.tomorrow
-                                    : l10n.daysLeft(daysLeft),
+                                ? l10n.tomorrow
+                                : l10n.daysLeft(daysLeft),
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: isToday || isTomorrow

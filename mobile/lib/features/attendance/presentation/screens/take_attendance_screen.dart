@@ -73,23 +73,22 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          l10n?.discardChanges ?? 'Discard Changes?',
+          l10n.discardChanges,
           style: TextStyle(color: isDark ? Colors.white : Colors.black),
         ),
         content: Text(
-          l10n?.discardChangesMessage ??
-              'You have unsaved changes. Are you sure you want to discard them?',
+          l10n.discardChangesMessage,
           style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n?.cancel ?? 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.redPrimary),
-            child: Text(l10n?.discard ?? 'Discard'),
+            child: Text(l10n.discard),
           ),
         ],
       ),
@@ -113,7 +112,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
     final classesAsync = ref.watch(classesStreamProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // Get class name
     String? className;
@@ -136,7 +135,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
         appBar: AppBar(
           centerTitle: false,
           title: Text(
-            className ?? (l10n?.newAttendance ?? 'New Attendance'),
+            className ?? l10n.newAttendance,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -156,7 +155,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      l10n?.noStudentsInClass ?? 'No students in this class',
+                      l10n.noStudentsInClass,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: isDark
                             ? AppColors.textSecondaryDark
@@ -236,19 +235,17 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n?.attendancePresentCount(
-                                    presentCount,
-                                    totalStudents,
-                                  ) ??
-                                  '$presentCount of $totalStudents present',
+                              l10n.attendancePresentCount(
+                                presentCount,
+                                totalStudents,
+                              ),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? Colors.white : null,
                               ),
                             ),
                             Text(
-                              l10n?.tapToMark ??
-                                  'Tap students to mark attendance',
+                              l10n.tapToMark,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: isDark
                                     ? AppColors.textSecondaryDark
@@ -272,8 +269,8 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                         },
                         child: Text(
                           students.every((s) => _attendance[s.id] == true)
-                              ? (l10n?.clearAll ?? 'Clear')
-                              : (l10n?.markAll ?? 'All'),
+                              ? l10n.clearAll
+                              : l10n.markAll,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: isDark
@@ -490,8 +487,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                             controller: _noteController,
                             maxLines: null,
                             decoration: InputDecoration(
-                              hintText:
-                                  '${l10n?.sessionNoteHint ?? 'Add session note...'} *',
+                              hintText: '${l10n.sessionNoteHint} *',
                               prefixIcon: Icon(
                                 Icons.edit_note,
                                 color: _noteError
@@ -652,9 +648,8 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) => Center(
-            child: Text(l10n.errorGeneric(err.toString())),
-          ),
+          error: (err, st) =>
+              Center(child: Text(l10n.errorGeneric(err.toString()))),
         ),
         // Bottom Action Bar - Just Save Button
         bottomNavigationBar: SafeArea(
@@ -684,11 +679,7 @@ class _TakeAttendanceScreenState extends ConsumerState<TakeAttendanceScreen> {
                         ),
                       )
                     : const Icon(Icons.check, size: 20),
-                label: Text(
-                  _isSaving
-                      ? (l10n?.saving ?? 'Saving...')
-                      : (l10n?.saveAttendance ?? 'Save Attendance'),
-                ),
+                label: Text(_isSaving ? l10n.saving : l10n.saveAttendance),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isDark
                       ? AppColors.goldPrimary

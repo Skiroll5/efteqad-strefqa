@@ -99,17 +99,13 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
     final user = authState.asData?.value;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // Check if user is admin
     if (user?.role != 'ADMIN') {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n?.accessDenied ?? 'Access Denied')),
-        body: Center(
-          child: Text(
-            l10n?.noAdminPrivileges ?? 'You do not have admin privileges.',
-          ),
-        ),
+        appBar: AppBar(title: Text(l10n.accessDenied)),
+        body: Center(child: Text(l10n.noAdminPrivileges)),
       );
     }
 
@@ -150,7 +146,7 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n?.adminPanel ?? 'Admin Panel'),
+        title: Text(l10n.adminPanel),
         centerTitle: false,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -162,7 +158,7 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _refreshAll,
-              tooltip: l10n?.tryAgain ?? 'Refresh',
+              tooltip: l10n.tryAgain,
             ),
         ],
       ),
@@ -183,12 +179,12 @@ class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen> {
     required bool showError,
     required Object? firstError,
     required bool isDark,
-    required AppLocalizations? l10n,
+    required AppLocalizations l10n,
   }) {
     // Full-page Loading State - only until first fresh load
     if (showLoading) {
       return AdminLoadingScreen(
-        message: l10n?.loadingAdminPanel ?? 'Loading Admin Panel...',
+        message: l10n.loadingAdminPanel,
         onRetry: _refreshAll,
       );
     }
@@ -229,7 +225,7 @@ class _ClassesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final classesAsync = ref.watch(adminClassesProvider);
 
@@ -240,7 +236,7 @@ class _ClassesSection extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              l10n?.classes ?? 'Classes',
+              l10n.classes,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : AppColors.textPrimaryLight,
@@ -280,7 +276,7 @@ class _ClassesSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        l10n?.createClass ?? 'Create Class',
+                        l10n.createClass,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
@@ -316,8 +312,7 @@ class _ClassesSection extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          l10n?.noClassesFoundAdd ??
-                              AppLocalizations.of(context)!.noClassesFoundAdd,
+                          l10n.noClassesFoundAdd,
                           style: TextStyle(
                             color: isDark
                                 ? AppColors.textSecondaryDark
@@ -336,9 +331,7 @@ class _ClassesSection extends ConsumerWidget {
                 // Manually construct ClassesData from Map since Admin logic uses Map
                 final cls = ClassesData(
                   id: classData['id'] as String? ?? '',
-                  name:
-                      classData['name'] as String? ??
-                      AppLocalizations.of(context)!.unknown,
+                  name: l10n.unknown,
                   grade: classData['grade'] as String?,
                   managerNames: classData['managerNames'] as String?,
                   createdAt: DateTime.now(), // Dummy for display
@@ -380,19 +373,16 @@ class _UsersSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     // We fetch separate providers for pending and all users
-    final pendingUsersAsync = ref.watch(pendingUsersProvider);
-    final allUsersAsync = ref.watch(allUsersProvider);
-    final adminController = ref.watch(adminControllerProvider.notifier);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n?.userManagement ?? 'User Management',
+          l10n.userManagement,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : AppColors.textPrimaryLight,
@@ -413,7 +403,7 @@ class _UsersSection extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    l10n?.pendingActivation ?? 'Pending Activation',
+                    l10n.pendingActivation,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: isDark
                           ? AppColors.goldPrimary
@@ -438,11 +428,7 @@ class _UsersSection extends ConsumerWidget {
                         leading: const CircleAvatar(
                           child: Icon(Icons.person_outline),
                         ),
-                        title: Text(
-                          user['name'] ??
-                              (l10n?.unknown ??
-                                  AppLocalizations.of(context)!.unknown),
-                        ),
+                        title: Text(user['name'] ?? l10n.unknown),
                         subtitle: Text(user['email'] ?? ''),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -452,7 +438,9 @@ class _UsersSection extends ConsumerWidget {
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.red.shade600,
                                 visualDensity: VisualDensity.compact,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
                               ),
                               onPressed: () async {
                                 final dialogTheme = Theme.of(context);
@@ -472,55 +460,54 @@ class _UsersSection extends ConsumerWidget {
                                       ),
                                     ),
                                     title: Text(
-                                      l10n?.abortActivation ?? 'Deny Activation',
-                                      style: dialogTheme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      l10n.abortActivation,
+                                      style: dialogTheme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                     content: Text(
-                                      l10n?.abortActivationConfirm ??
-                                          'Are you sure you want to deny this user\'s activation request?',
+                                      l10n.abortActivationConfirm,
                                       style: dialogTheme.textTheme.bodyMedium,
                                     ),
                                     actions: [
                                       TextButton(
-                                        onPressed: () => Navigator.pop(ctx, false),
-                                        child: Text(l10n?.cancel ?? 'Cancel'),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, false),
+                                        child: Text(l10n.cancel),
                                       ),
                                       FilledButton(
-                                        onPressed: () => Navigator.pop(ctx, true),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
                                         style: FilledButton.styleFrom(
                                           backgroundColor: Colors.red.shade600,
                                         ),
-                                        child: Text(l10n?.deny ?? 'Deny'),
+                                        child: Text(l10n.deny),
                                       ),
                                     ],
                                   ),
                                 );
-                                if (confirmed != true || !context.mounted) return;
-                                final success = await controller.abortActivation(
-                                  user['id'],
-                                );
+                                if (confirmed != true || !context.mounted)
+                                  return;
+                                final success = await controller
+                                    .abortActivation(user['id']);
                                 if (context.mounted) {
                                   _showActionFeedback(
                                     context,
                                     success: success,
-                                    successMessage:
-                                        l10n?.userActivationAborted ??
-                                        'Activation denied',
+                                    successMessage: l10n.userActivationAborted,
                                     failureMessage:
-                                        l10n?.actionFailedCheckConnection ??
-                                        'Action failed. Check your internet connection.',
+                                        l10n.actionFailedCheckConnection,
                                   );
                                 }
                               },
-                              child: Text(l10n?.deny ?? 'Deny'),
+                              child: Text(l10n.deny),
                             ),
                             const SizedBox(width: 4),
                             // Activate button
                             FilledButton.icon(
                               icon: const Icon(Icons.check, size: 16),
-                              label: Text(l10n?.activate ?? 'Activate'),
+                              label: Text(l10n.activate),
                               style: FilledButton.styleFrom(
                                 visualDensity: VisualDensity.compact,
                               ),
@@ -532,11 +519,9 @@ class _UsersSection extends ConsumerWidget {
                                   _showActionFeedback(
                                     context,
                                     success: success,
-                                    successMessage:
-                                        l10n?.userActivated ?? 'User activated!',
+                                    successMessage: l10n.userActivated,
                                     failureMessage:
-                                        l10n?.actionFailedCheckConnection ??
-                                        'Action failed. Check your internet connection.',
+                                        l10n.actionFailedCheckConnection,
                                   );
                                 }
                               },
@@ -555,7 +540,7 @@ class _UsersSection extends ConsumerWidget {
 
         // All Users Sub-section
         Text(
-          l10n?.allUsers ?? 'All Users',
+          l10n.allUsers,
           style: theme.textTheme.titleSmall?.copyWith(
             color: isDark ? Colors.white70 : Colors.black54,
             fontWeight: FontWeight.bold,
@@ -566,7 +551,8 @@ class _UsersSection extends ConsumerWidget {
         // Use Consumer to properly access ref and keep UI in sync
         Consumer(
           builder: (context, ref, _) {
-            final allUsers = ref.watch(allUsersProvider).valueOrNull ?? [];
+            final allUsersAsync = ref.watch(allUsersProvider);
+            final allUsers = allUsersAsync.valueOrNull ?? [];
             final controller = ref.watch(adminControllerProvider.notifier);
 
             // Filter out denied/rejected users - they should only appear in Denied Activations screen
@@ -575,9 +561,7 @@ class _UsersSection extends ConsumerWidget {
                 .toList();
 
             if (users.isEmpty && !allUsersAsync.isLoading) {
-              return Center(
-                child: Text(l10n?.noUsersFound ?? 'No users found'),
-              );
+              return Center(child: Text(l10n.noUsersFound));
             }
 
             return ListView.builder(
@@ -631,7 +615,7 @@ class _UserCard extends StatefulWidget {
   final bool isEnabled;
   final bool isAdmin;
   final bool isDark;
-  final AppLocalizations? l10n;
+  final AppLocalizations l10n;
   final AdminController controller;
 
   const _UserCard({
@@ -673,9 +657,7 @@ class _UserCardState extends State<_UserCard> {
 
     final newValue = !_optimisticEnabled;
     final l10n = widget.l10n;
-    final userName =
-        widget.user['name'] ??
-        (l10n?.unknown ?? AppLocalizations.of(context)!.unknown);
+    final userName = widget.user['name'] ?? l10n.unknown;
 
     // Show confirmation dialog
     final isDark = widget.isDark;
@@ -683,9 +665,7 @@ class _UserCardState extends State<_UserCard> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          newValue
-              ? (l10n?.enableUser ?? 'Enable User')
-              : (l10n?.disableUser ?? 'Disable User'),
+          newValue ? l10n.enableUser : l10n.disableUser,
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
@@ -693,10 +673,8 @@ class _UserCardState extends State<_UserCard> {
         ),
         content: Text(
           newValue
-              ? (l10n?.enableUserConfirmation(userName) ??
-                  'Are you sure you want to enable "$userName"?')
-              : (l10n?.disableUserConfirmation(userName) ??
-                  'Are you sure you want to disable "$userName"?'),
+              ? l10n.enableUserConfirmation(userName)
+              : l10n.disableUserConfirmation(userName),
           style: TextStyle(
             color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
           ),
@@ -704,19 +682,19 @@ class _UserCardState extends State<_UserCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n?.cancel ?? 'Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: newValue ? Colors.green.shade600 : Colors.red.shade600,
-              foregroundColor: newValue ? Colors.green.shade50 : Colors.red.shade50,
+              backgroundColor: newValue
+                  ? Colors.green.shade600
+                  : Colors.red.shade600,
+              foregroundColor: newValue
+                  ? Colors.green.shade50
+                  : Colors.red.shade50,
             ),
-            child: Text(
-              newValue
-                  ? (l10n?.enable ?? 'Enable')
-                  : (l10n?.disable ?? 'Disable'),
-            ),
+            child: Text(newValue ? l10n.enable : l10n.disable),
           ),
         ],
       ),
@@ -746,9 +724,7 @@ class _UserCardState extends State<_UserCard> {
             context,
             success: false,
             successMessage: '',
-            failureMessage:
-                l10n?.actionFailedCheckConnection ??
-                'Action failed. Check your internet connection.',
+            failureMessage: l10n.actionFailedCheckConnection,
           );
         }
       } else {
@@ -821,13 +797,12 @@ class _UserCardState extends State<_UserCard> {
                       children: [
                         Flexible(
                           child: Text(
-                            widget.user['name'] ??
-                                (l10n?.unknown ??
-                                    AppLocalizations.of(context)!.unknown),
+                            widget.user['name'] ?? l10n.unknown,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                           ),
                         ),
                         if (widget.isAdmin) ...[
@@ -842,7 +817,7 @@ class _UserCardState extends State<_UserCard> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              l10n?.admin ?? 'Admin',
+                              l10n.admin,
                               style: const TextStyle(
                                 fontSize: 10,
                                 color: Colors.black87,
@@ -862,7 +837,7 @@ class _UserCardState extends State<_UserCard> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              l10n?.pending ?? 'Pending',
+                              l10n.pending,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.orange.shade800,
@@ -910,8 +885,8 @@ class _UserCardState extends State<_UserCard> {
                     boxShadow: [
                       BoxShadow(
                         color: _optimisticEnabled
-                            ? Colors.green.withOpacity(0.3)
-                            : Colors.grey.withOpacity(0.2),
+                            ? Colors.green.withValues(alpha: 0.3)
+                            : Colors.grey.withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -936,7 +911,9 @@ class _UserCardState extends State<_UserCard> {
                         )
                       else
                         Icon(
-                          _optimisticEnabled ? Icons.check_circle : Icons.cancel,
+                          _optimisticEnabled
+                              ? Icons.check_circle
+                              : Icons.cancel,
                           size: 14,
                           color: _optimisticEnabled
                               ? Colors.white
@@ -944,9 +921,7 @@ class _UserCardState extends State<_UserCard> {
                         ),
                       const SizedBox(width: 6),
                       Text(
-                        _optimisticEnabled
-                            ? (l10n?.enabled ?? 'Enabled')
-                            : (l10n?.disabled ?? 'Disabled'),
+                        _optimisticEnabled ? l10n.enabled : l10n.disabled,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,

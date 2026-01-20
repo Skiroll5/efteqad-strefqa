@@ -50,10 +50,7 @@ class NotificationSettingsPage extends ConsumerWidget {
                             Colors.purple.withValues(alpha: 0.15),
                             AppColors.surfaceDark,
                           ]
-                        : [
-                            Colors.purple.withValues(alpha: 0.08),
-                            Colors.white,
-                          ],
+                        : [Colors.purple.withValues(alpha: 0.08), Colors.white],
                   ),
                 ),
                 child: SafeArea(
@@ -80,8 +77,7 @@ class NotificationSettingsPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n?.notificationSettings ??
-                                    'Notification Settings',
+                                l10n.notificationSettings,
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.white : Colors.black87,
@@ -89,12 +85,12 @@ class NotificationSettingsPage extends ConsumerWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                l10n?.notificationSettingsDesc ??
-                                    'Manage your notification preferences',
+                                l10n.notificationSettingsDesc,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color:
-                                      isDark ? Colors.white54 : Colors.black45,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black45,
                                 ),
                               ),
                             ],
@@ -149,8 +145,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                   delegate: SliverChildListDelegate([
                     // Events Section
                     _NotificationSection(
-                      title: l10n?.events ?? 'Events',
-                      subtitle: l10n?.activityNotifications ?? 'Activity notifications',
+                      title: l10n.events,
+                      subtitle: l10n.activityNotifications,
                       icon: Icons.event_note_rounded,
                       iconColor: Colors.blue,
                       isDark: isDark,
@@ -158,9 +154,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ModernNotificationSwitch(
                           icon: Icons.note_alt_outlined,
                           iconColor: Colors.indigo,
-                          title: l10n?.notesNotification ?? 'Notes',
-                          description: l10n?.notesNotificationDesc ??
-                              'Get notified when a note is added',
+                          title: l10n.notesNotification,
+                          description: l10n.notesNotificationDesc,
                           value: prefs.noteAdded,
                           onChanged: (val) => ref
                               .read(notificationSettingsProvider.notifier)
@@ -170,9 +165,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ModernNotificationSwitch(
                           icon: Icons.fact_check_outlined,
                           iconColor: Colors.green,
-                          title: l10n?.attendanceNotification ?? 'Attendance',
-                          description: l10n?.attendanceNotificationDesc ??
-                              'Get notified when attendance is recorded',
+                          title: l10n.attendanceNotification,
+                          description: l10n.attendanceNotificationDesc,
                           value: prefs.attendanceRecorded,
                           onChanged: (val) => ref
                               .read(notificationSettingsProvider.notifier)
@@ -184,10 +178,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ModernNotificationSwitch(
                           icon: Icons.cake_outlined,
                           iconColor: Colors.pink,
-                          title:
-                              l10n?.birthdayNotification ?? 'Birthday Reminders',
-                          description: l10n?.birthdayNotificationDesc ??
-                              'Get reminders for student birthdays',
+                          title: l10n.birthdayNotification,
+                          description: l10n.birthdayNotificationDesc,
                           value: prefs.birthdayReminder,
                           onChanged: (val) => ref
                               .read(notificationSettingsProvider.notifier)
@@ -203,8 +195,8 @@ class NotificationSettingsPage extends ConsumerWidget {
 
                     // Alerts Section
                     _NotificationSection(
-                      title: l10n?.alerts ?? 'Alerts',
-                      subtitle: l10n?.importantWarnings ?? 'Important warnings',
+                      title: l10n.alerts,
+                      subtitle: l10n.importantWarnings,
                       icon: Icons.warning_amber_rounded,
                       iconColor: Colors.orange,
                       isDark: isDark,
@@ -212,9 +204,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ModernNotificationSwitch(
                           icon: Icons.person_off_outlined,
                           iconColor: Colors.red,
-                          title: l10n?.inactiveNotification ?? 'Inactive Students',
-                          description: l10n?.inactiveNotificationDesc ??
-                              'Alert when a student becomes inactive',
+                          title: l10n.inactiveNotification,
+                          description: l10n.inactiveNotificationDesc,
                           value: prefs.inactiveStudent,
                           onChanged: (val) => ref
                               .read(notificationSettingsProvider.notifier)
@@ -227,10 +218,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                           _ModernNotificationSwitch(
                             icon: Icons.person_add_outlined,
                             iconColor: Colors.teal,
-                            title:
-                                l10n?.newUserNotification ?? 'New Registrations',
-                            description: l10n?.newUserNotificationDesc ??
-                                'Notify when a new user registers',
+                            title: l10n.newUserNotification,
+                            description: l10n.newUserNotificationDesc,
                             value: prefs.newUserRegistered,
                             onChanged: (val) => ref
                                 .read(notificationSettingsProvider.notifier)
@@ -246,8 +235,8 @@ class NotificationSettingsPage extends ConsumerWidget {
 
                     // Configuration Section
                     _NotificationSection(
-                      title: l10n?.configuration ?? 'Configuration',
-                      subtitle: l10n?.customizeBehavior ?? 'Customize behavior',
+                      title: l10n.configuration,
+                      subtitle: l10n.customizeBehavior,
                       icon: Icons.tune_rounded,
                       iconColor: Colors.purple,
                       isDark: isDark,
@@ -256,20 +245,21 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ConfigurationTile(
                           icon: Icons.timer_outlined,
                           iconColor: Colors.deepOrange,
-                          title: l10n?.inactiveAfterDays ?? 'Inactive after (days)',
-                          description: l10n?.inactiveThresholdDesc ??
-                              'Threshold to consider a student inactive',
+                          title: l10n.inactiveAfterDays,
+                          description: l10n.inactiveThresholdDesc,
                           isDark: isDark,
                           trailing: _ModernDropdown<int>(
                             value: prefs.inactiveThresholdDays,
                             items: [7, 14, 21, 30],
-                            labelBuilder: (e) => l10n?.daysUnit(e) ?? '$e days',
+                            labelBuilder: (e) => l10n.daysUnit(e),
                             onChanged: (val) {
                               if (val != null) {
                                 ref
                                     .read(notificationSettingsProvider.notifier)
                                     .updatePreference(
-                                      prefs.copyWith(inactiveThresholdDays: val),
+                                      prefs.copyWith(
+                                        inactiveThresholdDays: val,
+                                      ),
                                     );
                               }
                             },
@@ -281,16 +271,14 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ConfigurationTile(
                           icon: Icons.calendar_today_outlined,
                           iconColor: Colors.pink,
-                          title: l10n?.birthdayReminderDays ?? 'Days before birthday',
-                          description: l10n?.birthdayReminderDaysDesc ??
-                              'How many days before to send reminder',
+                          title: l10n.birthdayReminderDays,
+                          description: l10n.birthdayReminderDaysDesc,
                           isDark: isDark,
                           trailing: _ModernDropdown<int>(
                             value: prefs.birthdayReminderDays,
                             items: [0, 1, 2, 3, 7],
-                            labelBuilder: (e) => e == 0
-                                ? (l10n?.sameDay ?? 'Same day')
-                                : (l10n?.daysBefore(e) ?? '$e days'),
+                            labelBuilder: (e) =>
+                                e == 0 ? l10n.sameDay : l10n.daysBefore(e),
                             onChanged: (val) {
                               if (val != null) {
                                 ref
@@ -308,8 +296,8 @@ class NotificationSettingsPage extends ConsumerWidget {
                         _ConfigurationTile(
                           icon: Icons.access_time_rounded,
                           iconColor: Colors.blue,
-                          title: l10n?.birthdayAlertTime ?? 'Birthday alert time',
-                          description: l10n?.tapToChangeTime ?? 'Tap to change time',
+                          title: l10n.birthdayAlertTime,
+                          description: l10n.tapToChangeTime,
                           isDark: isDark,
                           trailing: _TimePickerButton(
                             time: prefs.birthdayNotifyTime,
@@ -318,8 +306,10 @@ class NotificationSettingsPage extends ConsumerWidget {
                               final parts = prefs.birthdayNotifyTime.split(':');
                               final initialTime = TimeOfDay(
                                 hour: int.tryParse(parts[0]) ?? 8,
-                                minute: int.tryParse(
-                                        parts.length > 1 ? parts[1] : '0') ??
+                                minute:
+                                    int.tryParse(
+                                      parts.length > 1 ? parts[1] : '0',
+                                    ) ??
                                     0,
                               );
                               final picked = await showTimePicker(
@@ -342,7 +332,9 @@ class NotificationSettingsPage extends ConsumerWidget {
                                 ref
                                     .read(notificationSettingsProvider.notifier)
                                     .updatePreference(
-                                      prefs.copyWith(birthdayNotifyTime: timeStr),
+                                      prefs.copyWith(
+                                        birthdayNotifyTime: timeStr,
+                                      ),
                                     );
                               }
                             },
@@ -473,7 +465,9 @@ class _ModernNotificationSwitch extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                color: value ? iconColor : (isDark ? Colors.white38 : Colors.black26),
+                color: value
+                    ? iconColor
+                    : (isDark ? Colors.white38 : Colors.black26),
                 size: 20,
               ),
             ),
@@ -506,7 +500,7 @@ class _ModernNotificationSwitch extends StatelessWidget {
             Switch.adaptive(
               value: value,
               onChanged: onChanged,
-              activeColor: AppColors.goldPrimary,
+              activeThumbColor: AppColors.goldPrimary,
               activeTrackColor: AppColors.goldPrimary.withValues(alpha: 0.3),
             ),
           ],
@@ -602,9 +596,7 @@ class _ModernDropdown<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.goldPrimary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.goldPrimary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
@@ -622,10 +614,7 @@ class _ModernDropdown<T> extends StatelessWidget {
           ),
           dropdownColor: isDark ? AppColors.surfaceDark : Colors.white,
           items: items.map((e) {
-            return DropdownMenuItem(
-              value: e,
-              child: Text(labelBuilder(e)),
-            );
+            return DropdownMenuItem(value: e, child: Text(labelBuilder(e)));
           }).toList(),
           onChanged: onChanged,
         ),

@@ -58,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     // Get first name for greeting
-    final fallbackName = l10n?.user ?? 'User';
+    final fallbackName = l10n.user;
     final rawName = user?.name.split(' ').first ?? fallbackName;
     final firstName = rawName.isNotEmpty
         ? rawName[0].toUpperCase() + rawName.substring(1).toLowerCase()
@@ -72,7 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             style: theme.textTheme.titleLarge,
             children: [
               TextSpan(
-                text: '${l10n?.hi ?? 'Hi'}, ',
+                text: '${l10n.hi}, ',
                 style: TextStyle(
                   fontWeight: FontWeight.normal,
                   color: isDark
@@ -94,7 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: l10n?.settings ?? 'Settings',
+            tooltip: l10n.settings,
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -166,7 +166,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(height: 32),
                     // Title
                     Text(
-                      l10n?.noClassAssigned ?? 'No class assigned',
+                      l10n.noClassAssigned,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
@@ -178,8 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        l10n?.contactAdminForActivation ??
-                            'Please contact the administrator to be assigned to a class',
+                        l10n.contactAdminForActivation,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: isDark ? Colors.white60 : Colors.black54,
                           height: 1.5,
@@ -218,8 +217,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               const SizedBox(width: 10),
                               Flexible(
                                 child: Text(
-                                  l10n?.waitingForClassAssignment ??
-                                      'Waiting for class assignment',
+                                  l10n.waitingForClassAssignment,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: isDark
                                         ? Colors.white54
@@ -325,7 +323,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      l10n?.adminPanel ?? 'Admin Panel',
+                                      l10n.adminPanel,
                                       style: theme.textTheme.titleMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
@@ -336,8 +334,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      l10n?.adminPanelDesc ??
-                                          'Manage users, classes & data',
+                                      l10n.adminPanelDesc,
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: isDark
@@ -376,8 +373,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               Text(
                                 // Show "Your Classes" for admin or if user has multiple classes
                                 (user?.role == 'ADMIN' || classes.length > 1)
-                                    ? (l10n?.yourClasses ?? 'Your Classes')
-                                    : (l10n?.yourClass ?? 'Your Class'),
+                                    ? l10n.yourClasses
+                                    : l10n.yourClass,
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: isDark
@@ -427,7 +424,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
-                                            l10n?.createClass ?? 'Create Class',
+                                            l10n.createClass,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 13,
@@ -445,8 +442,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ).animate().fade(),
                           const SizedBox(height: 4),
                           Text(
-                            l10n?.selectClassToManage ??
-                                'Select a class to manage students and attendance',
+                            l10n.selectClassToManage,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: isDark
                                   ? AppColors.textSecondaryDark
@@ -481,9 +477,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         },
 
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(
-          child: Text(l10n.errorGeneric(err.toString())),
-        ),
+        error: (err, st) =>
+            Center(child: Text(l10n.errorGeneric(err.toString()))),
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'admin_repository.dart';
 import '../../classes/data/classes_controller.dart';
-import '../../classes/presentation/widgets/class_list_item.dart';
 
 /// Provider for all users (admin view)
 final allUsersProvider = FutureProvider<List<Map<String, dynamic>>>((

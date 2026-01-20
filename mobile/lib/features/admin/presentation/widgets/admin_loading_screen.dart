@@ -75,21 +75,11 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
     });
   }
 
-  void _handleManualRetry() {
-    setState(() {
-      _hasTimedOut = false;
-      _isAutoRetrying = false;
-    });
-    _autoRetryTimer?.cancel();
-    widget.onRetry?.call();
-    _startTimeoutTimer();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -109,7 +99,11 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
     );
   }
 
-  Widget _buildLoadingState(ThemeData theme, bool isDark, AppLocalizations? l10n) {
+  Widget _buildLoadingState(
+    ThemeData theme,
+    bool isDark,
+    AppLocalizations l10n,
+  ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -126,7 +120,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          widget.message ?? l10n?.loadingData ?? 'Loading...',
+          widget.message ?? l10n.loadingData,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: isDark
                 ? AppColors.textSecondaryDark
@@ -137,7 +131,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
     );
   }
 
-  Widget _buildErrorState(ThemeData theme, bool isDark, AppLocalizations? l10n) {
+  Widget _buildErrorState(ThemeData theme, bool isDark, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -167,7 +161,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
 
           // Title
           Text(
-            l10n?.cannotConnect ?? 'Cannot Connect',
+            l10n.cannotConnect,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: isDark
@@ -181,8 +175,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
 
           // Error message
           Text(
-            l10n?.actionFailedCheckConnection ??
-                'Unable to connect. Please check your internet connection.',
+            l10n.actionFailedCheckConnection,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: isDark
                   ? AppColors.textSecondaryDark
@@ -211,7 +204,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  l10n?.autoRetrying ?? 'Retrying...',
+                  l10n.autoRetrying,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: isDark
                         ? AppColors.textSecondaryDark
@@ -224,7 +217,7 @@ class _AdminLoadingScreenState extends State<AdminLoadingScreen> {
 
           const SizedBox(height: 6),
           Text(
-            l10n?.willAutoRetry ?? 'Will auto-retry when connected',
+            l10n.willAutoRetry,
             style: theme.textTheme.bodySmall?.copyWith(
               color: isDark ? Colors.white30 : Colors.black26,
               fontSize: 11,

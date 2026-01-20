@@ -11,7 +11,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
   final gradeController = TextEditingController();
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
+  final l10n = AppLocalizations.of(context)!;
 
   await showModalBottomSheet(
     context: context,
@@ -47,7 +47,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
             ),
             // Title
             Text(
-              l10n?.createNewClass ?? 'Create New Class',
+              l10n.createNewClass,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
@@ -57,7 +57,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n?.addClassCaption ?? 'Add a new class to manage students',
+              l10n.addClassCaption,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: isDark
                     ? AppColors.textSecondaryDark
@@ -70,8 +70,8 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
               controller: nameController,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: l10n?.className ?? 'Class Name',
-                hintText: l10n?.classNameHint ?? 'e.g. Sunday School - Grade 3',
+                labelText: l10n.className,
+                hintText: l10n.classNameHint,
                 prefixIcon: Icon(
                   Icons.class_,
                   color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
@@ -82,9 +82,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.goldPrimary, // Unified Gold
+                    color: AppColors.goldPrimary,
                     width: 2,
                   ),
                 ),
@@ -95,8 +93,8 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
             TextField(
               controller: gradeController,
               decoration: InputDecoration(
-                labelText: l10n?.gradeOptional ?? 'Grade (optional)',
-                hintText: l10n?.gradeHint ?? 'e.g. Grade 3',
+                labelText: l10n.gradeOptional,
+                hintText: l10n.gradeHint,
                 prefixIcon: Icon(
                   Icons.grade,
                   color: isDark ? AppColors.goldPrimary : AppColors.bluePrimary,
@@ -107,9 +105,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.goldPrimary, // Unified Gold
+                    color: AppColors.goldPrimary,
                     width: 2,
                   ),
                 ),
@@ -128,7 +124,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text(l10n?.cancel ?? 'Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -156,7 +152,7 @@ Future<void> showAddClassDialog(BuildContext context, WidgetRef ref) async {
                       ),
                     ),
                     child: Text(
-                      l10n?.create ?? 'Create',
+                      l10n.create,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -179,7 +175,7 @@ Future<void> showRenameClassDialog(
   final nameController = TextEditingController(text: cls.name);
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
+  final l10n = AppLocalizations.of(context)!;
 
   await showModalBottomSheet(
     context: context,
@@ -215,7 +211,7 @@ Future<void> showRenameClassDialog(
             ),
             // Title
             Text(
-              l10n?.rename ?? 'Rename Class',
+              l10n.rename,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -226,20 +222,15 @@ Future<void> showRenameClassDialog(
               controller: nameController,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: l10n?.className ?? 'Class Name',
-                prefixIcon: Icon(
-                  Icons.class_,
-                  color: isDark ? AppColors.goldPrimary : AppColors.goldPrimary,
-                ),
+                labelText: l10n.className,
+                prefixIcon: Icon(Icons.class_, color: AppColors.goldPrimary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark
-                        ? AppColors.goldPrimary
-                        : AppColors.goldPrimary, // Unified Gold
+                    color: AppColors.goldPrimary,
                     width: 2,
                   ),
                 ),
@@ -258,7 +249,7 @@ Future<void> showRenameClassDialog(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text(l10n?.cancel ?? 'Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -273,9 +264,7 @@ Future<void> showRenameClassDialog(
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isDark
-                          ? AppColors.goldPrimary
-                          : AppColors.goldPrimary,
+                      backgroundColor: AppColors.goldPrimary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -283,7 +272,7 @@ Future<void> showRenameClassDialog(
                       ),
                     ),
                     child: Text(
-                      l10n?.save ?? 'Save',
+                      l10n.save,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -305,7 +294,7 @@ Future<void> showDeleteClassDialog(
 ) async {
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
-  final l10n = AppLocalizations.of(context);
+  final l10n = AppLocalizations.of(context)!;
 
   await showModalBottomSheet(
     context: context,
@@ -350,7 +339,7 @@ Future<void> showDeleteClassDialog(
             const SizedBox(height: 16),
             // Title
             Text(
-              '${l10n?.delete ?? 'Delete'} "${cls.name}"?',
+              '${l10n.delete} "${cls.name}"?',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
@@ -361,8 +350,7 @@ Future<void> showDeleteClassDialog(
             ),
             const SizedBox(height: 8),
             Text(
-              l10n?.deleteWarning ??
-                  'This will permanently remove this class and all its students.',
+              l10n.deleteWarning,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: isDark
                     ? AppColors.textSecondaryDark
@@ -383,7 +371,7 @@ Future<void> showDeleteClassDialog(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text(l10n?.cancel ?? 'Cancel'),
+                    child: Text(l10n.cancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -404,7 +392,7 @@ Future<void> showDeleteClassDialog(
                       ),
                     ),
                     child: Text(
-                      l10n?.delete ?? 'Delete',
+                      l10n.delete,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

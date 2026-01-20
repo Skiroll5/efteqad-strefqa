@@ -28,11 +28,7 @@ class UiNotificationService {
     messenger
       ..clearSnackBars()
       ..showSnackBar(
-        AppSnackBar.build(
-          messenger.context,
-          message: text,
-          type: type,
-        ),
+        AppSnackBar.build(messenger.context, message: text, type: type),
       );
   }
 
@@ -45,7 +41,6 @@ class UiNotificationService {
       case UiNotificationLevel.error:
         return AppSnackBarType.error;
       case UiNotificationLevel.info:
-      default:
         return AppSnackBarType.info;
     }
   }

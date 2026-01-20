@@ -579,7 +579,7 @@ class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
 
               return DropdownButtonFormField<String>(
                 initialValue: _selectedUserId,
-                hint: Text(l10n.selectClassToManage), // "Select..."
+                hint: Text(l10n.selectClassToManage),
                 isExpanded: true,
                 items: eligibleUsers.map((user) {
                   return DropdownMenuItem(
@@ -616,6 +616,13 @@ class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
           onPressed: _selectedUserId == null
               ? null
               : () async {
+                  // Look up user name
+                  final user = eligibleUsers.firstWhere(
+                    (u) => u['id'] == _selectedUserId,
+                    orElse: () => {'name': ''},
+                  );
+                  final userName = user['name'] as String;
+
                   final success = await ref
                       .read(adminControllerProvider.notifier)
                       .assignClassManager(widget.classId, _selectedUserId!);
@@ -624,7 +631,7 @@ class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
                     AppSnackBar.show(
                       context,
                       message: success
-                          ? l10n.managerAdded('') // Placeholder
+                          ? l10n.managerAdded(userName)
                           : l10n.managerAddFailed,
                       type: success
                           ? AppSnackBarType.success

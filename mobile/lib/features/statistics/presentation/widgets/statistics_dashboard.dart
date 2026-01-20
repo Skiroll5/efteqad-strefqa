@@ -168,7 +168,13 @@ class _AttendanceLineChart extends ConsumerWidget {
 
     return statsAsync.when(
       data: (stats) {
-        if (stats.isEmpty) return Center(child: Text(AppLocalizations.of(context)?.notEnoughData ?? "Not enough data"));
+        if (stats.isEmpty) {
+          return Center(
+            child: Text(
+              AppLocalizations.of(context)?.notEnoughData ?? '',
+            ),
+          );
+        }
 
         final spots = stats.asMap().entries.map((e) {
           return FlSpot(e.key.toDouble(), e.value.attendanceRate);

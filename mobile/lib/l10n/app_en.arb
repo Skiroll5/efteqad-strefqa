@@ -281,6 +281,7 @@
   "preview": "Preview",
   "emptyMessage": "(Empty message)",
   "whatsappMessageHint": "Hello {firstname}, how are you?",
+  "whatsappDefaultTemplate": "Hi %firstname%,",
   "notificationSettingsDesc": "Manage push notifications",
   "notesNotification": "Notes",
   "notesNotificationDesc": "Get notified when a note is added",

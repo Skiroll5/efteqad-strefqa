@@ -234,6 +234,7 @@ class StudentDetailScreen extends ConsumerWidget {
                                           String message =
                                               customMessage ??
                                               _buildTemplateMessage(
+                                                context,
                                                 ref,
                                                 student,
                                               );
@@ -629,16 +630,20 @@ class StudentDetailScreen extends ConsumerWidget {
     }
   }
 
-  String _buildTemplateMessage(WidgetRef ref, Student student) {
+  String _buildTemplateMessage(BuildContext context, WidgetRef ref, Student student) {
     final user = ref.read(authControllerProvider).value;
     String initialMessage = user?.whatsappTemplate ?? '';
+    final l10n = AppLocalizations.of(context)!;
 
     if (initialMessage.isEmpty) {
-      initialMessage = "Hi {firstname},";
+      initialMessage = l10n.whatsappDefaultTemplate;
     }
 
     final firstName = student.name.split(' ').first;
-    initialMessage = initialMessage.replaceAll('{firstname}', firstName);
+    // Handle both old style {} and new style %% placeholders to be safe
+    initialMessage = initialMessage
+        .replaceAll('{firstname}', firstName)
+        .replaceAll('%firstname%', firstName);
     initialMessage = initialMessage.replaceAll('{name}', student.name);
 
     if (student.birthdate != null) {
@@ -666,7 +671,7 @@ class StudentDetailScreen extends ConsumerWidget {
     // Fetch customized message from backend
     final controller = ref.read(studentsControllerProvider);
     final customMessage = await controller.getStudentPreference(student.id);
-    final initialMessage = customMessage ?? _buildTemplateMessage(ref, student);
+    final initialMessage = customMessage ?? _buildTemplateMessage(context, ref, student);
 
     if (!context.mounted) return;
 

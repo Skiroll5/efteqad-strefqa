@@ -202,6 +202,7 @@
   "preview": "معاينة",
   "emptyMessage": "(رسالة فارغة)",
   "whatsappMessageHint": "أهلاً {firstname}، كيف حالك؟",
+  "whatsappDefaultTemplate": "أهلاً %firstname%،",
   "notificationSettingsDesc": "إدارة الإشعارات",
   "notesNotification": "الملاحظات",
   "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة",

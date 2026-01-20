@@ -125,30 +125,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     // Animated illustration container
                     Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isDark
-                              ? [
-                                  AppColors.goldPrimary.withValues(alpha: 0.15),
-                                  AppColors.goldPrimary.withValues(alpha: 0.05),
-                                ]
-                              : [
-                                  AppColors.goldPrimary.withValues(alpha: 0.1),
-                                  Colors.orange.shade50,
-                                ],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.school_rounded,
-                        size: 56,
-                        color: AppColors.goldPrimary,
-                      ),
-                    )
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDark
+                                  ? [
+                                      AppColors.goldPrimary.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      AppColors.goldPrimary.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                    ]
+                                  : [
+                                      AppColors.goldPrimary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      Colors.orange.shade50,
+                                    ],
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.school_rounded,
+                            size: 56,
+                            color: AppColors.goldPrimary,
+                          ),
+                        )
                         .animate()
                         .scale(duration: 500.ms, curve: Curves.easeOutBack)
                         .then()
@@ -183,42 +189,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(height: 32),
                     // Subtle hint card
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.grey.shade200,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 18,
-                            color: isDark ? Colors.white54 : Colors.grey.shade600,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
                           ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              l10n?.waitingForClassAssignment ??
-                                  'Waiting for class assignment',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: isDark ? Colors.white54 : Colors.grey.shade600,
-                              ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.grey.shade200,
                             ),
                           ),
-                        ],
-                      ),
-                    ).animate().fade(delay: 400.ms).scale(begin: const Offset(0.95, 0.95)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                size: 18,
+                                color: isDark
+                                    ? Colors.white54
+                                    : Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  l10n?.waitingForClassAssignment ??
+                                      'Waiting for class assignment',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .fade(delay: 400.ms)
+                        .scale(begin: const Offset(0.95, 0.95)),
                   ],
                 ),
               ),
@@ -349,10 +362,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
 
                   // Insights Section - show for ALL users with classes (not just admins)
-                  if (classes.isNotEmpty) ...[
-                    const _InsightsSection(),
-                    const SizedBox(height: 24),
-                  ],
+                  if (classes.isNotEmpty) ...[const _InsightsSection()],
 
                   if (classes.isNotEmpty || user?.role == 'ADMIN') ...[
                     Align(
@@ -546,9 +556,10 @@ class _InsightsSection extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const SizedBox(
+          loading: () => Container(
             height: 160,
-            child: Center(child: CircularProgressIndicator()),
+            margin: const EdgeInsets.only(bottom: 24),
+            child: const Center(child: CircularProgressIndicator()),
           ),
           error: (_, __) => const SizedBox.shrink(),
         ),
@@ -564,9 +575,10 @@ class _InsightsSection extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const SizedBox(
+          loading: () => Container(
             height: 200,
-            child: Center(child: CircularProgressIndicator()),
+            margin: const EdgeInsets.only(bottom: 24),
+            child: const Center(child: CircularProgressIndicator()),
           ),
           error: (_, __) => const SizedBox.shrink(),
         ),

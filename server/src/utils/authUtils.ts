@@ -12,7 +12,7 @@ export const getUserManagedClassIds = async (userId: string): Promise<string[]> 
         where: { userId, isDeleted: false },
         select: { classId: true }
     });
-    return managers.map(m => m.classId);
+    return managers.map((m: { classId: string }) => m.classId);
 };
 
 /**

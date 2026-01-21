@@ -37,7 +37,7 @@ const checkBirthdays = async (isMorning: boolean) => {
 
         // Collect all class IDs from all users to fetch students in one go
         const allClassIds = new Set<string>();
-        users.forEach(user => {
+        users.forEach((user: any) => {
             user.managedClasses.forEach((cm: any) => {
                 if (cm.classId) allClassIds.add(cm.classId);
             });

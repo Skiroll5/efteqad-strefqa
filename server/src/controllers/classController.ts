@@ -37,12 +37,12 @@ export const listClasses = async (req: Request, res: Response) => {
             orderBy: { name: 'asc' },
         });
 
-        const classesWithStats = classes.map((cls) => {
+        const classesWithStats = classes.map((cls: any) => {
             let totalRecords = 0;
             let presentRecords = 0;
 
-            cls.sessions.forEach((session) => {
-                session.records.forEach((record) => {
+            cls.sessions.forEach((session: any) => {
+                session.records.forEach((record: any) => {
                     totalRecords++;
                     if (record.status === 'PRESENT') {
                         presentRecords++;
@@ -60,8 +60,8 @@ export const listClasses = async (req: Request, res: Response) => {
                 ...classData,
                 attendancePercentage,
                 managerNames: cls.managers
-                    .map((m) => m.user.name)
-                    .filter((n) => n)
+                    .map((m: any) => m.user.name)
+                    .filter((n: any) => n)
                     .join(', ')
             };
         });
@@ -191,8 +191,8 @@ export const getClassManagers = async (req: Request, res: Response) => {
 
         // Flatten the response to return the users directly, filtering out null users
         const flattenedManagers = managers
-            .filter(m => m.user !== null)
-            .map(m => m.user);
+            .filter((m: any) => m.user !== null)
+            .map((m: any) => m.user);
 
         res.json(flattenedManagers);
     } catch (error) {

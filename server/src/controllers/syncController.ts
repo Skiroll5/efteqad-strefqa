@@ -29,6 +29,11 @@ const handlePush = async (req: AuthRequest, res: Response) => {
 
     if (!userId) return res.sendStatus(401);
 
+    // Normalize entityTypes to uppercase
+    changes.forEach((c: any) => {
+        if (c.entityType) c.entityType = c.entityType.toUpperCase();
+    });
+
     // Sort changes by dependency order: CLASS -> USER/STUDENT -> ATTENDANCE/NOTE
     // ATTENDANCE_SESSION should be processed before ATTENDANCE records that reference it
     const priority = {
@@ -37,6 +42,7 @@ const handlePush = async (req: AuthRequest, res: Response) => {
         'STUDENT': 3,
         'ATTENDANCE_SESSION': 4,
         'ATTENDANCE': 5,
+        'ATTENDANCE_RECORD': 5, // Handle alias
         'NOTE': 5
     };
 
@@ -45,6 +51,60 @@ const handlePush = async (req: AuthRequest, res: Response) => {
         const pB = priority[b.entityType as keyof typeof priority] || 99;
         return pA - pB;
     });
+
+    // Optimization: Pre-fetch data for authorization checks to avoid N+1 queries
+    let managedClassIds: Set<string> = new Set();
+    const studentClassMap: Map<string, string> = new Map();
+    const sessionClassMap: Map<string, string> = new Map();
+
+    if (userRole !== 'ADMIN') {
+        try {
+            // 1. Fetch all managed classes for the user
+            const classIds = await getUserManagedClassIds(userId);
+            managedClassIds = new Set(classIds);
+
+            // 2. Collect IDs for bulk fetching
+            const studentIdsToFetch = new Set<string>();
+            const sessionIdsToFetch = new Set<string>();
+
+            for (const change of changes) {
+                const { entityType, payload } = change;
+                if (!payload) continue;
+                // No need to deeply sanitize yet, just access fields safely
+                // But payload is JSON from body so fields are direct
+
+                if (entityType === 'NOTE' && payload.studentId) {
+                    studentIdsToFetch.add(payload.studentId);
+                } else if ((entityType === 'ATTENDANCE' || entityType === 'ATTENDANCE_RECORD') && payload.sessionId) {
+                    sessionIdsToFetch.add(payload.sessionId);
+                }
+            }
+
+            // 3. Bulk fetch relations
+            if (studentIdsToFetch.size > 0) {
+                const students = await prisma.student.findMany({
+                    where: { id: { in: Array.from(studentIdsToFetch) } },
+                    select: { id: true, classId: true }
+                });
+                students.forEach((s: { id: string, classId: string | null }) => {
+                    if (s.classId) studentClassMap.set(s.id, s.classId);
+                });
+            }
+
+            if (sessionIdsToFetch.size > 0) {
+                const sessions = await prisma.attendanceSession.findMany({
+                    where: { id: { in: Array.from(sessionIdsToFetch) } },
+                    select: { id: true, classId: true }
+                });
+                sessions.forEach((s: { id: string, classId: string }) => {
+                    if (s.classId) sessionClassMap.set(s.id, s.classId);
+                });
+            }
+        } catch (err) {
+            console.error('Error pre-fetching authorization data:', err);
+            return res.status(500).json({ message: 'Internal server error during synchronization' });
+        }
+    }
 
     const processedUuids: string[] = [];
     const failedUuids: { uuid: string; error: string }[] = [];
@@ -78,37 +138,51 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                 try {
                     if (entityType === 'CLASS' || entityType === 'USER' || entityType === 'CLASS_MANAGER') {
                         // Regular users generally shouldn't be pushing CLASS/USER changes
-                        // Exception: Maybe updating their own user profile?
-                        // For now, deny unless logic specifically allows (like class creation if we allowed it, but usually admin only)
                         failedUuids.push({ uuid, error: 'Forbidden: Insufficient permissions for this entity type' });
                         continue;
-                    } else if (entityType === 'student' || entityType === 'STUDENT') { // Normalize casing check
+                    } else if (entityType === 'STUDENT') {
                         if (sanitizedPayload.classId) {
-                            isAuthorized = await isClassManager(userId, sanitizedPayload.classId);
+                            isAuthorized = managedClassIds.has(sanitizedPayload.classId);
                         }
-                    } else if (entityType === 'attendance_session' || entityType === 'ATTENDANCE_SESSION') {
+                    } else if (entityType === 'ATTENDANCE_SESSION') {
                         if (sanitizedPayload.classId) {
-                            isAuthorized = await isClassManager(userId, sanitizedPayload.classId);
+                            isAuthorized = managedClassIds.has(sanitizedPayload.classId);
                         }
-                    } else if (entityType === 'note' || entityType === 'NOTE') {
+                    } else if (entityType === 'NOTE') {
                         if (sanitizedPayload.studentId) {
-                            const student = await prisma.student.findUnique({
-                                where: { id: sanitizedPayload.studentId },
-                                select: { classId: true }
-                            });
-                            if (student?.classId) {
-                                isAuthorized = await isClassManager(userId, student.classId);
+                            let classId = studentClassMap.get(sanitizedPayload.studentId);
+
+                            // Fallback: Check if student is being created/updated in this batch
+                            if (!classId) {
+                                const parentChange = changes.find((c: any) =>
+                                    c.entityType === 'STUDENT' && c.entityId === sanitizedPayload.studentId
+                                );
+                                if (parentChange && parentChange.payload?.classId) {
+                                    classId = parentChange.payload.classId;
+                                }
+                            }
+
+                            if (classId) {
+                                isAuthorized = managedClassIds.has(classId);
                             }
                         }
-                    } else if (entityType === 'attendance' || entityType === 'ATTENDANCE' || entityType === 'attendance_record') { // Normalize
+                    } else if (entityType === 'ATTENDANCE' || entityType === 'ATTENDANCE_RECORD') {
                         // For attendance, we need to check the session -> class
                         if (sanitizedPayload.sessionId) {
-                            const session = await prisma.attendanceSession.findUnique({
-                                where: { id: sanitizedPayload.sessionId },
-                                select: { classId: true }
-                            });
-                            if (session?.classId) {
-                                isAuthorized = await isClassManager(userId, session.classId);
+                            let classId = sessionClassMap.get(sanitizedPayload.sessionId);
+
+                            // Fallback: Check if session is being created/updated in this batch
+                            if (!classId) {
+                                const parentChange = changes.find((c: any) =>
+                                    c.entityType === 'ATTENDANCE_SESSION' && c.entityId === sanitizedPayload.sessionId
+                                );
+                                if (parentChange && parentChange.payload?.classId) {
+                                    classId = parentChange.payload.classId;
+                                }
+                            }
+
+                            if (classId) {
+                                isAuthorized = managedClassIds.has(classId);
                             }
                         }
                     }
@@ -321,7 +395,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
     });
 
     // De-normalize managerNames for sync
-    const classes = classesRaw.map(cls => {
+    const classes = classesRaw.map((cls: any) => {
         const { managers, ...classData } = cls;
         return {
             ...classData,
@@ -365,7 +439,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
             where: { classId: { in: managedClassIds } },
             select: { userId: true }
         });
-        const allowedUserIds = managersOfMyClasses.map(m => m.userId);
+        const allowedUserIds = managersOfMyClasses.map((m: { userId: string }) => m.userId);
         if (userId) allowedUserIds.push(userId); // Ensure self is included
 
         userWhere.id = { in: allowedUserIds };
@@ -412,6 +486,7 @@ const mapEntityToModel = (type: string): string | null => {
         case 'STUDENT': return 'student';
         case 'ATTENDANCE_SESSION': return 'attendanceSession';
         case 'ATTENDANCE': return 'attendanceRecord';
+        case 'ATTENDANCE_RECORD': return 'attendanceRecord';
         case 'NOTE': return 'note';
         case 'CLASS': return 'class';
         case 'USER': return 'user';

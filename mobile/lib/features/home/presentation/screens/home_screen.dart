@@ -111,7 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Future.microtask(() {
               ref.read(selectedClassIdProvider.notifier).state =
                   classes.first.id;
-              context.go('/students');
+              if (context.mounted) context.go('/students');
             });
             // Return blank scaffold (not spinner) for seamless transition
             return const SizedBox.shrink();

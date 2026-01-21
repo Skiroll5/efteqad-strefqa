@@ -37,8 +37,9 @@ class MainApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'St. Refqa Efteqad',
-      scaffoldMessengerKey:
-          ref.read(uiNotificationServiceProvider).messengerKey,
+      scaffoldMessengerKey: ref
+          .read(uiNotificationServiceProvider)
+          .messengerKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,

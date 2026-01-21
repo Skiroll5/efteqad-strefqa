@@ -12,6 +12,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Wadeea';
 
   @override
+  String get churchName =>
+      'Church of Martyr Rafqa and Her Children in Al-Qanater Al-Khayriya';
+
+  @override
   String get login => 'Login';
 
   @override
@@ -130,6 +134,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visitationNotes => 'Notes';
+
+  @override
+  String get whatsappDefaultTemplate => 'Hi %firstname%,';
 
   @override
   String get noNotes => 'No notes yet.';

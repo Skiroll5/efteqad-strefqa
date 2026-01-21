@@ -487,8 +487,9 @@ class _UsersSection extends ConsumerWidget {
                                     ],
                                   ),
                                 );
-                                if (confirmed != true || !context.mounted)
+                                if (confirmed != true || !context.mounted) {
                                   return;
+                                }
                                 final success = await controller
                                     .abortActivation(user['id']);
                                 if (context.mounted) {

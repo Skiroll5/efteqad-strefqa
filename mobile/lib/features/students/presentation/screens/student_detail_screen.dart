@@ -231,6 +231,8 @@ class StudentDetailScreen extends ConsumerWidget {
                                                 ).future,
                                               );
 
+                                          if (!context.mounted) return;
+
                                           String message =
                                               customMessage ??
                                               _buildTemplateMessage(
@@ -671,9 +673,10 @@ class StudentDetailScreen extends ConsumerWidget {
     // Fetch customized message from backend
     final controller = ref.read(studentsControllerProvider);
     final customMessage = await controller.getStudentPreference(student.id);
-    final initialMessage = customMessage ?? _buildTemplateMessage(context, ref, student);
 
     if (!context.mounted) return;
+
+    final initialMessage = customMessage ?? _buildTemplateMessage(context, ref, student);
 
     final messageController = TextEditingController(text: initialMessage);
     final theme = Theme.of(context);

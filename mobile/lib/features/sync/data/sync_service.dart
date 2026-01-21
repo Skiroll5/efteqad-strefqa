@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,7 +65,7 @@ class SyncService {
   }
 
   void _initSocket() {
-    print('SyncService: Initializing Socket.io connection to $_baseUrl');
+    debugPrint('SyncService: Initializing Socket.io connection to $_baseUrl');
     _socket = io.io(
       _baseUrl,
       io.OptionBuilder()
@@ -78,7 +79,7 @@ class SyncService {
     );
 
     _socket?.onConnect((_) {
-      print('SyncService: Socket Connected');
+      debugPrint('SyncService: Socket Connected');
       // Pull changes on reconnect to catch up
       if (!_isSyncing) {
         pullChanges().catchError((_) {});
@@ -86,32 +87,32 @@ class SyncService {
     });
 
     _socket?.onDisconnect((_) {
-      print('SyncService: Socket Disconnected');
+      debugPrint('SyncService: Socket Disconnected');
     });
 
     _socket?.on('connect_error', (data) {
-      print('SyncService: Connection Error: $data');
+      debugPrint('SyncService: Connection Error: $data');
     });
 
     _socket?.on('sync_update', (_) async {
-      print('SyncService: Received sync_update event from server');
+      debugPrint('SyncService: Received sync_update event from server');
       if (!_isSyncing) {
         try {
           await pullChanges();
         } catch (e) {
-          print('SyncService: Automatic pull failed: $e');
+          debugPrint('SyncService: Automatic pull failed: $e');
         }
       }
     });
 
     // Listen for user disabled event - auto logout
     _socket?.on('user_disabled', (data) async {
-      print('SyncService: Received user_disabled: $data');
+      debugPrint('SyncService: Received user_disabled: $data');
       if (data != null && data['userId'] != null) {
         final currentUser = _ref.read(authControllerProvider).asData?.value;
         if (currentUser != null && currentUser.id == data['userId']) {
           // User was disabled, logout immediately
-          print('SyncService: Logging out disabled user');
+          debugPrint('SyncService: Logging out disabled user');
           await _ref.read(authControllerProvider.notifier).logout();
         }
       }
@@ -119,11 +120,11 @@ class SyncService {
 
     // Listen for user deleted event - auto logout
     _socket?.on('user_deleted', (data) async {
-      print('SyncService: Received user_deleted: $data');
+      debugPrint('SyncService: Received user_deleted: $data');
       if (data != null && data['userId'] != null) {
         final currentUser = _ref.read(authControllerProvider).asData?.value;
         if (currentUser != null && currentUser.id == data['userId']) {
-          print('SyncService: Logging out deleted user');
+          debugPrint('SyncService: Logging out deleted user');
           await _ref.read(authControllerProvider.notifier).logout();
         }
       }
@@ -131,7 +132,7 @@ class SyncService {
 
     // Listen for user status changes to refresh providers
     _socket?.on('user_status_changed', (data) async {
-      print('SyncService: Received user_status_changed: $data');
+      debugPrint('SyncService: Received user_status_changed: $data');
       if (!_isSyncing) {
         try {
           await pullChanges();
@@ -435,12 +436,12 @@ class SyncService {
           }
         }
         if (changes['classes'] != null) {
-          print('SyncService: Received ${(changes['classes'] as List).length} classes to sync');
+          debugPrint('SyncService: Received ${(changes['classes'] as List).length} classes to sync');
           for (var c in changes['classes']) {
             await _upsertClassFromSync(c);
           }
         } else {
-          print('SyncService: No classes in sync response');
+          debugPrint('SyncService: No classes in sync response');
         }
         if (changes['attendance_sessions'] != null) {
           for (var s in changes['attendance_sessions']) {
@@ -547,7 +548,7 @@ class SyncService {
 
   Future<void> _upsertClassFromSync(Map<String, dynamic> data) async {
     // DEBUG: Log incoming class data
-    print('SyncService _upsertClassFromSync: id=${data['id']}, name=${data['name']}, managerNames=${data['managerNames']}');
+    debugPrint('SyncService _upsertClassFromSync: id=${data['id']}, name=${data['name']}, managerNames=${data['managerNames']}');
     
     final entity = ClassesCompanion(
       id: Value(data['id']),

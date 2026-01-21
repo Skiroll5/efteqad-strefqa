@@ -95,8 +95,8 @@ class _UserStatusToggleState extends State<UserStatusToggle> {
             boxShadow: [
               BoxShadow(
                 color: _optimisticValue
-                    ? Colors.green.withOpacity(0.3)
-                    : Colors.grey.withOpacity(0.2),
+                    ? Colors.green.withValues(alpha: 0.3)
+                    : Colors.grey.withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -256,13 +256,13 @@ class _UserStatusChipState extends State<UserStatusChip> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: _optimisticValue
-                ? Colors.green.withOpacity(isDark ? 0.3 : 0.15)
-                : Colors.grey.withOpacity(isDark ? 0.3 : 0.15),
+                ? Colors.green.withValues(alpha: isDark ? 0.3 : 0.15)
+                : Colors.grey.withValues(alpha: isDark ? 0.3 : 0.15),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _optimisticValue
-                  ? Colors.green.withOpacity(0.5)
-                  : Colors.grey.withOpacity(0.3),
+                  ? Colors.green.withValues(alpha: 0.5)
+                  : Colors.grey.withValues(alpha: 0.3),
               width: 1,
             ),
           ),

@@ -554,25 +554,29 @@ class _AddManagerDialogState extends ConsumerState<_AddManagerDialog> {
       classManagersProvider(widget.classId),
     );
 
+    // Compute eligible users here so it's available for both content and actions
+    final allUsers = allUsersAsync.valueOrNull ?? [];
+    final managers = currentManagersAsync.valueOrNull ?? [];
+    final managerIds = managers.map((m) => m['id']).toSet();
+
+    // Filter out admins, existing managers, non-activated, and denied users
+    final eligibleUsers = allUsers
+        .where(
+          (u) =>
+              !managerIds.contains(u['id']) &&
+              u['role'] != 'ADMIN' &&
+              u['isActive'] == true &&
+              u['activationDenied'] != true &&
+              u['isDeleted'] == false,
+        )
+        .toList();
+
     return AlertDialog(
       title: Text(l10n.addManager),
       content: allUsersAsync.when(
         data: (allUsers) {
           return currentManagersAsync.when(
             data: (managers) {
-              final managerIds = managers.map((m) => m['id']).toSet();
-              // Filter out admins, existing managers, non-activated, and denied users
-              final eligibleUsers = allUsers
-                  .where(
-                    (u) =>
-                        !managerIds.contains(u['id']) &&
-                        u['role'] != 'ADMIN' &&
-                        u['isActive'] == true &&
-                        u['activationDenied'] != true &&
-                        u['isDeleted'] == false,
-                  )
-                  .toList();
-
               if (eligibleUsers.isEmpty) {
                 return Text(l10n.allUsersAreManagers);
               }

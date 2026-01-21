@@ -1,5 +1,6 @@
 {
   "appTitle": "وديعة",
+  "churchName": "كنيسة الشهيدة رفقة وأولادها بالقناطر الخيرية",
   "login": "تسجيل الدخول",
   "email": "البريد الإلكتروني",
   "password": "كلمة المرور",
@@ -43,6 +44,7 @@
   "address": "العنوان",
   "birthdate": "تاريخ الميلاد",
   "visitationNotes": "الملاحظات",
+  "whatsappDefaultTemplate": "أهلاً %firstname%، هذه رسالة من مدير الفصل.",
   "noNotes": "لا توجد ملاحظات بعد.",
   "addNote": "إضافة ملاحظة",
   "age": "العمر",
@@ -391,5 +393,15 @@
   "enable": "تفعيل",
   "disable": "تعطيل",
   "noStudentsYet": "لا يوجد طلاب بعد",
-  "tapAddStudentsAbove": "اضغط على زر + أعلاه لإضافة طلاب"
+  "tapAddStudentsAbove": "اضغط على زر + أعلاه لإضافة طلاب",
+  "createAccount": "إنشاء حساب",
+  "fullName": "الاسم بالكامل",
+  "fullNameHint": "أدخل اسمك بالكامل",
+  "emailHint": "أدخل بريدك الإلكتروني",
+  "passwordHint": "أدخل كلمة المرور",
+  "pleaseEnterEmail": "يرجى إدخال البريد الإلكتروني",
+  "pleaseEnterValidEmail": "يرجى إدخال بريد إلكتروني صحيح",
+  "pleaseEnterPassword": "يرجى إدخال كلمة المرور",
+  "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+  "alreadyHaveAccount": "لديك حساب بالفعل؟"
 }

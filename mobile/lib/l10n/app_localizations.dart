@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Wadeea'**
   String get appTitle;
 
+  /// No description provided for @churchName.
+  ///
+  /// In en, this message translates to:
+  /// **'Church of Martyr Rafqa and Her Children in Al-Qanater Al-Khayriya'**
+  String get churchName;
+
   /// No description provided for @login.
   ///
   /// In en, this message translates to:
@@ -331,6 +337,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get visitationNotes;
+
+  /// No description provided for @whatsappDefaultTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi %firstname%,'**
+  String get whatsappDefaultTemplate;
 
   /// No description provided for @noNotes.
   ///

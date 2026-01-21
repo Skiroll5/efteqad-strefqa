@@ -195,9 +195,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       size: 64,
                       color: Theme.of(context).primaryColor,
                     )
-                    .animate()
-                    .fade(duration: 500.ms)
-                    .scale(delay: 200.ms, curve: Curves.easeOutBack),
+                        .animate()
+                        .fade(duration: 500.ms)
+                        .scale(delay: 200.ms, curve: Curves.easeOutBack),
 
                 const SizedBox(height: 16),
 
@@ -230,93 +230,92 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        // Error message display
-                        if (_errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.redPrimary.withValues(
-                                alpha: 0.1,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.redPrimary.withValues(
-                                  alpha: 0.3,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: AppColors.redPrimary,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _errorMessage!,
-                                    style: TextStyle(
-                                      color: AppColors.redPrimary,
-                                      fontSize: 13,
+                                 // Error message display
+                                if (_errorMessage != null) ...[
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.redPrimary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppColors.redPrimary.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          color: AppColors.redPrimary,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _errorMessage!,
+                                            style: TextStyle(
+                                              color: AppColors.redPrimary,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ).animate().fade().slideY(begin: -0.2),
+                                  const SizedBox(height: 16),
+                                ],
+                                PremiumTextField(
+                                  controller: _nameController,
+                                  label: l10n.name,
+                                  prefixIcon: Icons.person_outline,
+                                  keyboardType: TextInputType.name,
+                                  validator: (value) =>
+                                      value!.isEmpty ? l10n.pleaseEnterName : null,
+                                  delay: 0.3,
+                                ),
+                                const SizedBox(height: 16),
+                                PremiumTextField(
+                                  controller: _emailController,
+                                  label: l10n.email,
+                                  prefixIcon: Icons.email_outlined,
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: (value) =>
+                                      value!.isEmpty ? l10n.pleaseEnterName : null,
+                                  delay: 0.4,
+                                ),
+                                const SizedBox(height: 16),
+                                PremiumTextField(
+                                  controller: _passwordController,
+                                  label: l10n.password,
+                                  prefixIcon: Icons.lock_outline,
+                                  isPassword: true,
+                                  validator: (value) =>
+                                      value!.isEmpty ? l10n.pleaseEnterName : null,
+                                  delay: 0.5,
+                                ),
+                                const SizedBox(height: 32),
+                                PremiumButton(
+                                  label: l10n.register,
+                                  isFullWidth: true,
+                                  isLoading: _isLoading,
+                                  delay: 0.6,
+                                  onPressed: _handleRegister,
+                                ),
+                                const SizedBox(height: 16),
+                                PremiumButton(
+                                  label: l10n.cancel,
+                                  variant: ButtonVariant.outline,
+                                  isFullWidth: true,
+                                  delay: 0.7,
+                                  onPressed: () => context.pop(),
                                 ),
                               ],
                             ),
-                          ).animate().fade().slideY(begin: -0.2),
-                          const SizedBox(height: 16),
-                        ],
-
-                        PremiumTextField(
-                          controller: _nameController,
-                          label: l10n.name,
-                          prefixIcon: Icons.person_outline,
-                          keyboardType: TextInputType.name,
-                          validator: (value) =>
-                              value!.isEmpty ? l10n.pleaseEnterName : null,
-                          delay: 0.3,
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        PremiumTextField(
-                          controller: _emailController,
-                          label: l10n.email,
-                          prefixIcon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) =>
-                              value!.isEmpty ? l10n.pleaseEnterName : null,
-                          delay: 0.4,
-                        ),
-                        const SizedBox(height: 16),
-                        PremiumTextField(
-                          controller: _passwordController,
-                          label: l10n.password,
-                          prefixIcon: Icons.lock_outline,
-                          isPassword: true,
-                          validator: (value) =>
-                              value!.isEmpty ? l10n.pleaseEnterName : null,
-                          delay: 0.5,
-                        ),
-                        const SizedBox(height: 32),
-                        PremiumButton(
-                          label: l10n.register,
-                          isFullWidth: true,
-                          isLoading: _isLoading,
-                          delay: 0.6,
-                          onPressed: _handleRegister,
-                        ),
-                        const SizedBox(height: 16),
-                        PremiumButton(
-                          label: l10n.cancel,
-                          variant: ButtonVariant.outline,
-                          isFullWidth: true,
-                          delay: 0.7,
-                          onPressed: () => context.pop(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

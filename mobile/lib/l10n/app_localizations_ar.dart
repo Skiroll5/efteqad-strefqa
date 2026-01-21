@@ -12,6 +12,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTitle => 'وديعة';
 
   @override
+  String get churchName => 'كنيسة الشهيدة رفقة وأولادها بالقناطر الخيرية';
+
+  @override
   String get login => 'تسجيل الدخول';
 
   @override
@@ -128,6 +131,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get visitationNotes => 'الملاحظات';
+
+  @override
+  String get whatsappDefaultTemplate => 'أهلاً %firstname%،';
 
   @override
   String get noNotes => 'لا توجد ملاحظات بعد.';

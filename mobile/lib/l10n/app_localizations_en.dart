@@ -1062,4 +1062,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tapAddStudentsAbove => 'Tap the + button above to add students';
+
+  @override
+  String get forgotPassword => 'Forgot Password?';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account?';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
 }

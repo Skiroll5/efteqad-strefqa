@@ -1052,4 +1052,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tapAddStudentsAbove => 'اضغط على زر + أعلاه لإضافة طلاب';
+
+  @override
+  String get forgotPassword => 'هل نسيت كلمة السر؟';
+
+  @override
+  String get dontHaveAccount => 'ليس لديك حساب؟';
+
+  @override
+  String get alreadyHaveAccount => 'لديك حساب بالفعل؟';
 }

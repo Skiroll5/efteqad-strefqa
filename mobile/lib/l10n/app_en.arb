@@ -512,5 +512,8 @@
   "enable": "Enable",
   "disable": "Disable",
   "noStudentsYet": "No students yet",
-  "tapAddStudentsAbove": "Tap the + button above to add students"
+  "tapAddStudentsAbove": "Tap the + button above to add students",
+  "forgotPassword": "Forgot Password?",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?"
 }

@@ -102,10 +102,26 @@ class _PremiumButtonState extends State<PremiumButton> {
             curve: Curves.easeInOut,
             child: Container(
               width: widget.isFullWidth ? double.infinity : null,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
-                color: widget.onPressed == null ? Colors.grey : backgroundColor,
-                borderRadius: BorderRadius.circular(12),
+                color: widget.onPressed == null
+                    ? Colors.grey
+                    : (widget.variant == ButtonVariant.outline
+                          ? Colors.transparent
+                          : null),
+                gradient:
+                    widget.onPressed != null &&
+                        widget.variant == ButtonVariant.primary
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          backgroundColor,
+                          backgroundColor.withValues(alpha: 0.8),
+                        ],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(16),
                 border: border,
                 boxShadow:
                     widget.variant == ButtonVariant.outline ||
@@ -113,9 +129,9 @@ class _PremiumButtonState extends State<PremiumButton> {
                     ? []
                     : [
                         BoxShadow(
-                          color: backgroundColor.withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          color: backgroundColor.withValues(alpha: 0.25),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
               ),

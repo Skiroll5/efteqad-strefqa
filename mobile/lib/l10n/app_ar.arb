@@ -404,5 +404,7 @@
   "pleaseEnterValidEmail": "يرجى إدخال بريد إلكتروني صحيح",
   "pleaseEnterPassword": "يرجى إدخال كلمة المرور",
   "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
-  "alreadyHaveAccount": "لديك حساب بالفعل؟"
+  "alreadyHaveAccount": "لديك حساب بالفعل؟",
+  "forgotPassword": "هل نسيت كلمة السر؟",
+  "dontHaveAccount": "ليس لديك حساب؟"
 }

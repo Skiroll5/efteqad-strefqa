@@ -38,27 +38,40 @@ class PremiumCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     Widget cardContent = Container(
-      padding: padding ?? const EdgeInsets.all(16),
+      padding: padding ?? const EdgeInsets.all(24), // Increased default padding
       decoration: BoxDecoration(
         color:
             color ?? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24), // More rounded corners
         border:
             border ??
             (isGlass
-                ? Border.all(color: Colors.white.withValues(alpha: 0.2))
+                ? null
                 : Border.all(
                     color: isDark
                         ? Colors.white10
                         : Colors.black.withValues(alpha: 0.05),
                   )),
         boxShadow: isGlass
-            ? []
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                  blurRadius: 30,
+                  offset: const Offset(0, 15),
+                  spreadRadius: -5,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ]
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -2,
                 ),
               ],
       ),
@@ -67,11 +80,25 @@ class PremiumCard extends StatelessWidget {
 
     if (isGlass) {
       cardContent = ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
-            color: (color ?? theme.colorScheme.surface).withValues(alpha: 0.7),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.5),
+                width: 0.5,
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: isDark ? 0.1 : 0.8),
+                  Colors.white.withValues(alpha: isDark ? 0.05 : 0.5),
+                ],
+              ),
+            ),
             child: cardContent,
           ),
         ),
@@ -100,7 +127,7 @@ class PremiumCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
             child: animatedCard,
           ),
         ),

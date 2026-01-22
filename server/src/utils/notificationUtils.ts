@@ -1,8 +1,7 @@
 
-import { PrismaClient } from '@prisma/client';
+import prisma from '../prisma';
 import { sendDataNotification } from '../services/notificationService';
-
-const prisma = new PrismaClient();
+import { NotificationPreference } from '@prisma/client';
 
 // Notification Types mapped to preference fields
 export type NotificationType =
@@ -41,9 +40,9 @@ export const notifyClassManagers = async (
             if (user.isDeleted || !user.isActive) continue;
 
             // Check preference
-            // @ts-ignore
             const prefs = user.notificationPreference;
-            if (prefs && !prefs[type]) continue; // User disabled this type
+            // Explicitly cast or key check. type is NotificationType, which matches keys.
+            if (prefs && !(prefs as any)[type]) continue; // User disabled this type
 
             tokens.push(user.fcmToken);
         }
@@ -61,9 +60,9 @@ export const notifyClassManagers = async (
             if (managers.some((m: any) => m.userId === admin.id)) continue;
 
             if (!admin.fcmToken) continue;
-            // @ts-ignore
+
             const prefs = admin.notificationPreference;
-            if (prefs && !prefs[type]) continue;
+            if (prefs && !(prefs as any)[type]) continue;
 
             tokens.push(admin.fcmToken);
         }
@@ -96,9 +95,8 @@ export const notifyAdmins = async (
             if (admin.id === excludeUserId) continue;
             if (!admin.fcmToken) continue;
 
-            // @ts-ignore
             const prefs = admin.notificationPreference;
-            if (prefs && !prefs[type]) continue;
+            if (prefs && !(prefs as any)[type]) continue;
 
             tokens.push(admin.fcmToken);
         }

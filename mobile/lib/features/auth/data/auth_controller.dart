@@ -100,6 +100,24 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
+  Future<void> confirmEmail(String token) async {
+    try {
+      final repo = _ref.read(authRepositoryProvider);
+      await repo.confirmEmail(token);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> resendConfirmation(String email) async {
+    try {
+      final repo = _ref.read(authRepositoryProvider);
+      await repo.resendConfirmation(email);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> resetPassword(String token, String newPassword) async {
     try {
       final repo = _ref.read(authRepositoryProvider);

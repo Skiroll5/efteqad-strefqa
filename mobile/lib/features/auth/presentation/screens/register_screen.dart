@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/components/premium_button.dart';
 import '../../../../core/components/premium_text_field.dart';
+import '../../../../core/components/premium_back_button.dart';
 import '../../data/auth_controller.dart';
 import '../../data/auth_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
@@ -410,27 +411,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
           ),
-          Positioned(
-            top: 10,
-            left: 10,
-            child: SafeArea(
-              child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? Icons.arrow_forward_ios_rounded
-                      : Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                ),
-                color: isDark ? Colors.white70 : Colors.black54,
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(
-                    alpha: isDark ? 0.05 : 0.8,
-                  ),
-                  padding: const EdgeInsets.all(12),
-                ),
-              ),
-            ).animate().fade().slideX(begin: -0.2),
+          const Positioned(
+            top: 20,
+            left: 20,
+            child: PremiumBackButton(isGlass: true),
           ),
         ],
       ),

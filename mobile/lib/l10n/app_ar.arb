@@ -432,5 +432,12 @@
   "pleaseEnterEmail": "يرجى إدخال البريد الإلكتروني",
   "pleaseEnterValidEmail": "يرجى إدخال بريد إلكتروني صحيح",
   "pleaseEnterPassword": "يرجى إدخال كلمة المرور",
-  "search": "بحث"
+  "search": "بحث",
+  "pleaseEnterOtp": "يرجى إدخال كود التحقق",
+  "otpCode": "كود التحقق",
+  "confirm": "تأكيد",
+  "emailConfirmedSuccess": "تم تأكيد البريد الإلكتروني بنجاح!",
+  "resetPassword": "إعادة تعيين كلمة المرور",
+  "enterOtpAndNewPassword": "أدخل كود التحقق المرسل إليك وكلمة المرور الجديدة.",
+  "newPassword": "كلمة المرور الجديدة"
 }

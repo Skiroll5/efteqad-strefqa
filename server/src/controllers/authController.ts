@@ -4,11 +4,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient, Role } from '@prisma/client';
 import { notifyAdmins } from '../utils/notificationUtils';
-import crypto from 'crypto';
 import { sendConfirmationEmail, sendPasswordResetEmail, sendPasswordResetSms } from '../services/mailerService';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+
+// Helper to generate 6 digit OTP
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -44,8 +46,8 @@ export const register = async (req: Request, res: Response) => {
         const finalRole = userCount === 0 ? 'ADMIN' : userRole;
         const isFirstAdmin = finalRole === 'ADMIN' && userCount === 0;
 
-        // Generate email confirmation token
-        const confirmationToken = crypto.randomBytes(32).toString('hex');
+        // Generate email confirmation token (OTP)
+        const confirmationToken = generateOTP();
 
         // If existing deleted user, update instead of create
         let user;
@@ -144,19 +146,18 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' });
         }
 
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' });
+        }
+
         // Check if email is confirmed (only if signing in with email or if user has email)
-        // Usually, we always require email confirmation if it's not confirmed yet.
         if (!user.isEmailConfirmed) {
             return res.status(403).json({
                 message: 'Please confirm your email before logging in',
                 code: 'EMAIL_NOT_CONFIRMED'
             });
-        }
-
-        // Check password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' });
         }
 
         // Check if account is disabled by admin
@@ -196,11 +197,13 @@ export const login = async (req: Request, res: Response) => {
 
 export const confirmEmail = async (req: Request, res: Response) => {
     try {
-        const { token } = req.query;
+        // Support both query (link) and body (OTP)
+        const token = (req.query.token as string) || req.body.token;
+
         if (!token) return res.status(400).json({ message: 'Token required' });
 
         const user = await prisma.user.findFirst({
-            where: { confirmationToken: token as string, isDeleted: false }
+            where: { confirmationToken: token, isDeleted: false }
         });
 
         if (!user) {
@@ -223,6 +226,34 @@ export const confirmEmail = async (req: Request, res: Response) => {
     }
 };
 
+export const resendConfirmation = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email required' });
+
+        const user = await prisma.user.findFirst({
+            where: { email, isDeleted: false }
+        });
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (user.isEmailConfirmed) return res.status(400).json({ message: 'Email already confirmed' });
+
+        const confirmationToken = generateOTP();
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { confirmationToken }
+        });
+
+        sendConfirmationEmail(user.email, confirmationToken).catch(console.error);
+
+        res.json({ message: 'Confirmation code sent' });
+    } catch (error) {
+        console.error('Resend error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
         const { identifier } = req.body; // email or phone
@@ -239,12 +270,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            // Security: don't reveal if user exists, but here we can be helpful or silent.
-            // Following common practice, we return success even if user not found.
-            return res.json({ message: 'If an account exists, a reset link has been sent' });
+            return res.json({ message: 'If an account exists, a reset code has been sent' });
         }
 
-        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetToken = generateOTP();
         const expires = new Date(Date.now() + 3600000); // 1 hour
 
         await prisma.user.update({
@@ -258,15 +287,13 @@ export const forgotPassword = async (req: Request, res: Response) => {
         if (user.email === identifier) {
             await sendPasswordResetEmail(user.email, resetToken);
         } else if (user.phone === identifier) {
-            // For phone, maybe send a shorter OTP, but for now use the same token
             await sendPasswordResetSms(user.phone!, resetToken);
         } else {
-            // If user entered phone but we found by email or vice versa, prefer email if available or what they entered
             if (user.email) await sendPasswordResetEmail(user.email, resetToken);
             else if (user.phone) await sendPasswordResetSms(user.phone, resetToken);
         }
 
-        res.json({ message: 'If an account exists, a reset link has been sent' });
+        res.json({ message: 'If an account exists, a reset code has been sent' });
     } catch (error) {
         console.error('Forgot password error:', error);
         res.status(500).json({ message: 'Server error' });

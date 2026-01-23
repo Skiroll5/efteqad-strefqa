@@ -541,5 +541,12 @@
   "pleaseEnterEmail": "Please enter your email",
   "pleaseEnterValidEmail": "Please enter a valid email",
   "pleaseEnterPassword": "Please enter your password",
-  "search": "Search"
+  "search": "Search",
+  "pleaseEnterOtp": "Please enter the OTP code",
+  "otpCode": "OTP Code",
+  "confirm": "Confirm",
+  "emailConfirmedSuccess": "Email confirmed successfully!",
+  "resetPassword": "Reset Password",
+  "enterOtpAndNewPassword": "Enter the OTP code sent to you and your new password.",
+  "newPassword": "New Password"
 }

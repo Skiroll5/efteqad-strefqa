@@ -20,6 +20,7 @@ import '../../features/admin/presentation/screens/admin_panel_screen.dart';
 import '../../features/admin/presentation/screens/user_management_screen.dart';
 import '../../features/admin/presentation/screens/class_management_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/email_confirmation_pending_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -35,6 +36,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.uri.toString() == '/login';
       final isRegistering = state.uri.toString() == '/register';
       final isForgotPassword = state.uri.toString() == '/forgot-password';
+      final isResetPassword = state.uri.toString().startsWith(
+        '/reset-password',
+      );
       final isConfirmPending = state.uri.toString() == '/confirm-email-pending';
       final isSplash = state.uri.toString() == '/splash';
 
@@ -45,6 +49,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           !isLoggingIn &&
           !isRegistering &&
           !isForgotPassword &&
+          !isResetPassword &&
           !isConfirmPending) {
         return '/login';
       }
@@ -158,6 +163,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/pending-activation',
         builder: (context, state) => const PendingActivationScreen(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
       ),
       GoRoute(
         path: '/forgot-password',

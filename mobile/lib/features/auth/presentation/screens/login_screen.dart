@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/components/premium_button.dart';
 import '../../../../core/components/premium_text_field.dart';
+import '../../../../core/components/app_snackbar.dart';
 import '../../data/auth_controller.dart';
 import '../../data/auth_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
@@ -25,6 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
   bool _isLoading = false;
+  bool _showResendButton = false;
 
   @override
   void dispose() {
@@ -51,6 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _showResendButton = false;
     });
 
     try {
@@ -68,6 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final l10n = AppLocalizations.of(context)!;
       String message;
+      bool canResend = false;
 
       if (e is AuthError) {
         switch (e.code) {
@@ -85,6 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             break;
           case 'EMAIL_NOT_CONFIRMED':
             message = l10n.emailNotConfirmed;
+            canResend = true;
             break;
           default:
             message = l10n.errorGeneric(e.message);
@@ -95,6 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       setState(() {
         _errorMessage = message;
+        _showResendButton = canResend;
       });
     } finally {
       if (mounted) {
@@ -102,6 +108,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _handleResendConfirmation() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _isLoading = true);
+
+    try {
+      await ref
+          .read(authControllerProvider.notifier)
+          .resendConfirmation(_emailController.text.trim());
+
+      if (!mounted) return;
+      AppSnackBar.show(
+        context,
+        message: l10n.emailResent,
+        type: AppSnackBarType.success,
+      );
+      // Navigate to confirmation screen where they can enter OTP
+      context.push('/confirm-email-pending');
+    } catch (e) {
+      if (!mounted) return;
+      AppSnackBar.show(
+        context,
+        message: e is AuthError ? e.message : e.toString(),
+        type: AppSnackBarType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -194,23 +229,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: AppColors.redPrimary,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
                                     color: AppColors.redPrimary,
-                                    fontSize: 13,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: const TextStyle(
+                                        color: AppColors.redPrimary,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_showResendButton) ...[
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton(
+                                    onPressed: _handleResendConfirmation,
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.redPrimary,
+                                      side: const BorderSide(
+                                        color: AppColors.redPrimary,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                    child: Text(l10n.resendEmail),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ).animate().fade().slideY(begin: -0.2),

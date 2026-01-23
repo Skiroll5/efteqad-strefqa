@@ -89,6 +89,31 @@ class AuthRepository {
     }
   }
 
+  Future<void> confirmEmail(String token) async {
+    try {
+      await _dio.post('$_baseUrl/auth/confirm-email', data: {'token': token});
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final message = data?['message'] ?? 'Check failed';
+      final code = data?['code'] ?? 'UNKNOWN';
+      throw AuthError(message, code);
+    }
+  }
+
+  Future<void> resendConfirmation(String email) async {
+    try {
+      await _dio.post(
+        '$_baseUrl/auth/resend-confirmation',
+        data: {'email': email},
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final message = data?['message'] ?? 'Resend failed';
+      final code = data?['code'] ?? 'UNKNOWN';
+      throw AuthError(message, code);
+    }
+  }
+
   Future<Map<String, dynamic>> updateProfile({
     String? name,
     String? whatsappTemplate,

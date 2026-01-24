@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get edit;
 
+  /// No description provided for @serverTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Server connection timed out. Please check your internet or try again.'**
+  String get serverTimeout;
+
   /// No description provided for @rename.
   ///
   /// In en, this message translates to:

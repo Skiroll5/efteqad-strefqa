@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -71,8 +72,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Check specific conditions for UI logic (like showing resend button)
       bool canResend = false;
-      if (e is AuthError && e.code == 'EMAIL_NOT_CONFIRMED') {
-        canResend = true;
+      if (e is AuthError) {
+        if (e.code == 'EMAIL_NOT_CONFIRMED') {
+          canResend = true;
+        }
       }
 
       setState(() {
@@ -116,6 +119,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    debugPrint('DEBUG: Google Sign In Button Pressed!');
+    // Prevent multiple clicks
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final success = await ref
+          .read(authControllerProvider.notifier)
+          .signInWithGoogle();
+
+      if (!mounted) return;
+
+      if (success) {
+        context.go('/');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      AppSnackBar.show(
+        context,
+        message: MessageHandler.getErrorMessage(context, e),
+        type: AppSnackBarType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -138,30 +170,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Column(
                   children: [
                     Hero(
-                      tag: 'app_logo',
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.goldPrimary.withValues(
-                                alpha: 0.4,
-                              ),
-                              blurRadius: 60,
-                              spreadRadius: 10,
+                          tag: 'app_logo',
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.goldPrimary.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  blurRadius: 60,
+                                  spreadRadius: 10,
+                                ),
+                              ],
                             ),
-                          ],
+                            child: Image.asset(
+                              'assets/logo.png',
+                              height: 100,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fade(duration: 800.ms, curve: Curves.easeOut)
+                        .slideY(
+                          begin: -0.2,
+                          end: 0,
+                          duration: 800.ms,
+                          curve: Curves.easeOutQuart,
                         ),
-                        child: Image.asset(
-                          'assets/logo.png',
-                          height: 100,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ).animate().scale(
-                      duration: 600.ms,
-                      curve: Curves.easeOutBack,
-                    ),
 
                     const SizedBox(height: 24),
 
@@ -304,9 +341,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // 4. Google Sign In Button
                 OutlinedButton(
-                  onPressed: () {
-                    // TODO: Implement Google Sign In
-                  },
+                  onPressed: _isLoading ? null : _handleGoogleLogin,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     side: BorderSide(
@@ -319,38 +354,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ? Colors.white.withValues(alpha: 0.05)
                         : Colors.white.withValues(alpha: 0.8),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Google Icon
-                      Container(
-                        width: 24,
-                        height: 24,
-                        alignment: Alignment.center,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Google Icon
+                            Container(
+                              width: 24,
+                              height: 24,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: Text(
+                                'G',
+                                style: GoogleFonts.inter(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              l10n.googleSignIn,
+                              style: GoogleFonts.cairo(
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          'G',
-                          style: GoogleFonts.inter(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        l10n.googleSignIn,
-                        style: GoogleFonts.cairo(
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
                 ).animate().fade(delay: 800.ms).slideY(begin: 0.2, end: 0),
 
                 const SizedBox(height: 32),

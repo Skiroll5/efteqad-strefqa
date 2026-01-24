@@ -104,6 +104,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get edit => 'تعديل';
 
   @override
+  String get serverTimeout =>
+      'انتهت مهلة الاتصال بالخادم. يرجى التحقق من الإنترنت أو المحاولة مرة أخرى.';
+
+  @override
   String get rename => 'إعادة تسمية';
 
   @override

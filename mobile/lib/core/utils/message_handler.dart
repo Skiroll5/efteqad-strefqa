@@ -10,6 +10,8 @@ class MessageHandler {
       switch (error.code) {
         case 'INVALID_CREDENTIALS':
           return l10n.invalidCredentials;
+        case 'TIMEOUT':
+          return l10n.serverTimeout;
         case 'EMAIL_EXISTS':
           return l10n.emailAlreadyExists;
         case 'PHONE_EXISTS':

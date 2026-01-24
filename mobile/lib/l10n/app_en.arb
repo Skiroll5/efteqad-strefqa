@@ -39,6 +39,7 @@
   "save": "Save",
   "delete": "Delete",
   "edit": "Edit",
+  "serverTimeout": "Server connection timed out. Please check your internet or try again.",
   "rename": "Rename",
   "hi": "Hi",
   "user": "User",

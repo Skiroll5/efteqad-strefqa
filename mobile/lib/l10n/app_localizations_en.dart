@@ -107,6 +107,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edit => 'Edit';
 
   @override
+  String get serverTimeout =>
+      'Server connection timed out. Please check your internet or try again.';
+
+  @override
   String get rename => 'Rename';
 
   @override

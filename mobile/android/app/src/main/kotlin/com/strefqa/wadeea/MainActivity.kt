@@ -1,4 +1,4 @@
-package com.strefqa.efteqad.mobile
+package com.strefqa.wadeea
 
 import io.flutter.embedding.android.FlutterActivity
 

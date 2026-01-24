@@ -40,6 +40,41 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
+  Future<bool> signInWithGoogle() async {
+    try {
+      final repo = _ref.read(authRepositoryProvider);
+      final data = await repo.signInWithGoogle();
+
+      final user = User.fromJson(data['user']);
+      final token = data['token'];
+
+      // Save token and user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      await prefs.setString('user_data', jsonEncode(user.toJson()));
+
+      // Upsert user to local DB
+      await _upsertUserLocal(user);
+
+      // Register FCM Token
+      try {
+        final notifService = _ref.read(notificationServiceProvider);
+        final token = await notifService.getToken();
+        if (token != null) {
+          final fcmRepo = _ref.read(fcmRepositoryProvider);
+          await fcmRepo.registerToken(token);
+        }
+      } catch (e) {
+        // FCM error is non-fatal
+      }
+
+      state = AsyncValue.data(user);
+      return true;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<bool> login(String identifier, String password) async {
     try {
       final repo = _ref.read(authRepositoryProvider);

@@ -7,11 +7,13 @@ import '../../../../core/components/premium_card.dart';
 import '../../../../core/components/premium_button.dart';
 import '../../../../core/components/premium_text_field.dart';
 import '../../../../core/components/app_snackbar.dart';
+import '../../../../core/utils/message_handler.dart';
 import '../../data/auth_controller.dart';
 import '../../data/auth_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 
 import '../widgets/auth_background.dart';
+import '../widgets/auth_message_banner.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -38,23 +40,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     final l10n = AppLocalizations.of(context)!;
 
-    if (_emailController.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = l10n.pleaseEnterEmail;
-      });
-      return;
-    } else if (_passwordController.text.isEmpty) {
-      setState(() {
-        _errorMessage = l10n.pleaseEnterPassword;
-      });
-      return;
-    }
-
+    // Reset state
     setState(() {
-      _isLoading = true;
       _errorMessage = null;
       _showResendButton = false;
     });
+
+    if (_emailController.text.trim().isEmpty) {
+      setState(() => _errorMessage = l10n.pleaseEnterEmail);
+      return;
+    } else if (_passwordController.text.isEmpty) {
+      setState(() => _errorMessage = l10n.pleaseEnterPassword);
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
       final success = await ref
@@ -69,45 +69,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      final l10n = AppLocalizations.of(context)!;
-      String message;
+      // Check specific conditions for UI logic (like showing resend button)
       bool canResend = false;
-
-      if (e is AuthError) {
-        switch (e.code) {
-          case 'PENDING_ACTIVATION':
-            message = l10n.accountPendingActivation;
-            break;
-          case 'ACTIVATION_DENIED':
-            message = l10n.accountDenied;
-            break;
-          case 'ACCOUNT_DISABLED':
-            message = l10n.accountDisabled;
-            break;
-          case 'INVALID_CREDENTIALS':
-            message = l10n.invalidCredentials;
-            break;
-          case 'EMAIL_NOT_CONFIRMED':
-            message = l10n.emailNotConfirmed;
-            canResend = true;
-            break;
-          default:
-            message = l10n.errorGeneric(e.message);
-        }
-      } else {
-        message = l10n.errorGeneric(e.toString());
+      if (e is AuthError && e.code == 'EMAIL_NOT_CONFIRMED') {
+        canResend = true;
       }
 
       setState(() {
-        _errorMessage = message;
+        _errorMessage = MessageHandler.getErrorMessage(context, e);
         _showResendButton = canResend;
       });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -127,12 +100,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         type: AppSnackBarType.success,
       );
       // Navigate to confirmation screen where they can enter OTP
-      context.push('/confirm-email-pending');
+      context.push(
+        '/confirm-email-pending',
+        extra: {'email': _emailController.text.trim()},
+      );
     } catch (e) {
       if (!mounted) return;
       AppSnackBar.show(
         context,
-        message: e is AuthError ? e.message : e.toString(),
+        message: MessageHandler.getErrorMessage(context, e),
         type: AppSnackBarType.error,
       );
     } finally {
@@ -189,19 +165,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 20),
                   Text(
                     l10n.login,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w800,
-                      letterSpacing: -1.5,
+                      letterSpacing: -1.0, // Tighter tracking for modern look
                       color: isDark ? Colors.white : AppColors.bluePrimary,
                     ),
                   ).animate().fade(delay: 400.ms).slideY(begin: 0.2, end: 0),
                   const SizedBox(height: 4),
                   Text(
                     l10n.churchName,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: isDark ? Colors.white54 : Colors.black45,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
+                      height: 1.5,
                     ),
                   ).animate().fade(delay: 500.ms).slideY(begin: 0.2, end: 0),
                 ],
@@ -217,78 +194,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     children: [
                       // Error message display
-                      if (_errorMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.redPrimary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.redPrimary.withValues(
-                                alpha: 0.2,
-                              ),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: AppColors.redPrimary,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage!,
-                                      style: const TextStyle(
-                                        color: AppColors.redPrimary,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (_showResendButton) ...[
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton(
-                                    onPressed: _handleResendConfirmation,
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppColors.redPrimary,
-                                      side: const BorderSide(
-                                        color: AppColors.redPrimary,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                    ),
-                                    child: Text(l10n.resendEmail),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ).animate().fade().slideY(begin: -0.2),
-                        const SizedBox(height: 20),
-                      ],
+                      if (_errorMessage != null)
+                        AuthMessageBanner(
+                          message: _errorMessage!,
+                          type: AuthMessageType.error,
+                          onActionPressed: _showResendButton
+                              ? _handleResendConfirmation
+                              : null,
+                          actionLabel: _showResendButton
+                              ? l10n.resendEmail
+                              : null,
+                        ),
+
+                      if (_errorMessage != null) const SizedBox(height: 20),
 
                       PremiumTextField(
                         controller: _emailController,
                         label: l10n.emailOrPhone,
                         prefixIcon: Icons.person_outline,
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
                         delay: 0.7,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       PremiumTextField(
                         controller: _passwordController,
                         label: l10n.password,
                         prefixIcon: Icons.lock_outline,
                         isPassword: true,
+                        textInputAction: TextInputAction.done,
                         delay: 0.8,
                       ),
 
@@ -301,14 +235,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Text(
                             l10n.forgotPassword,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.primaryColor,
+                              color: isDark
+                                  ? Colors.white70
+                                  : theme.primaryColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ).animate().fade(delay: 900.ms),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
+
                       PremiumButton(
                         label: l10n.login,
                         isFullWidth: true,
@@ -332,7 +269,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Text(
                               l10n.register,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.primaryColor,
+                                color: isDark
+                                    ? AppColors.goldPrimary
+                                    : theme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -348,7 +287,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               Text(
                 l10n.loginVerse,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: isDark ? Colors.white38 : Colors.black38,
                   fontStyle: FontStyle.italic,
                 ),

@@ -7,10 +7,11 @@ import '../../../../core/components/premium_card.dart';
 import '../../../../core/components/premium_button.dart';
 import '../../../../core/components/premium_text_field.dart';
 import '../../../../core/components/premium_back_button.dart';
+import '../../../../core/utils/message_handler.dart';
 import '../../data/auth_controller.dart';
-import '../../data/auth_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import '../widgets/auth_background.dart';
+import '../widgets/auth_message_banner.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -35,6 +36,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Future<void> _handleRecover() async {
     final l10n = AppLocalizations.of(context)!;
 
+    // Reset state
+    setState(() => _errorMessage = null);
+
     if (_identifierController.text.trim().isEmpty) {
       setState(() {
         _errorMessage = l10n.pleaseEnterEmail;
@@ -42,10 +46,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    setState(() => _isLoading = true);
 
     try {
       await ref
@@ -54,23 +55,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
       if (!mounted) return;
 
-      // Navigate to Reset Password Screen with the identifier
-      // to avoid re-typing it
+      // Navigate to unified OTP screen
       context.push(
-        '/reset-password',
+        '/verify-reset-otp', // This route now maps to OtpVerificationScreen in router
         extra: {'identifier': _identifierController.text.trim()},
       );
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e is AuthError ? e.message : e.toString();
+        _errorMessage = MessageHandler.getErrorMessage(context, e);
       });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -99,6 +95,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           color: Colors.white.withValues(
                             alpha: isDark ? 0.05 : 0.8,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
                         child: Icon(
                           Icons.lock_reset_rounded,
@@ -108,10 +111,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               : AppColors.bluePrimary,
                         ),
                       ).animate().fade().scale(curve: Curves.easeOutBack),
+
                       const SizedBox(height: 24),
+
                       Text(
                             l10n.forgotPasswordTitle,
-                            style: theme.textTheme.headlineMedium?.copyWith(
+                            style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? Colors.white
@@ -121,11 +126,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           .animate()
                           .fade(delay: 200.ms)
                           .slideY(begin: 0.2, end: 0),
+
                       const SizedBox(height: 8),
+
                       Text(
                             l10n.forgotPasswordSubtitle,
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyLarge?.copyWith(
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
                           )
@@ -138,24 +145,28 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                   PremiumCard(
                     isGlass: true,
+                    delay: 0.3,
                     child: Form(
                       key: _formKey,
                       child: Column(
                         children: [
-                          if (_errorMessage != null) ...[
-                            _buildStatusMessage(
-                              _errorMessage!,
-                              AppColors.redPrimary,
+                          if (_errorMessage != null)
+                            AuthMessageBanner(
+                              message: _errorMessage!,
+                              type: AuthMessageType.error,
                             ),
-                            const SizedBox(height: 20),
-                          ],
+
+                          if (_errorMessage != null) const SizedBox(height: 16),
 
                           PremiumTextField(
                             controller: _identifierController,
                             label: l10n.emailOrPhone,
                             prefixIcon: Icons.person_outline,
                             keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.done,
+                            delay: 0.4,
                           ),
+
                           const SizedBox(height: 32),
 
                           PremiumButton(
@@ -163,7 +174,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             isFullWidth: true,
                             isLoading: _isLoading,
                             onPressed: _handleRecover,
+                            delay: 0.5,
                           ),
+
                           const SizedBox(height: 16),
 
                           TextButton(
@@ -171,11 +184,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             child: Text(
                               l10n.goBackToLogin,
                               style: TextStyle(
-                                color: theme.primaryColor,
+                                color: isDark ? Colors.white70 : Colors.black54,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
+                          ).animate().fade(delay: 600.ms),
                         ],
                       ),
                     ),
@@ -192,31 +205,5 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildStatusMessage(String message, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            color == Colors.green
-                ? Icons.check_circle_outline
-                : Icons.error_outline,
-            color: color,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(message, style: TextStyle(color: color, fontSize: 13)),
-          ),
-        ],
-      ),
-    ).animate().fade().slideY(begin: -0.2);
   }
 }

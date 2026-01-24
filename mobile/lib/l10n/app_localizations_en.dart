@@ -1149,4 +1149,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseEnterPassword => 'Please enter your password';
+
+  @override
+  String get pleaseEnterOtp => 'Please enter the OTP code';
+
+  @override
+  String get otpCode => 'OTP Code';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get emailConfirmedSuccess => 'Email confirmed successfully!';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get enterOtpAndNewPassword =>
+      'Enter the OTP code sent to you and your new password.';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get atLeast8Chars => 'At least 8 characters';
+
+  @override
+  String get atLeast1Upper => 'At least 1 uppercase letter';
+
+  @override
+  String get atLeast1Lower => 'At least 1 lowercase letter';
+
+  @override
+  String get atLeast1Digit => 'At least 1 number';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get enterCode => 'Enter Code';
+
+  @override
+  String get enterCodeDesc => 'Enter the verification code sent to your email';
+
+  @override
+  String get resendConfirmation => 'Resend Confirmation';
+
+  @override
+  String get invalidToken => 'Invalid code';
+
+  @override
+  String get expiredToken => 'Expired code';
+
+  @override
+  String get loginFailed => 'Login failed';
+
+  @override
+  String get verifyCode => 'Verify Code';
+
+  @override
+  String get continueAction => 'Continue';
+
+  @override
+  String get changeEmail => 'Change Email';
 }

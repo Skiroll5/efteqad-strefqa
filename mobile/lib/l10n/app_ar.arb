@@ -439,5 +439,19 @@
   "emailConfirmedSuccess": "تم تأكيد البريد الإلكتروني بنجاح!",
   "resetPassword": "إعادة تعيين كلمة المرور",
   "enterOtpAndNewPassword": "أدخل كود التحقق المرسل إليك وكلمة المرور الجديدة.",
-  "newPassword": "كلمة المرور الجديدة"
+  "newPassword": "كلمة المرور الجديدة",
+  "atLeast8Chars": "8 أحرف على الأقل",
+  "atLeast1Upper": "حرف كبير واحد على الأقل",
+  "atLeast1Lower": "حرف صغير واحد على الأقل",
+  "atLeast1Digit": "رقم واحد على الأقل",
+  "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+  "verify": "تحقق",
+  "enterCode": "أدخل الكود",
+  "enterCodeDesc": "أدخل كود التحقق المرسل لبريدك الإلكتروني",
+  "resendConfirmation": "إعادة إرسال التأكيد",
+  "invalidToken": "كود غير صحيح",
+  "expiredToken": "كود منتهي الصلاحية",
+  "loginFailed": "فشل تسجيل الدخول",
+  "verifyCode": "تحقق من الكود",
+  "continueAction": "متابعة"
 }

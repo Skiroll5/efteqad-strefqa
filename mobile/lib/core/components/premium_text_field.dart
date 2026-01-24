@@ -9,7 +9,9 @@ class PremiumTextField extends StatefulWidget {
   final bool isPassword;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
   final double delay;
+  final TextInputAction? textInputAction;
 
   const PremiumTextField({
     super.key,
@@ -19,7 +21,9 @@ class PremiumTextField extends StatefulWidget {
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.onChanged,
     this.delay = 0,
+    this.textInputAction,
   });
 
   @override
@@ -73,7 +77,9 @@ class _PremiumTextFieldState extends State<PremiumTextField> {
             focusNode: _focusNode,
             obscureText: widget.isPassword && _obscureText,
             keyboardType: widget.keyboardType,
+            textInputAction: widget.textInputAction,
             validator: widget.validator,
+            onChanged: widget.onChanged,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.w500,

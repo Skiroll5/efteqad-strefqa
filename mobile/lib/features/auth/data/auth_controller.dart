@@ -127,6 +127,15 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
+  Future<void> verifyResetOtp(String otp) async {
+    try {
+      final repo = _ref.read(authRepositoryProvider);
+      await repo.verifyResetOtp(otp);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<bool> updateWhatsAppTemplate(String template) async {
     try {
       final repo = _ref.read(authRepositoryProvider);

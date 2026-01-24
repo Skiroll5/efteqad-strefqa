@@ -1139,4 +1139,71 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pleaseEnterPassword => 'يرجى إدخال كلمة المرور';
+
+  @override
+  String get pleaseEnterOtp => 'يرجى إدخال كود التحقق';
+
+  @override
+  String get otpCode => 'كود التحقق';
+
+  @override
+  String get confirm => 'تأكيد';
+
+  @override
+  String get emailConfirmedSuccess => 'تم تأكيد البريد الإلكتروني بنجاح!';
+
+  @override
+  String get resetPassword => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get enterOtpAndNewPassword =>
+      'أدخل كود التحقق المرسل إليك وكلمة المرور الجديدة.';
+
+  @override
+  String get newPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get atLeast8Chars => '8 أحرف على الأقل';
+
+  @override
+  String get atLeast1Upper => 'حرف كبير واحد على الأقل';
+
+  @override
+  String get atLeast1Lower => 'حرف صغير واحد على الأقل';
+
+  @override
+  String get atLeast1Digit => 'رقم واحد على الأقل';
+
+  @override
+  String get passwordsDoNotMatch => 'كلمات المرور غير متطابقة';
+
+  @override
+  String get verify => 'تحقق';
+
+  @override
+  String get enterCode => 'أدخل الكود';
+
+  @override
+  String get enterCodeDesc => 'أدخل كود التحقق المرسل لبريدك الإلكتروني';
+
+  @override
+  String get resendConfirmation => 'إعادة إرسال التأكيد';
+
+  @override
+  String get invalidToken => 'كود غير صحيح';
+
+  @override
+  String get expiredToken => 'كود منتهي الصلاحية';
+
+  @override
+  String get loginFailed => 'فشل تسجيل الدخول';
+
+  @override
+  String get verifyCode => 'تحقق من الكود';
+
+  @override
+  String get continueAction => 'متابعة';
+
+  @override
+  String get changeEmail => 'Change Email';
 }

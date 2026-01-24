@@ -7,14 +7,19 @@ import '../../../../core/components/premium_card.dart';
 import '../../../../core/components/premium_button.dart';
 import '../../../../core/components/premium_text_field.dart';
 import '../../../../core/components/premium_back_button.dart';
+import '../../../../core/components/password_strength_indicator.dart';
 import '../../../../core/components/app_snackbar.dart';
+import '../../../../core/utils/message_handler.dart';
 import '../../data/auth_controller.dart';
-import '../../data/auth_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import '../widgets/auth_background.dart';
+import '../widgets/auth_message_banner.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key});
+  final String
+  token; // Depending on flow, this might be OTP code or token from deep link
+
+  const ResetPasswordScreen({super.key, required this.token});
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -24,20 +29,38 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   String? _errorMessage;
   bool _isLoading = false;
+  String _password = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.token.isNotEmpty) {
+      _otpController.text = widget.token;
+    }
+
+    _passwordController.addListener(() {
+      setState(() => _password = _passwordController.text);
+    });
+  }
 
   @override
   void dispose() {
     _otpController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleReset() async {
     final l10n = AppLocalizations.of(context)!;
+
+    // Reset state
+    setState(() => _errorMessage = null);
 
     if (_otpController.text.trim().isEmpty) {
       setState(() => _errorMessage = l10n.pleaseEnterOtp);
@@ -47,11 +70,18 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       setState(() => _errorMessage = l10n.pleaseEnterPassword);
       return;
     }
+    if (_passwordController.text.length < 8) {
+      setState(() => _errorMessage = l10n.atLeast8Chars);
+      return;
+    }
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (_confirmPasswordController.text.isNotEmpty &&
+        _passwordController.text != _confirmPasswordController.text) {
+      setState(() => _errorMessage = l10n.passwordsDoNotMatch);
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
       await ref
@@ -70,7 +100,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e is AuthError ? e.message : e.toString();
+        _errorMessage = MessageHandler.getErrorMessage(context, e);
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,6 +132,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           color: Colors.white.withValues(
                             alpha: isDark ? 0.05 : 0.8,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
                         child: Icon(
                           Icons.password_rounded,
@@ -114,7 +151,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       const SizedBox(height: 24),
                       Text(
                             l10n.resetPassword,
-                            style: theme.textTheme.headlineMedium?.copyWith(
+                            style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? Colors.white
@@ -128,7 +165,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       Text(
                             l10n.enterOtpAndNewPassword,
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyLarge?.copyWith(
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
                           )
@@ -141,53 +178,25 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
                   PremiumCard(
                     isGlass: true,
+                    delay: 0.4,
                     child: Form(
                       key: _formKey,
                       child: Column(
                         children: [
-                          if (_errorMessage != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.redPrimary.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.redPrimary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: AppColors.redPrimary,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage!,
-                                      style: const TextStyle(
-                                        color: AppColors.redPrimary,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ).animate().fade().slideY(begin: -0.2),
-                            const SizedBox(height: 20),
-                          ],
+                          if (_errorMessage != null)
+                            AuthMessageBanner(
+                              message: _errorMessage!,
+                              type: AuthMessageType.error,
+                            ),
+
+                          if (_errorMessage != null) const SizedBox(height: 16),
 
                           PremiumTextField(
                             controller: _otpController,
                             label: l10n.otpCode,
                             prefixIcon: Icons.confirmation_number_outlined,
                             keyboardType: TextInputType.number,
-                            delay: 0.6,
+                            delay: 0.5,
                           ),
                           const SizedBox(height: 16),
                           PremiumTextField(
@@ -195,8 +204,37 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             label: l10n.newPassword,
                             prefixIcon: Icons.lock_outline,
                             isPassword: true,
+                            textInputAction: TextInputAction.next,
+                            delay: 0.6,
+                          ),
+
+                          // Strength Indicator
+                          AnimatedSize(
+                            duration: 300.ms,
+                            child: _password.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 8,
+                                      bottom: 8,
+                                    ),
+                                    child: PasswordStrengthIndicator(
+                                      password: _password,
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          PremiumTextField(
+                            controller: _confirmPasswordController,
+                            label: l10n.confirmNewPassword,
+                            prefixIcon: Icons.lock_reset,
+                            isPassword: true,
+                            textInputAction: TextInputAction.done,
                             delay: 0.7,
                           ),
+
                           const SizedBox(height: 32),
 
                           PremiumButton(

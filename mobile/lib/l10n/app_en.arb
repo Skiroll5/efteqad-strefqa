@@ -548,5 +548,21 @@
   "emailConfirmedSuccess": "Email confirmed successfully!",
   "resetPassword": "Reset Password",
   "enterOtpAndNewPassword": "Enter the OTP code sent to you and your new password.",
-  "newPassword": "New Password"
+  "newPassword": "New Password",
+  "atLeast8Chars": "At least 8 characters",
+  "atLeast1Upper": "At least 1 uppercase letter",
+  "atLeast1Lower": "At least 1 lowercase letter",
+  "atLeast1Digit": "At least 1 number",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "verify": "Verify",
+  "enterCode": "Enter Code",
+  "enterCodeDesc": "Enter the verification code sent to your email",
+  "resendConfirmation": "Resend Confirmation",
+  "invalidToken": "Invalid code",
+  "expiredToken": "Expired code",
+  "loginFailed": "Login failed",
+  "invalidCredentials": "Invalid email or password",
+  "verifyCode": "Verify Code",
+  "continueAction": "Continue",
+  "changeEmail": "Change Email"
 }

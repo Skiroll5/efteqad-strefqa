@@ -2209,6 +2209,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter your password'**
   String get pleaseEnterPassword;
+
+  /// No description provided for @pleaseEnterOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the OTP code'**
+  String get pleaseEnterOtp;
+
+  /// No description provided for @otpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP Code'**
+  String get otpCode;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @emailConfirmedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Email confirmed successfully!'**
+  String get emailConfirmedSuccess;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @enterOtpAndNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the OTP code sent to you and your new password.'**
+  String get enterOtpAndNewPassword;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPassword;
+
+  /// No description provided for @atLeast8Chars.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get atLeast8Chars;
+
+  /// No description provided for @atLeast1Upper.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 1 uppercase letter'**
+  String get atLeast1Upper;
+
+  /// No description provided for @atLeast1Lower.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 1 lowercase letter'**
+  String get atLeast1Lower;
+
+  /// No description provided for @atLeast1Digit.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 1 number'**
+  String get atLeast1Digit;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// No description provided for @enterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Code'**
+  String get enterCode;
+
+  /// No description provided for @enterCodeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code sent to your email'**
+  String get enterCodeDesc;
+
+  /// No description provided for @resendConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Confirmation'**
+  String get resendConfirmation;
+
+  /// No description provided for @invalidToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code'**
+  String get invalidToken;
+
+  /// No description provided for @expiredToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired code'**
+  String get expiredToken;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed'**
+  String get loginFailed;
+
+  /// No description provided for @verifyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Code'**
+  String get verifyCode;
+
+  /// No description provided for @continueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
+
+  /// No description provided for @changeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Email'**
+  String get changeEmail;
 }
 
 class _AppLocalizationsDelegate

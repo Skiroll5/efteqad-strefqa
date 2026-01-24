@@ -238,14 +238,18 @@ export const resendConfirmation = async (req: Request, res: Response) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         if (user.isEmailConfirmed) return res.status(400).json({ message: 'Email already confirmed' });
 
-        const confirmationToken = generateOTP();
+        let confirmationToken = user.confirmationToken;
 
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { confirmationToken }
-        });
+        if (!confirmationToken) {
+            confirmationToken = generateOTP();
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { confirmationToken }
+            });
+        }
+        // If existed, reuse it (no database update needed for token)
 
-        sendConfirmationEmail(user.email, confirmationToken).catch(console.error);
+        sendConfirmationEmail(user.email, confirmationToken as string).catch(console.error);
 
         res.json({ message: 'Confirmation code sent' });
     } catch (error) {
@@ -273,29 +277,63 @@ export const forgotPassword = async (req: Request, res: Response) => {
             return res.json({ message: 'If an account exists, a reset code has been sent' });
         }
 
-        const resetToken = generateOTP();
-        const expires = new Date(Date.now() + 3600000); // 1 hour
+        let resetToken = user.passwordResetToken;
+        let expires = user.passwordResetExpires;
 
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                passwordResetToken: resetToken,
-                passwordResetExpires: expires
-            }
-        });
+        // Reuse existing token if it's still valid for at least 5 minutes (to give user time)
+        // Or simply if it is valid at all.
+        const isTokenValid = resetToken && expires && expires.getTime() > Date.now();
+
+        if (!isTokenValid) {
+            resetToken = generateOTP();
+            expires = new Date(Date.now() + 3600000); // 1 hour
+
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    passwordResetToken: resetToken,
+                    passwordResetExpires: expires
+                }
+            });
+        }
+        // If valid, we just reuse 'resetToken' without updating DB (unless we want to extend time, but user said "resend old one")
 
         if (user.email === identifier) {
-            await sendPasswordResetEmail(user.email, resetToken);
+            await sendPasswordResetEmail(user.email, resetToken as string);
         } else if (user.phone === identifier) {
-            await sendPasswordResetSms(user.phone!, resetToken);
+            await sendPasswordResetSms(user.phone!, resetToken as string);
         } else {
-            if (user.email) await sendPasswordResetEmail(user.email, resetToken);
-            else if (user.phone) await sendPasswordResetSms(user.phone, resetToken);
+            if (user.email) await sendPasswordResetEmail(user.email, resetToken as string);
+            else if (user.phone) await sendPasswordResetSms(user.phone, resetToken as string);
         }
 
         res.json({ message: 'If an account exists, a reset code has been sent' });
     } catch (error) {
         console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const verifyResetOtp = async (req: Request, res: Response) => {
+    try {
+        const { token } = req.body;
+        if (!token) return res.status(400).json({ message: 'Token required' });
+
+        const user = await prisma.user.findFirst({
+            where: {
+                passwordResetToken: token,
+                passwordResetExpires: { gt: new Date() },
+                isDeleted: false
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token', code: 'INVALID_TOKEN' });
+        }
+
+        res.json({ message: 'Token is valid' });
+    } catch (error) {
+        console.error('Verify OTP error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -314,7 +352,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
+            return res.status(400).json({ message: 'Invalid or expired token', code: 'INVALID_TOKEN' });
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);

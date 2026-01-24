@@ -6,14 +6,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/components/premium_card.dart';
 import '../../../../core/components/premium_button.dart';
 import '../../../../core/components/premium_text_field.dart';
+import '../../../../core/components/premium_phone_input.dart';
 import '../../../../core/components/premium_back_button.dart';
+import '../../../../core/components/password_strength_indicator.dart';
+import '../../../../core/utils/message_handler.dart';
 import '../../data/auth_controller.dart';
-import '../../data/auth_repository.dart';
 import 'package:mobile/l10n/app_localizations.dart';
+
 import '../widgets/auth_background.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/country_picker_dialog.dart';
-import 'dart:ui' as ui;
+import '../widgets/auth_message_banner.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -25,51 +26,70 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
-  String? _fullPhoneNumber;
   bool _isLoading = false;
+
+  // Track password for strength check
+  String _password = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(() {
+      setState(() => _password = _passwordController.text);
+    });
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
   Future<void> _handleRegister() async {
     final l10n = AppLocalizations.of(context)!;
 
-    // Manual Validation for top-level error display
-    String? validationError;
-    if (_nameController.text.trim().isEmpty) {
-      validationError = l10n.pleaseEnterName;
-    } else if (_emailController.text.trim().isEmpty) {
-      validationError = l10n.pleaseEnterEmail;
-    } else {
-      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-      if (!emailRegex.hasMatch(_emailController.text.trim())) {
-        validationError = l10n.pleaseEnterValidEmail;
-      } else if (_passwordController.text.isEmpty) {
-        validationError = l10n.pleaseEnterPassword;
-      }
-    }
+    // Reset state
+    setState(() => _errorMessage = null);
 
-    if (validationError != null) {
-      setState(() {
-        _errorMessage = validationError;
-      });
+    // Basic Validations
+    if (_nameController.text.trim().isEmpty) {
+      setState(() => _errorMessage = l10n.pleaseEnterName);
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (_emailController.text.trim().isEmpty) {
+      setState(() => _errorMessage = l10n.pleaseEnterEmail);
+      return;
+    }
+
+    if (_passwordController.text.isEmpty) {
+      setState(() => _errorMessage = l10n.pleaseEnterPassword);
+      return;
+    }
+
+    // Password match
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _errorMessage = l10n.passwordsDoNotMatch);
+      return;
+    }
+
+    // Password strength check
+    if (_passwordController.text.length < 8) {
+      setState(() => _errorMessage = l10n.atLeast8Chars);
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
       final success = await ref
@@ -78,44 +98,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             _emailController.text.trim(),
             _passwordController.text,
             _nameController.text.trim(),
-            phone: _fullPhoneNumber,
+            phone: _phoneController.text.trim().isEmpty
+                ? null
+                : _phoneController.text.trim(),
           );
 
       if (!mounted) return;
 
       if (success) {
-        context.push('/confirm-email-pending');
+        // Navigate to unified verification screen
+        context.push(
+          '/confirm-email-pending',
+          extra: {'email': _emailController.text.trim()},
+        );
       }
     } catch (e) {
       if (!mounted) return;
 
-      final l10n = AppLocalizations.of(context)!;
-      String message;
-
-      if (e is AuthError) {
-        switch (e.code) {
-          case 'EMAIL_EXISTS':
-            message = l10n.emailAlreadyExists;
-            break;
-          case 'PHONE_EXISTS':
-            message = l10n.phoneAlreadyExists;
-            break;
-          default:
-            message = e.message;
-        }
-      } else {
-        message = e.toString();
-      }
-
       setState(() {
-        _errorMessage = message;
+        _errorMessage = MessageHandler.getErrorMessage(context, e);
       });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -130,123 +134,48 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         children: [
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                80,
+                24,
+                24 + MediaQuery.of(context).viewInsets.bottom,
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 40),
-                  // Header
-                  Column(
-                    children: [
-                      Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(
-                                alpha: isDark ? 0.05 : 0.8,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.person_add_alt_1_outlined,
-                              size: 48,
-                              color: isDark
-                                  ? AppColors.goldPrimary
-                                  : AppColors.bluePrimary,
-                            ),
-                          )
-                          .animate()
-                          .fade(duration: 600.ms)
-                          .scale(delay: 200.ms, curve: Curves.easeOutBack),
-                      const SizedBox(height: 24),
-                      Text(
-                            l10n.register,
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: -1,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppColors.bluePrimary,
-                                ),
-                          )
-                          .animate()
-                          .fade(delay: 400.ms)
-                          .slideY(begin: 0.3, end: 0),
-                      const SizedBox(height: 8),
-                      Text(
-                            l10n.createAccountToStart,
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  color: isDark
-                                      ? Colors.white70
-                                      : Colors.black54,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          )
-                          .animate()
-                          .fade(delay: 500.ms)
-                          .slideY(begin: 0.3, end: 0),
-                    ],
-                  ),
+                  Text(
+                    l10n.createAccountToStart,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppColors.bluePrimary,
+                      height: 1.2,
+                    ),
+                  ).animate().fade().slideY(begin: 0.3, end: 0),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   PremiumCard(
-                    delay: 0.6,
+                    delay: 0.2,
                     isGlass: true,
                     child: Form(
                       key: _formKey,
                       child: Column(
                         children: [
-                          // Error message display
-                          if (_errorMessage != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.redPrimary.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.redPrimary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: AppColors.redPrimary,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage!,
-                                      style: const TextStyle(
-                                        color: AppColors.redPrimary,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ).animate().fade().slideY(begin: -0.2),
-                            const SizedBox(height: 20),
-                          ],
+                          if (_errorMessage != null)
+                            AuthMessageBanner(
+                              message: _errorMessage!,
+                              type: AuthMessageType.error,
+                            ),
+
+                          if (_errorMessage != null) const SizedBox(height: 16),
+
                           PremiumTextField(
                             controller: _nameController,
                             label: l10n.name,
-                            prefixIcon: Icons.person_outline,
-                            keyboardType: TextInputType.name,
-                            delay: 0.7,
+                            prefixIcon: Icons.badge_outlined,
+                            textInputAction: TextInputAction.next,
+                            delay: 0.3,
                           ),
                           const SizedBox(height: 16),
                           PremiumTextField(
@@ -254,163 +183,98 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             label: l10n.email,
                             prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
-                            delay: 0.8,
+                            textInputAction: TextInputAction.next,
+                            delay: 0.4,
                           ),
                           const SizedBox(height: 16),
-                          Directionality(
-                                textDirection: ui.TextDirection.ltr,
-                                child: IntlPhoneField(
-                                  controller: _phoneController,
-                                  initialCountryCode: 'EG',
-                                  textAlign: TextAlign.left,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.phoneNumber,
-                                    labelStyle: TextStyle(
-                                      color: isDark
-                                          ? Colors.white70
-                                          : Colors.black54,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: isDark
-                                            ? Colors.white24
-                                            : Colors.black12,
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: isDark
-                                            ? Colors.white24
-                                            : Colors.black12,
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: isDark
-                                            ? AppColors.goldPrimary
-                                            : AppColors.bluePrimary,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.phone_outlined,
-                                      color: isDark
-                                          ? Colors.white70
-                                          : Colors.black54,
-                                    ),
-                                    counterText: '',
-                                  ),
-                                  disableLengthCheck: true,
-                                  languageCode: l10n.localeName,
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  dropdownTextStyle: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                  pickerDialogStyle: PickerDialogStyle(
-                                    backgroundColor: isDark
-                                        ? const Color(0xFF1E1E1E)
-                                        : Colors.white,
-                                    countryCodeStyle: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                    countryNameStyle: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                    searchFieldInputDecoration: InputDecoration(
-                                      labelText: l10n.search,
-                                      labelStyle: TextStyle(
-                                        color: isDark
-                                            ? Colors.grey
-                                            : Colors.black54,
-                                      ),
-                                      prefixIcon: const Icon(Icons.search),
-                                      filled: true,
-                                      fillColor: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.grey.withValues(alpha: 0.05),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                  ),
-                                  onChanged: (phone) {
-                                    if (phone.countryISOCode == 'EG' &&
-                                        phone.number.startsWith('0')) {
-                                      _fullPhoneNumber =
-                                          '${phone.countryCode}${phone.number.substring(1)}';
-                                    } else {
-                                      _fullPhoneNumber = phone.completeNumber;
-                                    }
-                                  },
-                                ),
-                              )
-                              .animate()
-                              .fade(delay: 850.ms)
-                              .slideY(begin: 0.2, end: 0),
+                          PremiumPhoneInput(
+                            controller: _phoneController,
+                            label: l10n.phoneNumberOptional,
+                            delay: 0.5,
+                          ),
                           const SizedBox(height: 16),
                           PremiumTextField(
                             controller: _passwordController,
                             label: l10n.password,
                             prefixIcon: Icons.lock_outline,
                             isPassword: true,
-                            delay: 0.9,
+                            textInputAction: TextInputAction.next,
+                            delay: 0.6,
                           ),
-                          const SizedBox(height: 32),
-                          PremiumButton(
-                            label: l10n.register,
-                            isFullWidth: true,
-                            isLoading: _isLoading,
-                            delay: 1.0,
-                            onPressed: _handleRegister,
+
+                          // Strength Indicator
+                          AnimatedSize(
+                            duration: 300.ms,
+                            child: _password.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 8,
+                                      bottom: 8,
+                                    ),
+                                    child: PasswordStrengthIndicator(
+                                      password: _password,
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
                           ),
+
+                          const SizedBox(height: 16),
+
+                          PremiumTextField(
+                            controller: _confirmPasswordController,
+                            label: l10n.confirmNewPassword,
+                            prefixIcon: Icons.lock_reset,
+                            isPassword: true,
+                            textInputAction: TextInputAction.done,
+                            delay: 0.7,
+                          ),
+
                           const SizedBox(height: 24),
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                l10n.alreadyHaveAccount,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.black54,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () => context.pop(),
-                                child: Text(
-                                  l10n.login,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ).animate().fade(delay: 1200.ms),
+                          PremiumButton(
+                            label: l10n.register,
+                            onPressed: _handleRegister,
+                            isLoading: _isLoading,
+                            isFullWidth: true,
+                            delay: 0.8,
+                          ),
                         ],
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 24),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.alreadyHaveAccount,
+                        style: TextStyle(
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        child: Text(
+                          l10n.login,
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.goldPrimary
+                                : AppColors.bluePrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ).animate().fade(delay: 900.ms),
+
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
+
           const Positioned(
             top: 20,
             left: 20,

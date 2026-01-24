@@ -21,7 +21,7 @@ import '../../features/admin/presentation/screens/user_management_screen.dart';
 import '../../features/admin/presentation/screens/class_management_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
-import '../../features/auth/presentation/screens/email_confirmation_pending_screen.dart';
+import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -36,6 +36,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.uri.toString() == '/login';
       final isRegistering = state.uri.toString() == '/register';
       final isForgotPassword = state.uri.toString() == '/forgot-password';
+      final isVerifyResetOtp = state.uri.toString().startsWith(
+        '/verify-reset-otp',
+      );
       final isResetPassword = state.uri.toString().startsWith(
         '/reset-password',
       );
@@ -49,6 +52,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           !isLoggingIn &&
           !isRegistering &&
           !isForgotPassword &&
+          !isVerifyResetOtp &&
           !isResetPassword &&
           !isConfirmPending) {
         return '/login';
@@ -166,7 +170,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/reset-password',
-        builder: (context, state) => const ResetPasswordScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final token = extra?['token'] as String? ?? '';
+          return ResetPasswordScreen(token: token);
+        },
+      ),
+      GoRoute(
+        path: '/verify-reset-otp',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final identifier = extra?['identifier'] as String? ?? '';
+          return OtpVerificationScreen(
+            identifier: identifier,
+            purpose: OtpPurpose.passwordReset,
+          );
+        },
       ),
       GoRoute(
         path: '/forgot-password',
@@ -174,7 +193,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/confirm-email-pending',
-        builder: (context, state) => const EmailConfirmationPendingScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final email = extra?['email'] as String? ?? '';
+          return OtpVerificationScreen(
+            identifier: email,
+            purpose: OtpPurpose.emailConfirmation,
+          );
+        },
       ),
     ],
   );

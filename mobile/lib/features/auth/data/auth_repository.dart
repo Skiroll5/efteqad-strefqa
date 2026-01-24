@@ -30,8 +30,13 @@ class AuthRepository {
       return response.data; // { token, user }
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = data?['message'] ?? 'Login failed';
-      final code = data?['code'] ?? 'UNKNOWN';
+      String message = 'Login failed';
+      String code = 'UNKNOWN';
+
+      if (data is Map<String, dynamic>) {
+        message = data['message'] ?? message;
+        code = data['code'] ?? code;
+      }
       throw AuthError(message, code);
     }
   }
@@ -55,8 +60,13 @@ class AuthRepository {
       return response.data;
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = data?['message'] ?? 'Registration failed';
-      final code = data?['code'] ?? 'UNKNOWN';
+      String message = 'Registration failed';
+      String code = 'UNKNOWN';
+
+      if (data is Map<String, dynamic>) {
+        message = data['message'] ?? message;
+        code = data['code'] ?? code;
+      }
       throw AuthError(message, code);
     }
   }
@@ -69,8 +79,13 @@ class AuthRepository {
       );
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = data?['message'] ?? 'Request failed';
-      final code = data?['code'] ?? 'UNKNOWN';
+      String message = 'Request failed';
+      String code = 'UNKNOWN';
+
+      if (data is Map<String, dynamic>) {
+        message = data['message'] ?? message;
+        code = data['code'] ?? code;
+      }
       throw AuthError(message, code);
     }
   }
@@ -83,8 +98,29 @@ class AuthRepository {
       );
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = data?['message'] ?? 'Reset failed';
-      final code = data?['code'] ?? 'UNKNOWN';
+      String message = 'Reset failed';
+      String code = 'UNKNOWN';
+
+      if (data is Map<String, dynamic>) {
+        message = data['message'] ?? message;
+        code = data['code'] ?? code;
+      }
+      throw AuthError(message, code);
+    }
+  }
+
+  Future<void> verifyResetOtp(String otp) async {
+    try {
+      await _dio.post('$_baseUrl/auth/verify-reset-otp', data: {'token': otp});
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      String message = 'Invalid OTP';
+      String code = 'UNKNOWN';
+
+      if (data is Map<String, dynamic>) {
+        message = data['message'] ?? message;
+        code = data['code'] ?? code;
+      }
       throw AuthError(message, code);
     }
   }
@@ -108,8 +144,15 @@ class AuthRepository {
       );
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = data?['message'] ?? 'Resend failed';
-      final code = data?['code'] ?? 'UNKNOWN';
+      String message = 'Resend failed';
+      String code = 'UNKNOWN';
+
+      if (data is Map<String, dynamic>) {
+        message = data['message'] ?? message;
+        code = data['code'] ?? code;
+      } else if (data is String) {
+        message = data;
+      }
       throw AuthError(message, code);
     }
   }

@@ -29,6 +29,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _scrollController = ScrollController();
 
   final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
@@ -37,11 +38,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   // Track password for strength check
   String _password = '';
 
+  // Track focus for auto-scroll
+  final _passwordFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(() {
       setState(() => _password = _passwordController.text);
+    });
+
+    // Auto-scroll when password field is focused to ensure strength indicator is visible
+    _passwordFocusNode.addListener(() {
+      if (_passwordFocusNode.hasFocus) {
+        // Delay to allow keyboard to appear
+        Future.delayed(300.ms, () {
+          if (mounted && _scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.offset + 100,
+              duration: 300.ms,
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
     });
   }
 
@@ -52,6 +72,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _phoneController.dispose();
+    _scrollController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -128,30 +150,64 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
-
     return AuthBackground(
       child: Stack(
         children: [
           Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                80,
-                24,
-                24 + MediaQuery.of(context).viewInsets.bottom,
-              ),
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    l10n.createAccountToStart,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : AppColors.bluePrimary,
-                      height: 1.2,
-                    ),
-                  ).animate().fade().slideY(begin: 0.3, end: 0),
+                  // Header
+                  Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(
+                            alpha: isDark ? 0.08 : 0.9,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isDark
+                                          ? AppColors.goldPrimary
+                                          : AppColors.bluePrimary)
+                                      .withValues(alpha: 0.2),
+                              blurRadius: 30,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.person_add_outlined,
+                          size: 40,
+                          color: isDark
+                              ? AppColors.goldPrimary
+                              : AppColors.bluePrimary,
+                        ),
+                      ).animate().fade().scale(curve: Curves.easeOutBack),
+
+                      const SizedBox(height: 20),
+
+                      Text(
+                            l10n.createAccountToStart,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.bluePrimary,
+                              height: 1.2,
+                            ),
+                          )
+                          .animate()
+                          .fade(delay: 100.ms)
+                          .slideY(begin: 0.2, end: 0),
+                    ],
+                  ),
 
                   const SizedBox(height: 32),
 
@@ -177,7 +233,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             delay: 0.3,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
                           PremiumTextField(
                             controller: _emailController,
                             label: l10n.email,
@@ -186,39 +242,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             delay: 0.4,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
                           PremiumPhoneInput(
                             controller: _phoneController,
                             label: l10n.phoneNumberOptional,
                             delay: 0.5,
                           ),
-                          const SizedBox(height: 16),
-                          PremiumTextField(
-                            controller: _passwordController,
-                            label: l10n.password,
-                            prefixIcon: Icons.lock_outline,
-                            isPassword: true,
-                            textInputAction: TextInputAction.next,
-                            delay: 0.6,
+                          const SizedBox(height: 14),
+
+                          // Password field with focus handling
+                          Focus(
+                            focusNode: _passwordFocusNode,
+                            child: PremiumTextField(
+                              controller: _passwordController,
+                              label: l10n.password,
+                              prefixIcon: Icons.lock_outline,
+                              isPassword: true,
+                              textInputAction: TextInputAction.next,
+                              delay: 0.6,
+                            ),
                           ),
 
-                          // Strength Indicator
+                          // Strength Indicator - compact design for keyboard visibility
                           AnimatedSize(
-                            duration: 300.ms,
+                            duration: 200.ms,
+                            curve: Curves.easeOut,
                             child: _password.isNotEmpty
                                 ? Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8,
-                                      bottom: 8,
-                                    ),
+                                    padding: const EdgeInsets.only(top: 10),
                                     child: PasswordStrengthIndicator(
                                       password: _password,
+                                      compact:
+                                          true, // Use compact mode for keyboard visibility
                                     ),
                                   )
                                 : const SizedBox.shrink(),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
 
                           PremiumTextField(
                             controller: _confirmPasswordController,
@@ -256,6 +317,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       TextButton(
                         onPressed: () => context.go('/login'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                        ),
                         child: Text(
                           l10n.login,
                           style: TextStyle(

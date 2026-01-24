@@ -23,7 +23,10 @@ class PremiumButton extends StatefulWidget {
     this.variant = ButtonVariant.primary,
     this.isFullWidth = false,
     this.delay = 0,
+    this.textStyle,
   });
+
+  final TextStyle? textStyle;
 
   @override
   State<PremiumButton> createState() => _PremiumButtonState();
@@ -82,7 +85,7 @@ class _PremiumButtonState extends State<PremiumButton> {
           ],
           Text(
             widget.label,
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: (widget.textStyle ?? theme.textTheme.titleMedium)?.copyWith(
               color: foregroundColor,
               fontWeight: FontWeight.bold,
             ),

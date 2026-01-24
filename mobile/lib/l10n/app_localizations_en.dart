@@ -1216,4 +1216,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changeEmail => 'Change Email';
+
+  @override
+  String get orContinueWith => 'Or continue with';
+
+  @override
+  String get googleSignIn => 'Google';
 }

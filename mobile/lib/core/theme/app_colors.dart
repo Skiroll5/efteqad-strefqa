@@ -11,6 +11,15 @@ class AppColors {
   static const Color blueDark = Color(0xFF001F3F);
   static const Color blueLight = Color(0xFF335C85);
 
+  // Vineyard Theme (Earthy/Premium)
+  static const Color vineyardBrown = Color(0xFF1A120B); // Deepest brown/black
+  static const Color vineyardBrownLight = Color(
+    0xFF2C241B,
+  ); // Lighter brown overlay
+  static const Color vineyardSurface = Color(
+    0xFF2A2118,
+  ); // Surface element color
+
   // Deep Red (Martyrdom/Coptic Ribbon)
   static const Color redPrimary = Color(0xFFC0392B);
   static const Color redAccent = Color(0xFFA52A2A);

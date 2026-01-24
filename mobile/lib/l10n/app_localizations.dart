@@ -2341,6 +2341,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change Email'**
   String get changeEmail;
+
+  /// No description provided for @orContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Or continue with'**
+  String get orContinueWith;
+
+  /// No description provided for @googleSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get googleSignIn;
 }
 
 class _AppLocalizationsDelegate

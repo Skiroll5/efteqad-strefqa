@@ -564,5 +564,7 @@
   "invalidCredentials": "Invalid email or password",
   "verifyCode": "Verify Code",
   "continueAction": "Continue",
-  "changeEmail": "Change Email"
+  "changeEmail": "Change Email",
+  "orContinueWith": "Or continue with",
+  "googleSignIn": "Google"
 }

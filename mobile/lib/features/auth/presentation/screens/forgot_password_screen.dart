@@ -57,7 +57,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
       // Navigate to unified OTP screen
       context.push(
-        '/verify-reset-otp', // This route now maps to OtpVerificationScreen in router
+        '/verify-reset-otp',
         extra: {'identifier': _identifierController.text.trim()},
       );
     } catch (e) {
@@ -84,18 +84,27 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
-                  // Header
+                  const SizedBox(height: 60),
+
+                  // Header with premium icon
                   Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(
-                            alpha: isDark ? 0.05 : 0.8,
+                            alpha: isDark ? 0.08 : 0.9,
                           ),
                           boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isDark
+                                          ? AppColors.goldPrimary
+                                          : AppColors.bluePrimary)
+                                      .withValues(alpha: 0.2),
+                              blurRadius: 30,
+                            ),
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
@@ -112,35 +121,40 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         ),
                       ).animate().fade().scale(curve: Curves.easeOutBack),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
                       Text(
                             l10n.forgotPasswordTitle,
                             style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                               color: isDark
                                   ? Colors.white
                                   : AppColors.bluePrimary,
                             ),
                           )
                           .animate()
-                          .fade(delay: 200.ms)
+                          .fade(delay: 150.ms)
                           .slideY(begin: 0.2, end: 0),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
 
-                      Text(
-                            l10n.forgotPasswordSubtitle,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isDark ? Colors.white70 : Colors.black54,
+                      Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              l10n.forgotPasswordSubtitle,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isDark ? Colors.white60 : Colors.black54,
+                                height: 1.5,
+                              ),
                             ),
                           )
                           .animate()
-                          .fade(delay: 300.ms)
+                          .fade(delay: 200.ms)
                           .slideY(begin: 0.2, end: 0),
                     ],
                   ),
+
                   const SizedBox(height: 40),
 
                   PremiumCard(
@@ -167,7 +181,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             delay: 0.4,
                           ),
 
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 28),
 
                           PremiumButton(
                             label: l10n.sendResetLink,
@@ -179,13 +193,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                           const SizedBox(height: 16),
 
-                          TextButton(
+                          TextButton.icon(
                             onPressed: () => context.pop(),
-                            child: Text(
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              size: 18,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                            ),
+                            label: Text(
                               l10n.goBackToLogin,
                               style: TextStyle(
                                 color: isDark ? Colors.white70 : Colors.black54,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ).animate().fade(delay: 600.ms),

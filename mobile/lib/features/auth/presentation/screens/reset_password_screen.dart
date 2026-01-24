@@ -16,8 +16,7 @@ import '../widgets/auth_background.dart';
 import '../widgets/auth_message_banner.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  final String
-  token; // Depending on flow, this might be OTP code or token from deep link
+  final String token; // OTP code or token from deep link
 
   const ResetPasswordScreen({super.key, required this.token});
 
@@ -30,11 +29,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _scrollController = ScrollController();
   final _formKey = GlobalKey<FormState>();
 
   String? _errorMessage;
   bool _isLoading = false;
   String _password = '';
+
+  final _passwordFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -46,6 +48,21 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     _passwordController.addListener(() {
       setState(() => _password = _passwordController.text);
     });
+
+    // Auto-scroll when password field is focused
+    _passwordFocusNode.addListener(() {
+      if (_passwordFocusNode.hasFocus) {
+        Future.delayed(300.ms, () {
+          if (mounted && _scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.offset + 80,
+              duration: 300.ms,
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -53,6 +70,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     _otpController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _scrollController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -112,27 +131,34 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
-
     return AuthBackground(
       child: Stack(
         children: [
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              controller: _scrollController,
+              padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
                   // Header
                   Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(
-                            alpha: isDark ? 0.05 : 0.8,
+                            alpha: isDark ? 0.08 : 0.9,
                           ),
                           boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isDark
+                                          ? AppColors.goldPrimary
+                                          : AppColors.bluePrimary)
+                                      .withValues(alpha: 0.2),
+                              blurRadius: 30,
+                            ),
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
@@ -142,43 +168,52 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         ),
                         child: Icon(
                           Icons.password_rounded,
-                          size: 48,
+                          size: 44,
                           color: isDark
                               ? AppColors.goldPrimary
                               : AppColors.bluePrimary,
                         ),
                       ).animate().fade().scale(curve: Curves.easeOutBack),
+
                       const SizedBox(height: 24),
+
                       Text(
                             l10n.resetPassword,
                             style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                               color: isDark
                                   ? Colors.white
                                   : AppColors.bluePrimary,
                             ),
                           )
                           .animate()
-                          .fade(delay: 200.ms)
+                          .fade(delay: 150.ms)
                           .slideY(begin: 0.2, end: 0),
-                      const SizedBox(height: 8),
-                      Text(
-                            l10n.enterOtpAndNewPassword,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isDark ? Colors.white70 : Colors.black54,
+
+                      const SizedBox(height: 10),
+
+                      Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              l10n.enterOtpAndNewPassword,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isDark ? Colors.white60 : Colors.black54,
+                                height: 1.5,
+                              ),
                             ),
                           )
                           .animate()
-                          .fade(delay: 300.ms)
+                          .fade(delay: 200.ms)
                           .slideY(begin: 0.2, end: 0),
                     ],
                   ),
-                  const SizedBox(height: 40),
+
+                  const SizedBox(height: 36),
 
                   PremiumCard(
                     isGlass: true,
-                    delay: 0.4,
+                    delay: 0.3,
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -196,35 +231,38 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             label: l10n.otpCode,
                             prefixIcon: Icons.confirmation_number_outlined,
                             keyboardType: TextInputType.number,
-                            delay: 0.5,
+                            delay: 0.4,
                           ),
-                          const SizedBox(height: 16),
-                          PremiumTextField(
-                            controller: _passwordController,
-                            label: l10n.newPassword,
-                            prefixIcon: Icons.lock_outline,
-                            isPassword: true,
-                            textInputAction: TextInputAction.next,
-                            delay: 0.6,
+                          const SizedBox(height: 14),
+
+                          Focus(
+                            focusNode: _passwordFocusNode,
+                            child: PremiumTextField(
+                              controller: _passwordController,
+                              label: l10n.newPassword,
+                              prefixIcon: Icons.lock_outline,
+                              isPassword: true,
+                              textInputAction: TextInputAction.next,
+                              delay: 0.5,
+                            ),
                           ),
 
-                          // Strength Indicator
+                          // Strength Indicator - compact for keyboard visibility
                           AnimatedSize(
-                            duration: 300.ms,
+                            duration: 200.ms,
+                            curve: Curves.easeOut,
                             child: _password.isNotEmpty
                                 ? Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8,
-                                      bottom: 8,
-                                    ),
+                                    padding: const EdgeInsets.only(top: 10),
                                     child: PasswordStrengthIndicator(
                                       password: _password,
+                                      compact: true,
                                     ),
                                   )
                                 : const SizedBox.shrink(),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
 
                           PremiumTextField(
                             controller: _confirmPasswordController,
@@ -232,17 +270,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             prefixIcon: Icons.lock_reset,
                             isPassword: true,
                             textInputAction: TextInputAction.done,
-                            delay: 0.7,
+                            delay: 0.6,
                           ),
 
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 28),
 
                           PremiumButton(
                             label: l10n.resetPassword,
                             isFullWidth: true,
                             isLoading: _isLoading,
                             onPressed: _handleReset,
-                            delay: 0.8,
+                            delay: 0.7,
                           ),
                         ],
                       ),

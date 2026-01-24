@@ -7,29 +7,31 @@ import '../theme/animations.dart';
 class PremiumCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
-  final Color? color;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
-  final bool isGlass;
   final double delay;
-  final BoxBorder? border;
+  final bool isGlass;
   final bool enableAnimation;
-  final double slideOffset;
+  final Color? color;
+  final BoxBorder? border;
+  final double? slideOffset;
   final Duration? animationDuration;
+  final double? borderRadius;
 
   const PremiumCard({
     super.key,
     required this.child,
     this.onTap,
-    this.color,
     this.padding,
     this.margin,
-    this.isGlass = false,
     this.delay = 0,
-    this.border,
+    this.isGlass = false,
     this.enableAnimation = true,
-    this.slideOffset = 0.2, // Increased default for better visibility
+    this.color,
+    this.border,
+    this.slideOffset,
     this.animationDuration,
+    this.borderRadius,
   });
 
   @override
@@ -37,71 +39,70 @@ class PremiumCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    Widget cardContent = Container(
-      padding: padding ?? const EdgeInsets.all(24), // Increased default padding
-      decoration: BoxDecoration(
-        color:
-            color ?? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
-        borderRadius: BorderRadius.circular(24), // More rounded corners
-        border:
-            border ??
-            (isGlass
-                ? null
-                : Border.all(
-                    color: isDark
-                        ? Colors.white10
-                        : Colors.black.withValues(alpha: 0.05),
-                  )),
-        boxShadow: isGlass
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                  blurRadius: 30,
-                  offset: const Offset(0, 15),
-                  spreadRadius: -5,
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                  spreadRadius: -2,
-                ),
-              ],
-      ),
-      child: child,
-    );
+    Widget cardContent;
+    final effectiveBorderRadius = borderRadius ?? (isGlass ? 24.0 : 20.0);
 
     if (isGlass) {
+      // Glassmorphism Implementation
       cardContent = ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(
+          effectiveBorderRadius,
+        ), // slightly more rounded for glass
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
+            padding: padding ?? const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.5),
-                width: 0.5,
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: isDark ? 0.1 : 0.8),
-                  Colors.white.withValues(alpha: isDark ? 0.05 : 0.5),
-                ],
-              ),
+              color:
+                  color ??
+                  (isDark
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.4)),
+              borderRadius: BorderRadius.circular(effectiveBorderRadius),
+              border:
+                  border ??
+                  Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white.withValues(alpha: 0.6),
+                    width: 1,
+                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            child: cardContent,
+            child: child,
           ),
         ),
+      );
+    } else {
+      // Standard Solid Card
+      cardContent = Container(
+        padding: padding ?? const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: color ?? (isDark ? AppColors.surfaceDark : Colors.white),
+          borderRadius: BorderRadius.circular(effectiveBorderRadius),
+          border:
+              border ??
+              Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.grey.shade200,
+              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+              spreadRadius: -4,
+            ),
+          ],
+        ),
+        child: child,
       );
     }
 
@@ -113,7 +114,7 @@ class PremiumCard extends StatelessWidget {
                 curve: AppAnimations.defaultCurve,
               )
               .slideY(
-                begin: slideOffset,
+                begin: slideOffset ?? 0.15,
                 end: 0,
                 duration: animationDuration ?? AppAnimations.defaultDuration,
                 curve: AppAnimations.defaultCurve,
@@ -122,21 +123,18 @@ class PremiumCard extends StatelessWidget {
 
     if (onTap != null) {
       return Padding(
-        padding: margin ?? const EdgeInsets.symmetric(vertical: 8),
+        padding: margin ?? EdgeInsets.zero,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(effectiveBorderRadius),
             child: animatedCard,
           ),
         ),
       );
     }
 
-    return Padding(
-      padding: margin ?? const EdgeInsets.symmetric(vertical: 8),
-      child: animatedCard,
-    );
+    return Padding(padding: margin ?? EdgeInsets.zero, child: animatedCard);
   }
 }

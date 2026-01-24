@@ -453,5 +453,7 @@
   "expiredToken": "كود منتهي الصلاحية",
   "loginFailed": "فشل تسجيل الدخول",
   "verifyCode": "تحقق من الكود",
-  "continueAction": "متابعة"
+  "continueAction": "متابعة",
+  "orContinueWith": "أو المتابعة باستخدام",
+  "googleSignIn": "جوجل"
 }

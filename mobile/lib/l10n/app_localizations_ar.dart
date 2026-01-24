@@ -1206,4 +1206,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeEmail => 'Change Email';
+
+  @override
+  String get orContinueWith => 'أو المتابعة باستخدام';
+
+  @override
+  String get googleSignIn => 'جوجل';
 }

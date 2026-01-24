@@ -37,6 +37,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   final _otpController = TextEditingController();
   String? _errorMessage;
   bool _isLoading = false;
+  bool _hasError = false;
 
   // Timer for resend
   Timer? _timer;
@@ -73,13 +74,17 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     final otp = _otpController.text.trim();
 
     if (otp.isEmpty || otp.length < 6) {
-      setState(() => _errorMessage = l10n.pleaseEnterOtp);
+      setState(() {
+        _errorMessage = l10n.pleaseEnterOtp;
+        _hasError = true;
+      });
       return;
     }
 
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _hasError = false;
     });
 
     try {
@@ -98,13 +103,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         await ref.read(authControllerProvider.notifier).verifyResetOtp(otp);
 
         if (!mounted) return;
-        // Verify success - navigate to reset password with the token (OTP code is the token here)
+        // Verify success - navigate to reset password with the token
         context.push('/reset-password', extra: {'token': otp});
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = MessageHandler.getErrorMessage(context, e);
+        _hasError = true;
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -118,6 +124,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _hasError = false;
     });
 
     try {
@@ -139,13 +146,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         context,
         message: widget.purpose == OtpPurpose.emailConfirmation
             ? l10n.emailResent
-            : l10n.resetLinkSent, // Or "Code resent"
+            : l10n.resetLinkSent,
         type: AppSnackBarType.success,
       );
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = MessageHandler.getErrorMessage(context, e);
+        _hasError = true;
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -181,21 +189,30 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 children: [
                   const SizedBox(height: 20),
 
-                  // Header Icon
+                  // Header Icon with premium glow
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(
-                        alpha: isDark ? 0.05 : 0.8,
+                        alpha: isDark ? 0.08 : 0.9,
                       ),
                       border: Border.all(
                         color: Colors.white.withValues(
-                          alpha: isDark ? 0.1 : 0.5,
+                          alpha: isDark ? 0.15 : 0.5,
                         ),
-                        width: 1,
+                        width: 1.5,
                       ),
                       boxShadow: [
+                        BoxShadow(
+                          color:
+                              (isDark
+                                      ? AppColors.goldPrimary
+                                      : AppColors.bluePrimary)
+                                  .withValues(alpha: 0.25),
+                          blurRadius: 40,
+                          spreadRadius: 0,
+                        ),
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 30,
@@ -205,27 +222,27 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                     ),
                     child: Icon(
                       icon,
-                      size: 64,
+                      size: 56,
                       color: isDark
                           ? AppColors.goldPrimary
                           : AppColors.bluePrimary,
                     ),
                   ).animate().scale(
-                    duration: 600.ms,
+                    duration: 500.ms,
                     curve: Curves.easeOutBack,
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
 
                   PremiumCard(
-                    delay: 0.3,
+                    delay: 0.2,
                     isGlass: true,
                     child: Column(
                       children: [
                         Text(
                           title,
                           style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
                             color: isDark
                                 ? Colors.white
                                 : AppColors.bluePrimary,
@@ -233,55 +250,85 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           textAlign: TextAlign.center,
                         ).animate().fade().slideY(begin: 0.2, end: 0),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
 
-                        // Identifier display
+                        // Identifier display with premium styling
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: 14,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white10 : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(20),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.grey.shade200,
+                            ),
                           ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.email_outlined,
+                                size: 16,
+                                color: isDark ? Colors.white60 : Colors.black54,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  widget.identifier,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.8)
+                                        : Colors.black87,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fade(delay: 150.ms),
+
+                        const SizedBox(height: 16),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Text(
-                            widget.identifier,
+                            subtitle,
+                            textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white70 : Colors.black87,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                              height: 1.5,
                             ),
                           ),
                         ).animate().fade(delay: 200.ms),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 28),
 
-                        Text(
-                          subtitle,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isDark ? Colors.white60 : Colors.black54,
-                            height: 1.5,
-                          ),
-                        ).animate().fade(delay: 300.ms),
-
-                        const SizedBox(height: 32),
-
-                        if (_errorMessage != null)
+                        if (_errorMessage != null) ...[
                           AuthMessageBanner(
                             message: _errorMessage!,
                             type: AuthMessageType.error,
                           ),
+                          const SizedBox(height: 20),
+                        ],
 
+                        // Premium OTP Input
                         PremiumOtpInput(
                           controller: _otpController,
                           onCompleted: (_) => _handleSubmit(),
+                          hasError: _hasError,
                         ),
 
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 28),
 
                         PremiumButton(
-                          label: l10n.verify, // Or "Confirm"
+                          label: l10n.verify,
                           isFullWidth: true,
                           isLoading: _isLoading,
                           onPressed: _handleSubmit,
@@ -289,35 +336,75 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Resend Timer
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_secondsRemaining > 0)
-                              Text(
-                                '${l10n.resendConfirmation} (${_secondsRemaining}s)',
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white38
-                                      : Colors.black38,
-                                  fontWeight: FontWeight.w500,
+                        // Resend Timer with premium styling
+                        AnimatedSwitcher(
+                          duration: 200.ms,
+                          child: _secondsRemaining > 0
+                              ? Container(
+                                  key: const ValueKey('timer'),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          value:
+                                              _secondsRemaining /
+                                              _resendCooldown,
+                                          strokeWidth: 2,
+                                          color: isDark
+                                              ? AppColors.goldPrimary
+                                                    .withValues(alpha: 0.5)
+                                              : AppColors.bluePrimary
+                                                    .withValues(alpha: 0.5),
+                                          backgroundColor: isDark
+                                              ? Colors.white10
+                                              : Colors.grey.shade200,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        '${l10n.resendConfirmation} (${_secondsRemaining}s)',
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white38
+                                              : Colors.black38,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : TextButton.icon(
+                                  key: const ValueKey('resend'),
+                                  onPressed: _isLoading ? null : _handleResend,
+                                  icon: const Icon(
+                                    Icons.refresh_rounded,
+                                    size: 18,
+                                  ),
+                                  label: Text(l10n.resendConfirmation),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: isDark
+                                        ? AppColors.goldPrimary
+                                        : AppColors.bluePrimary,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                  ),
                                 ),
-                              )
-                            else
-                              TextButton.icon(
-                                onPressed: _isLoading ? null : _handleResend,
-                                icon: const Icon(
-                                  Icons.refresh_rounded,
-                                  size: 16,
-                                ),
-                                label: Text(l10n.resendConfirmation),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: isDark
-                                      ? AppColors.goldPrimary
-                                      : AppColors.bluePrimary,
-                                ),
-                              ),
-                          ],
                         ),
 
                         const SizedBox(height: 12),
@@ -328,6 +415,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                             l10n.goBackToLogin,
                             style: TextStyle(
                               color: isDark ? Colors.white54 : Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),

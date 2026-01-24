@@ -572,5 +572,6 @@
   "changeEmail": "Change Email",
   "orContinueWith": "Or continue with",
   "googleSignIn": "Google",
-  "googleSignInAborted": "Sign in aborted by user"
+  "googleSignInAborted": "Sign in aborted by user",
+  "invalidOtp": "Invalid verification code"
 }

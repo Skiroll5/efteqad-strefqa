@@ -25,32 +25,41 @@ class PremiumOtpInput extends StatefulWidget {
 
 class _PremiumOtpInputState extends State<PremiumOtpInput>
     with SingleTickerProviderStateMixin {
-  late List<TextEditingController> _controllers;
-  late List<FocusNode> _focusNodes;
+  late TextEditingController _hiddenController;
+  late FocusNode _hiddenFocusNode;
   late AnimationController _shakeController;
-  int _focusedIndex = -1;
 
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(
-      widget.length,
-      (index) => TextEditingController(),
-    );
-    _focusNodes = List.generate(widget.length, (index) {
-      final node = FocusNode();
-      node.addListener(() {
-        setState(() {
-          _focusedIndex = node.hasFocus ? index : _focusedIndex;
-        });
-      });
-      return node;
-    });
+    _hiddenController = widget.controller;
+    _hiddenController.addListener(_onCodeChanged);
+
+    _hiddenFocusNode = FocusNode();
+    _hiddenFocusNode.addListener(() => setState(() {}));
 
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
+
+    // Remove aggressive clipboard check.
+    // We now rely on AutofillHints.oneTimeCode and manual paste.
+  }
+
+  // Helper for animation logic
+  Future<void> _pastingAnimation(String text) async {
+    // Determine how many characters to type
+    for (int i = 0; i < text.length; i++) {
+      if (!mounted) return;
+      _hiddenController.text = text.substring(0, i + 1);
+      _hiddenFocusNode.requestFocus();
+      _hiddenController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _hiddenController.text.length),
+      );
+      HapticFeedback.selectionClick();
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
   }
 
   @override
@@ -58,6 +67,20 @@ class _PremiumOtpInputState extends State<PremiumOtpInput>
     super.didUpdateWidget(oldWidget);
     if (widget.hasError && !oldWidget.hasError) {
       _shake();
+    }
+    if (widget.controller != oldWidget.controller) {
+      _hiddenController.removeListener(_onCodeChanged);
+      _hiddenController = widget.controller;
+      _hiddenController.addListener(_onCodeChanged);
+    }
+  }
+
+  void _onCodeChanged() {
+    setState(() {}); // Rebuild to show new characters
+    if (_hiddenController.text.length == widget.length &&
+        widget.onCompleted != null) {
+      HapticFeedback.lightImpact();
+      widget.onCompleted!(_hiddenController.text);
     }
   }
 
@@ -68,67 +91,10 @@ class _PremiumOtpInputState extends State<PremiumOtpInput>
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _hiddenController.removeListener(_onCodeChanged);
+    _hiddenFocusNode.dispose();
     _shakeController.dispose();
     super.dispose();
-  }
-
-  void _onChanged(String value, int index) {
-    // Handle paste of full OTP code
-    if (value.length > 1) {
-      _handlePaste(value);
-      return;
-    }
-
-    if (value.length == 1 && index < widget.length - 1) {
-      _focusNodes[index + 1].requestFocus();
-    }
-
-    _updateMainController();
-  }
-
-  void _handlePaste(String value) {
-    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.isEmpty) return;
-
-    for (int i = 0; i < widget.length && i < digits.length; i++) {
-      _controllers[i].text = digits[i];
-    }
-
-    // Focus last filled or next empty
-    final focusIndex = digits.length >= widget.length
-        ? widget.length - 1
-        : digits.length;
-    if (focusIndex < widget.length) {
-      _focusNodes[focusIndex].requestFocus();
-    }
-
-    _updateMainController();
-  }
-
-  void _onKeyDown(KeyEvent event, int index) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace) {
-      if (_controllers[index].text.isEmpty && index > 0) {
-        _focusNodes[index - 1].requestFocus();
-        _controllers[index - 1].clear();
-        _updateMainController();
-      }
-    }
-  }
-
-  void _updateMainController() {
-    final otp = _controllers.map((c) => c.text).join();
-    widget.controller.text = otp;
-    if (otp.length == widget.length && widget.onCompleted != null) {
-      HapticFeedback.lightImpact();
-      widget.onCompleted!(otp);
-    }
   }
 
   @override
@@ -136,130 +102,198 @@ class _PremiumOtpInputState extends State<PremiumOtpInput>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.goldPrimary : AppColors.bluePrimary;
 
-    return AnimatedBuilder(
-      animation: _shakeController,
-      builder: (context, child) {
-        final shakeOffset = _shakeController.value < 0.5
-            ? _shakeController.value * 20 - 5
-            : (1 - _shakeController.value) * 20 - 5;
-        return Transform.translate(
-          offset: Offset(shakeOffset * (widget.hasError ? 1 : 0), 0),
-          child: child,
-        );
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(widget.length, (index) {
-          final isFocused = _focusedIndex == index;
-          final hasValue = _controllers[index].text.isNotEmpty;
-
-          return ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: AnimatedContainer(
-                    duration: 200.ms,
-                    width: 48,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isFocused
-                            ? [
-                                primaryColor.withValues(alpha: 0.2),
-                                primaryColor.withValues(alpha: 0.1),
-                              ]
-                            : [
-                                isDark
-                                    ? Colors.white.withValues(alpha: 0.08)
-                                    : Colors.white.withValues(alpha: 0.9),
-                                isDark
-                                    ? Colors.white.withValues(alpha: 0.04)
-                                    : Colors.white.withValues(alpha: 0.7),
-                              ],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: widget.hasError
-                            ? AppColors.redPrimary
-                            : (isFocused
-                                  ? primaryColor
-                                  : (isDark
-                                        ? Colors.white12
-                                        : Colors.grey.shade300)),
-                        width: isFocused ? 2 : 1,
-                      ),
-                      boxShadow: isFocused
-                          ? [
-                              BoxShadow(
-                                color: primaryColor.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                    ),
-                    child: KeyboardListener(
-                      focusNode: FocusNode(),
-                      onKeyEvent: (event) => _onKeyDown(event, index),
-                      child: TextField(
-                        controller: _controllers[index],
-                        focusNode: _focusNodes[index],
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: widget.hasError
-                              ? AppColors.redPrimary
-                              : (isDark ? Colors.white : Colors.black87),
-                        ),
-                        maxLength: 1,
-                        decoration: InputDecoration(
-                          counterText: '',
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                          hintText: isFocused ? '' : '•',
-                          hintStyle: TextStyle(
-                            fontSize: 20,
-                            color: isDark
-                                ? Colors.white24
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(null), // Allow paste
-                        ],
-                        onChanged: (value) => _onChanged(value, index),
-                      ),
+    return Center(
+      child: AnimatedBuilder(
+        animation: _shakeController,
+        builder: (context, child) {
+          final shakeOffset = _shakeController.value < 0.5
+              ? _shakeController.value * 20 - 5
+              : (1 - _shakeController.value) * 20 - 5;
+          return Transform.translate(
+            offset: Offset(shakeOffset * (widget.hasError ? 1 : 0), 0),
+            child: child,
+          );
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // 1. Hidden text field that captures input (Completely invisible/ignored but focusable)
+            IgnorePointer(
+              child: Opacity(
+                opacity: 0.0,
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: TextField(
+                    controller: _hiddenController,
+                    focusNode: _hiddenFocusNode,
+                    autofillHints: const [AutofillHints.oneTimeCode],
+                    maxLength: widget.length,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    style: const TextStyle(color: Colors.transparent),
+                    cursorColor: Colors.transparent,
+                    showCursor: false,
+                    enableInteractiveSelection: false,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      counterText: '',
                     ),
                   ),
                 ),
-              )
-              .animate()
-              .fade(delay: (index * 40).ms, duration: 200.ms)
-              .scale(
-                delay: (index * 40).ms,
-                begin: const Offset(0.8, 0.8),
-                end: const Offset(1, 1),
-                duration: 200.ms,
-                curve: Curves.easeOutBack,
-              )
-              .animate(target: hasValue ? 1 : 0)
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(1.05, 1.05),
-                duration: 100.ms,
-              );
-        }),
+              ),
+            ),
+
+            // 2. The visible cells (Visual representation only)
+            Directionality(
+              textDirection: TextDirection.ltr, // Always LTR for digits
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min, // shrink to fit
+                  children: List.generate(widget.length, (index) {
+                    final text = _hiddenController.text;
+                    final char = index < text.length ? text[index] : '';
+
+                    final isActive =
+                        _hiddenFocusNode.hasFocus &&
+                        (index == text.length ||
+                            (index == widget.length - 1 &&
+                                text.length == widget.length));
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: AnimatedContainer(
+                            duration: 200.ms,
+                            width: 48,
+                            height: 58,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isActive
+                                    ? [
+                                        primaryColor.withValues(alpha: 0.2),
+                                        primaryColor.withValues(alpha: 0.1),
+                                      ]
+                                    : [
+                                        isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.08,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.9,
+                                              ),
+                                        isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.04,
+                                              )
+                                            : Colors.white.withValues(
+                                                alpha: 0.7,
+                                              ),
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: widget.hasError
+                                    ? AppColors.redPrimary
+                                    : (isActive
+                                          ? primaryColor
+                                          : (char.isNotEmpty
+                                                ? (isDark
+                                                      ? Colors.white38
+                                                      : Colors
+                                                            .grey
+                                                            .shade400) // Filled but not active
+                                                : (isDark
+                                                      ? Colors.white12
+                                                      : Colors.grey.shade300))),
+                                width: isActive ? 2 : 1,
+                              ),
+                              boxShadow: isActive
+                                  ? [
+                                      BoxShadow(
+                                        color: primaryColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              char,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: widget.hasError
+                                    ? AppColors.redPrimary
+                                    : (isDark ? Colors.white : Colors.black87),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+
+            // 3. Touch Overlay (Top layer, handles all interactions)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onLongPress: () async {
+                  HapticFeedback.mediumImpact();
+                  // Show paste feedback
+                  final data = await Clipboard.getData(Clipboard.kTextPlain);
+                  final text = data?.text?.trim();
+                  if (text != null && text.isNotEmpty) {
+                    final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
+                    if (digits.isNotEmpty) {
+                      final toPaste = digits.substring(
+                        0,
+                        digits.length > widget.length
+                            ? widget.length
+                            : digits.length,
+                      );
+                      _pastingAnimation(toPaste);
+                    }
+                  }
+                },
+                onTap: () {
+                  if (!_hiddenFocusNode.hasFocus) {
+                    _hiddenFocusNode.requestFocus();
+                  }
+                  // Ensure cursor is at end
+                  if (_hiddenController.text.isNotEmpty) {
+                    _hiddenController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _hiddenController.text.length),
+                    );
+                  }
+                  // Force show keyboard
+                  SystemChannels.textInput.invokeMethod('TextInput.show');
+                },
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

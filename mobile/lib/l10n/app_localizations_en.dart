@@ -1241,4 +1241,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get googleSignInAborted => 'Sign in aborted by user';
+
+  @override
+  String get invalidOtp => 'Invalid verification code';
 }

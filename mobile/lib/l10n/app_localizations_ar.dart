@@ -1231,4 +1231,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get googleSignInAborted => 'تم إلغاء تسجيل الدخول بواسطة المستخدم';
+
+  @override
+  String get invalidOtp => 'رمز التحقق غير صحيح';
 }

@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, confirmEmail, forgotPassword, resetPassword, resendConfirmation, googleLogin } from '../controllers/authController';
+import { register, login, confirmEmail, forgotPassword, resetPassword, resendConfirmation, googleLogin, verifyResetOtp } from '../controllers/authController';
 
 const router = express.Router();
 
@@ -10,6 +10,7 @@ router.post('/confirm-email', confirmEmail); // Changed to post for OTP verifica
 router.get('/confirm-email', confirmEmail); // Keep get for backward compatibility/links
 router.post('/resend-confirmation', resendConfirmation);
 router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-otp', verifyResetOtp);
 router.post('/reset-password', resetPassword);
 
 export default router;

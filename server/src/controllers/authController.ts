@@ -198,9 +198,12 @@ export const login = async (req: Request, res: Response) => {
 export const confirmEmail = async (req: Request, res: Response) => {
     try {
         // Support both query (link) and body (OTP)
-        const token = (req.query.token as string) || req.body.token;
+        let token = (req.query.token as string) || req.body.token;
 
         if (!token) return res.status(400).json({ message: 'Token required' });
+
+        // Sanitize
+        token = String(token).trim();
 
         const user = await prisma.user.findFirst({
             where: { confirmationToken: token, isDeleted: false }
@@ -316,8 +319,13 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
 export const verifyResetOtp = async (req: Request, res: Response) => {
     try {
-        const { token } = req.body;
+        let { token } = req.body;
         if (!token) return res.status(400).json({ message: 'Token required' });
+
+        // Sanitize token
+        token = String(token).trim();
+
+        console.log(`[VERIFY_RESET] Received token: '${token}'`);
 
         const user = await prisma.user.findFirst({
             where: {
@@ -328,9 +336,18 @@ export const verifyResetOtp = async (req: Request, res: Response) => {
         });
 
         if (!user) {
+            // Debug why it failed
+            const debugUser = await prisma.user.findFirst({ where: { passwordResetToken: token } });
+            if (debugUser) {
+                console.log(`[VERIFY_RESET] Token found for user ${debugUser.email}, but expired or deleted.`);
+                console.log(`[VERIFY_RESET] Expires: ${debugUser.passwordResetExpires}, Now: ${new Date()}`);
+            } else {
+                console.log(`[VERIFY_RESET] Token '${token}' NOT found in DB.`);
+            }
             return res.status(400).json({ message: 'Invalid or expired token', code: 'INVALID_TOKEN' });
         }
 
+        console.log(`[VERIFY_RESET] Success for user: ${user.email}`);
         res.json({ message: 'Token is valid' });
     } catch (error) {
         console.error('Verify OTP error:', error);
@@ -396,7 +413,7 @@ export const googleLogin = async (req: Request, res: Response) => {
         }
 
         const { email, name, picture, sub: googleId } = payload;
-        
+
         if (!email) {
             return res.status(400).json({ message: 'Email not provided by Google' });
         }
@@ -428,16 +445,16 @@ export const googleLogin = async (req: Request, res: Response) => {
                     isEmailConfirmed: true,
                     isEnabled: true,
                     isActive: role === 'ADMIN', // Auto-activate if first admin, else pending logic? 
-                                                // Actually, social login usually implies "active" enough, 
-                                                // but let's respect the "waitActivation" rule if needed.
-                                                // For now, let's keep consistent:
+                    // Actually, social login usually implies "active" enough, 
+                    // but let's respect the "waitActivation" rule if needed.
+                    // For now, let's keep consistent:
                     activationDenied: false,
                     // photoUrl: picture // Add to schema if needed
                 }
             });
 
             // Notify admins
-             notifyAdmins(
+            notifyAdmins(
                 'newUserRegistered',
                 '👤 New Google User',
                 `${user.name} signed up with Google`,
@@ -446,13 +463,13 @@ export const googleLogin = async (req: Request, res: Response) => {
             ).catch(console.error);
 
         } else {
-             // Optional: Update existing user info (e.g. name/photo) if login success?
-             // For now, simple login.
+            // Optional: Update existing user info (e.g. name/photo) if login success?
+            // For now, simple login.
         }
 
         // 3. Check access rules
         if (!user.isEnabled) {
-             return res.status(403).json({
+            return res.status(403).json({
                 message: 'Your account has been disabled by the administrator',
                 code: 'ACCOUNT_DISABLED'
             });

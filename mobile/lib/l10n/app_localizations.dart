@@ -2389,6 +2389,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in aborted by user'**
   String get googleSignInAborted;
+
+  /// No description provided for @invalidOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid verification code'**
+  String get invalidOtp;
 }
 
 class _AppLocalizationsDelegate

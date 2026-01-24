@@ -290,6 +290,23 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              const SizedBox(width: 8),
+                              // Edit Button
+                              InkWell(
+                                onTap: () =>
+                                    context.pop(), // Go back to change details
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.edit_rounded,
+                                    size: 14,
+                                    color: isDark
+                                        ? AppColors.goldPrimary
+                                        : AppColors.bluePrimary,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ).animate().fade(delay: 150.ms),

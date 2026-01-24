@@ -461,5 +461,6 @@
   "continueAction": "متابعة",
   "orContinueWith": "أو المتابعة باستخدام",
   "googleSignIn": "جوجل",
-  "googleSignInAborted": "تم إلغاء تسجيل الدخول بواسطة المستخدم"
+  "googleSignInAborted": "تم إلغاء تسجيل الدخول بواسطة المستخدم",
+  "invalidOtp": "رمز التحقق غير صحيح"
 }

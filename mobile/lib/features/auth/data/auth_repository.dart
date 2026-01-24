@@ -198,7 +198,8 @@ class AuthRepository {
     } on DioException catch (e) {
       final data = e.response?.data;
       String message = 'Invalid OTP';
-      String code = 'UNKNOWN';
+      String code =
+          'INVALID_OTP'; // Default to INVALID_OTP to trigger localization
 
       if (data is Map<String, dynamic>) {
         message = data['message'] ?? message;
@@ -213,8 +214,8 @@ class AuthRepository {
       await _dio.post('$_baseUrl/auth/confirm-email', data: {'token': token});
     } on DioException catch (e) {
       final data = e.response?.data;
-      final message = data?['message'] ?? 'Check failed';
-      final code = data?['code'] ?? 'UNKNOWN';
+      final message = data?['message'] ?? 'Invalid OTP';
+      final code = data?['code'] ?? 'INVALID_OTP';
       throw AuthError(message, code);
     }
   }

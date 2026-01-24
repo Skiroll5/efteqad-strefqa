@@ -21,7 +21,9 @@ class MessageHandler {
         case 'ACCOUNT_DISABLED':
           return l10n.accountDisabled;
         case 'INVALID_TOKEN':
-          return l10n.invalidToken;
+        case 'INVALID_OTP':
+        case 'INVALID_CODE':
+          return l10n.invalidOtp;
         case 'EXPIRED_TOKEN':
           return l10n.expiredToken;
         case 'PENDING_ACTIVATION':

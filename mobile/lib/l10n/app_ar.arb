@@ -447,7 +447,10 @@
   "atLeast1Lower": "حرف صغير واحد على الأقل",
   "atLeast1Digit": "رقم واحد على الأقل",
   "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
-  "verify": "تحقق",
+  "invalidName": "الاسم يجب أن يكون حرفين على الأقل",
+  "invalidEmail": "البريد الإلكتروني غير صحيح",
+  "phoneNumberTooShort": "رقم الهاتف قصير جداً",
+  "verifyEmail": "تأكيد البريد الإلكتروني",
   "enterCode": "أدخل الكود",
   "enterCodeDesc": "أدخل كود التحقق المرسل لبريدك الإلكتروني",
   "resendConfirmation": "إعادة إرسال التأكيد",
@@ -457,5 +460,6 @@
   "verifyCode": "تحقق من الكود",
   "continueAction": "متابعة",
   "orContinueWith": "أو المتابعة باستخدام",
-  "googleSignIn": "جوجل"
+  "googleSignIn": "جوجل",
+  "googleSignInAborted": "تم إلغاء تسجيل الدخول بواسطة المستخدم"
 }

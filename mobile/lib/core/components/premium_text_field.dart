@@ -14,6 +14,9 @@ class PremiumTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final double delay;
   final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onSubmitted;
+  final TextDirection? textDirection; // Add this
 
   const PremiumTextField({
     super.key,
@@ -26,6 +29,9 @@ class PremiumTextField extends StatefulWidget {
     this.onChanged,
     this.delay = 0,
     this.textInputAction,
+    this.focusNode,
+    this.onSubmitted,
+    this.textDirection, // Add this
   });
 
   @override
@@ -34,22 +40,43 @@ class PremiumTextField extends StatefulWidget {
 
 class _PremiumTextFieldState extends State<PremiumTextField> {
   bool _obscureText = true;
-  final FocusNode _focusNode = FocusNode();
+  late FocusNode _focusNode; // Change to late
   bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      setState(() {
-        _isFocused = _focusNode.hasFocus;
-      });
+    _focusNode = widget.focusNode ?? FocusNode(); // Use provided or create new
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    setState(() {
+      _isFocused = _focusNode.hasFocus;
     });
+
+    // Fix RTL/LTR cursor position issue
+    // When focusing, if text exists, ensure cursor goes to the end
+    if (_isFocused && widget.controller.text.isNotEmpty) {
+      // Small delay to ensure frame is ready if needed, though direct set usually works
+      // using addPostFrameCallback is safer for focus transitions
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _focusNode.hasFocus) {
+          widget.controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: widget.controller.text.length),
+          );
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    if (widget.focusNode == null) {
+      _focusNode.dispose(); // Only dispose if we created it
+    } else {
+      _focusNode.removeListener(_handleFocusChange);
+    }
     super.dispose();
   }
 
@@ -110,6 +137,8 @@ class _PremiumTextFieldState extends State<PremiumTextField> {
                 keyboardType: widget.keyboardType,
                 textInputAction: widget.textInputAction,
                 validator: widget.validator,
+                onFieldSubmitted: widget.onSubmitted,
+                textDirection: widget.textDirection, // Add this
                 onChanged: widget.onChanged,
                 style: GoogleFonts.cairo(
                   textStyle: theme.textTheme.bodyLarge,

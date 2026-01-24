@@ -28,6 +28,8 @@ class MessageHandler {
           return l10n.accountPendingActivation;
         case 'ACTIVATION_DENIED':
           return l10n.accountDenied;
+        case 'ABORTED':
+          return l10n.googleSignInAborted;
         case 'UNKNOWN':
         default:
           return error.message.isNotEmpty ? error.message : l10n.serverError;

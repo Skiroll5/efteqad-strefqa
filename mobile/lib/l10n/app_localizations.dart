@@ -2288,6 +2288,30 @@ abstract class AppLocalizations {
   /// **'Passwords do not match'**
   String get passwordsDoNotMatch;
 
+  /// No description provided for @invalidName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must be at least 2 characters'**
+  String get invalidName;
+
+  /// No description provided for @invalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email address'**
+  String get invalidEmail;
+
+  /// No description provided for @phoneNumberTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number is too short'**
+  String get phoneNumberTooShort;
+
+  /// No description provided for @verifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Email'**
+  String get verifyEmail;
+
   /// No description provided for @verify.
   ///
   /// In en, this message translates to:
@@ -2359,6 +2383,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google'**
   String get googleSignIn;
+
+  /// No description provided for @googleSignInAborted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in aborted by user'**
+  String get googleSignInAborted;
 }
 
 class _AppLocalizationsDelegate

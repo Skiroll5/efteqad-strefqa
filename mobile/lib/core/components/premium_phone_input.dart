@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart'; // Add this
 import '../theme/app_colors.dart';
 import '../theme/animations.dart';
 
@@ -9,12 +10,20 @@ class PremiumPhoneInput extends StatefulWidget {
   final TextEditingController controller;
   final String label;
   final double delay;
+  final FocusNode? focusNode; // Add this
+  final TextInputAction? textInputAction; // Add this
+  final ValueChanged<String>? onSubmitted; // Add this
+  final String? Function(String?)? validator; // Add this
 
   const PremiumPhoneInput({
     super.key,
     required this.controller,
     required this.label,
     this.delay = 0,
+    this.focusNode,
+    this.textInputAction,
+    this.onSubmitted,
+    this.validator, // Add this
   });
 
   @override
@@ -22,33 +31,45 @@ class PremiumPhoneInput extends StatefulWidget {
 }
 
 class _PremiumPhoneInputState extends State<PremiumPhoneInput> {
-  final FocusNode _focusNode = FocusNode();
+  late FocusNode _focusNode; // Change to late
   bool _isFocused = false;
   String _countryCode = '+20'; // Default to Egypt
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      setState(() => _isFocused = _focusNode.hasFocus);
-    });
+    _focusNode = widget.focusNode ?? FocusNode(); // Use provided or create new
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    setState(() => _isFocused = _focusNode.hasFocus);
+
+    // Fix RTL/LTR cursor position issue
+    if (_isFocused && widget.controller.text.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _focusNode.hasFocus) {
+          widget.controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: widget.controller.text.length),
+          );
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    if (widget.focusNode == null) {
+      _focusNode.dispose(); // Only dispose if we created it
+    } else {
+      _focusNode.removeListener(_handleFocusChange);
+    }
     super.dispose();
   }
 
-  /// Handle Egyptian number format - auto-strip leading 0
+  // No longer stripping leading 0 as requested
   void _onChanged(String value) {
-    // If user types a leading 0 for Egyptian numbers, strip it
-    if (_countryCode == '+20' && value.startsWith('0') && value.length > 1) {
-      widget.controller.text = value.substring(1);
-      widget.controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: widget.controller.text.length),
-      );
-    }
+    // Keep raw value
   }
 
   String get fullNumber {
@@ -62,26 +83,40 @@ class _PremiumPhoneInputState extends State<PremiumPhoneInput> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? AppColors.surfaceDark : Colors.grey.shade50;
+    // "Vineyard" Inspired Input Style (Matching PremiumTextField)
+    final bgColor = isDark
+        ? AppColors.vineyardBrownLight.withValues(alpha: 0.6)
+        : Colors.white.withValues(alpha: 0.8);
+
     final borderColor = _isFocused
-        ? (isDark ? AppColors.goldPrimary : AppColors.bluePrimary)
+        ? AppColors.goldPrimary
         : (isDark
-              ? Colors.white.withValues(alpha: 0.12)
-              : Colors.grey.shade300);
+              ? AppColors.goldPrimary.withValues(alpha: 0.2)
+              : Colors.black12);
 
     return Directionality(
-      // Always LTR for phone numbers
       textDirection: TextDirection.ltr,
       child:
           AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: bgColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16), // Match Text Field
                   border: Border.all(
                     color: borderColor,
                     width: _isFocused ? 1.5 : 1,
                   ),
+                  boxShadow: _isFocused
+                      ? [
+                          BoxShadow(
+                            color: AppColors.goldPrimary.withValues(
+                              alpha: 0.15,
+                            ),
+                            blurRadius: 10,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : [],
                 ),
                 child: Row(
                   children: [
@@ -97,8 +132,8 @@ class _PremiumPhoneInputState extends State<PremiumPhoneInput> {
                           border: Border(
                             right: BorderSide(
                               color: isDark
-                                  ? Colors.white.withValues(alpha: 0.08)
-                                  : Colors.grey.shade300,
+                                  ? AppColors.goldPrimary.withValues(alpha: 0.2)
+                                  : Colors.black12,
                             ),
                           ),
                         ),
@@ -107,26 +142,24 @@ class _PremiumPhoneInputState extends State<PremiumPhoneInput> {
                           children: [
                             Text(
                               _getFlagEmoji(_countryCode),
-                              style: const TextStyle(fontSize: 18),
+                              style: const TextStyle(fontSize: 20),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               _countryCode,
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white70
-                                    : Colors.grey.shade700,
-                                fontWeight: FontWeight.w600,
+                              style: GoogleFonts.cairo(
+                                color: isDark ? Colors.white70 : Colors.black87,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 14,
                               ),
                             ),
                             const SizedBox(width: 4),
                             Icon(
                               Icons.keyboard_arrow_down,
-                              size: 18,
+                              size: 16,
                               color: isDark
                                   ? Colors.white54
-                                  : Colors.grey.shade500,
+                                  : Colors.grey.shade600,
                             ),
                           ],
                         ),
@@ -139,32 +172,41 @@ class _PremiumPhoneInputState extends State<PremiumPhoneInput> {
                         controller: widget.controller,
                         focusNode: _focusNode,
                         keyboardType: TextInputType.phone,
+                        textInputAction: widget.textInputAction,
+                        onFieldSubmitted: widget.onSubmitted,
+                        validator: widget.validator,
                         textDirection: TextDirection.ltr,
                         onChanged: _onChanged,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(15),
                         ],
-                        style: theme.textTheme.bodyLarge?.copyWith(
+                        style: GoogleFonts.cairo(
+                          textStyle: theme.textTheme.bodyLarge,
                           color: isDark
                               ? Colors.white
                               : AppColors.textPrimaryLight,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: 16,
                             vertical: 14,
                           ),
                           border: InputBorder.none,
-                          hintText: _countryCode == '+20'
-                              ? '10XXXXXXXX'
-                              : widget.label,
-                          hintStyle: TextStyle(
-                            color: isDark
-                                ? Colors.white38
-                                : Colors.grey.shade400,
-                            fontWeight: FontWeight.normal,
+                          labelText: widget.label,
+                          labelStyle: GoogleFonts.cairo(
+                            color: _isFocused
+                                ? AppColors.goldPrimary
+                                : (isDark ? Colors.white70 : Colors.black54),
+                            fontWeight: _isFocused
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                          floatingLabelStyle: GoogleFonts.cairo(
+                            color: AppColors.goldPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),

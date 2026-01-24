@@ -1192,6 +1192,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordsDoNotMatch => 'Passwords do not match';
 
   @override
+  String get invalidName => 'Name must be at least 2 characters';
+
+  @override
+  String get invalidEmail => 'Invalid email address';
+
+  @override
+  String get phoneNumberTooShort => 'Phone number is too short';
+
+  @override
+  String get verifyEmail => 'Verify Email';
+
+  @override
   String get verify => 'Verify';
 
   @override
@@ -1226,4 +1238,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get googleSignIn => 'Google';
+
+  @override
+  String get googleSignInAborted => 'Sign in aborted by user';
 }

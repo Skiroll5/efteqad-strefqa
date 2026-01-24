@@ -1182,7 +1182,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passwordsDoNotMatch => 'كلمات المرور غير متطابقة';
 
   @override
-  String get verify => 'تحقق';
+  String get invalidName => 'الاسم يجب أن يكون حرفين على الأقل';
+
+  @override
+  String get invalidEmail => 'البريد الإلكتروني غير صحيح';
+
+  @override
+  String get phoneNumberTooShort => 'رقم الهاتف قصير جداً';
+
+  @override
+  String get verifyEmail => 'تأكيد البريد الإلكتروني';
+
+  @override
+  String get verify => 'Verify';
 
   @override
   String get enterCode => 'أدخل الكود';
@@ -1216,4 +1228,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get googleSignIn => 'جوجل';
+
+  @override
+  String get googleSignInAborted => 'تم إلغاء تسجيل الدخول بواسطة المستخدم';
 }

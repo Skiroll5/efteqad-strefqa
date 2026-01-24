@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -247,6 +246,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         label: l10n.emailOrPhone,
                         prefixIcon: Icons.person_outline,
                         keyboardType: TextInputType.emailAddress,
+                        textDirection: TextDirection.ltr, // Force LTR for email
                         textInputAction: TextInputAction.next,
                         delay: 0.4,
                       ),

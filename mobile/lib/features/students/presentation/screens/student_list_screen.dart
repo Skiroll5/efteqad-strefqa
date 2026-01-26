@@ -486,39 +486,77 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                   // Show empty state when no students at all
                   if (students.isEmpty) {
                     return SliverToBoxAdapter(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.add_circle_outline,
-                                size: 64,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _showAddStudentDialog(context, ref),
+                            borderRadius: BorderRadius.circular(24),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 48),
+                              decoration: BoxDecoration(
                                 color: isDark
-                                    ? Colors.grey.shade600
-                                    : Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                l10n.noStudentsYet,
-                                style: theme.textTheme.titleMedium?.copyWith(
+                                    ? Colors.white.withValues(alpha: 0.02)
+                                    : Colors.black.withValues(alpha: 0.02),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
                                   color: isDark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.1),
+                                  width: 2,
+                                  style: BorderStyle.solid,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                l10n.tapAddStudentsAbove,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: isDark
-                                      ? Colors.grey.shade500
-                                      : Colors.grey.shade500,
-                                ),
-                                textAlign: TextAlign.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppColors.goldPrimary.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : AppColors.goldPrimary.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.add,
+                                      size: 32,
+                                      color: isDark
+                                          ? AppColors.goldPrimary
+                                          : AppColors.goldDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    l10n.noStudentsYet,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: isDark
+                                              ? Colors.grey.shade400
+                                              : Colors.grey.shade600,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l10n.tapAddStudentsAbove,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: isDark
+                                          ? Colors.grey.shade600
+                                          : Colors.grey.shade500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),

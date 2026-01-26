@@ -150,7 +150,7 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                         }
                     } else if (entityType === 'NOTE') {
                         if (sanitizedPayload.studentId) {
-                            let classId = studentClassMap.get(sanitizedPayload.studentId);
+                            let classId: string | null | undefined = studentClassMap.get(sanitizedPayload.studentId);
 
                             // Fallback: Check if student is being created/updated in this batch
                             if (!classId) {
@@ -162,14 +162,32 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                                 }
                             }
 
+                            // Fallback: Fetch from DB (if not found in map)
+                            if (!classId) {
+                                const student = await prisma.student.findUnique({
+                                    where: { id: sanitizedPayload.studentId },
+                                    select: { classId: true }
+                                });
+                                classId = student?.classId;
+                            }
+
                             if (classId) {
                                 isAuthorized = managedClassIds.has(classId);
+                            }
+                        } else if (operation === 'DELETE' || operation === 'VIRTUAL_DELETE') {
+                            // Fallback for deletion without studentId in payload
+                            const note = await prisma.note.findUnique({
+                                where: { id: entityId },
+                                select: { student: { select: { classId: true } } }
+                            });
+                            if (note?.student?.classId) {
+                                isAuthorized = managedClassIds.has(note.student.classId);
                             }
                         }
                     } else if (entityType === 'ATTENDANCE' || entityType === 'ATTENDANCE_RECORD') {
                         // For attendance, we need to check the session -> class
                         if (sanitizedPayload.sessionId) {
-                            let classId = sessionClassMap.get(sanitizedPayload.sessionId);
+                            let classId: string | null | undefined = sessionClassMap.get(sanitizedPayload.sessionId);
 
                             // Fallback: Check if session is being created/updated in this batch
                             if (!classId) {
@@ -181,8 +199,26 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                                 }
                             }
 
+                            // Fallback: Fetch from DB for deletions
+                            if (!classId && (operation === 'DELETE' || operation === 'VIRTUAL_DELETE')) {
+                                const record = await prisma.attendanceRecord.findUnique({
+                                    where: { id: entityId },
+                                    select: { session: { select: { classId: true } } }
+                                });
+                                classId = record?.session?.classId;
+                            }
+
                             if (classId) {
                                 isAuthorized = managedClassIds.has(classId);
+                            }
+                        } else if (operation === 'DELETE' || operation === 'VIRTUAL_DELETE') {
+                            // Extreme Fallback if even sessionId is missing from payload
+                            const record = await prisma.attendanceRecord.findUnique({
+                                where: { id: entityId },
+                                select: { session: { select: { classId: true } } }
+                            });
+                            if (record?.session?.classId) {
+                                isAuthorized = managedClassIds.has(record.session.classId);
                             }
                         }
                     }

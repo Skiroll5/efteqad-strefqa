@@ -146,16 +146,18 @@ class ClassListItem extends ConsumerWidget {
                                   children: [
                                     ...displayManagers.map(
                                       (name) => Container(
-                                        padding: const EdgeInsets.only(
-                                          right: 8,
-                                        ), // icon + name + spacing
+                                        padding: const EdgeInsets.fromLTRB(
+                                          2,
+                                          2,
+                                          8,
+                                          2,
+                                        ), // tighter padding left
                                         decoration: BoxDecoration(
                                           color: isDark
-                                              ? Colors.white.withValues(
-                                                  alpha: 0.1,
-                                                )
+                                              ? AppColors.surfaceLight
+                                                    .withValues(alpha: 0.1)
                                               : Colors.grey.withValues(
-                                                  alpha: 0.1,
+                                                  alpha: 0.08,
                                                 ),
                                           borderRadius: BorderRadius.circular(
                                             20,
@@ -163,10 +165,10 @@ class ClassListItem extends ConsumerWidget {
                                           border: Border.all(
                                             color: isDark
                                                 ? Colors.white.withValues(
-                                                    alpha: 0.1,
+                                                    alpha: 0.08,
                                                   )
                                                 : Colors.black.withValues(
-                                                    alpha: 0.05,
+                                                    alpha: 0.03,
                                                   ),
                                           ),
                                         ),
@@ -177,8 +179,15 @@ class ClassListItem extends ConsumerWidget {
                                               width: 20,
                                               height: 20,
                                               decoration: BoxDecoration(
-                                                color: AppColors.goldPrimary
-                                                    .withValues(alpha: 0.2),
+                                                color: isDark
+                                                    ? AppColors.goldPrimary
+                                                          .withValues(
+                                                            alpha: 0.2,
+                                                          )
+                                                    : AppColors.goldPrimary
+                                                          .withValues(
+                                                            alpha: 0.15,
+                                                          ),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Center(
@@ -189,8 +198,9 @@ class ClassListItem extends ConsumerWidget {
                                                   style: TextStyle(
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.bold,
-                                                    color:
-                                                        AppColors.goldPrimary,
+                                                    color: isDark
+                                                        ? AppColors.goldPrimary
+                                                        : AppColors.goldDark,
                                                   ),
                                                 ),
                                               ),
@@ -205,6 +215,7 @@ class ClassListItem extends ConsumerWidget {
                                                   color: isDark
                                                       ? Colors.white70
                                                       : Colors.black87,
+                                                  letterSpacing: -0.2,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,

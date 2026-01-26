@@ -112,6 +112,12 @@ export const assignManager = async (req: Request, res: Response) => {
             },
         });
 
+        // Touch the class updatedAt so sync picks up the new manager list
+        await prisma.class.update({
+            where: { id: classId },
+            data: { updatedAt: new Date() }
+        });
+
         // Emit sync update event so all clients refresh
         const io = getIO();
         io.emit('sync_update');
@@ -150,6 +156,12 @@ export const removeManager = async (req: Request, res: Response) => {
                 isDeleted: true,
                 deletedAt: new Date(),
             }
+        });
+
+        // Touch the class updatedAt so sync picks up the new manager list
+        await prisma.class.update({
+            where: { id: classId },
+            data: { updatedAt: new Date() }
         });
 
         // Emit sync update event so all clients refresh

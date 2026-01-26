@@ -193,6 +193,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
                   isDark,
                   l10n,
                   selectedClassId,
+                  students.isNotEmpty,
                 ),
               ),
 
@@ -603,6 +604,7 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
     bool isDark,
     AppLocalizations l10n,
     String? classId,
+    bool hasStudents,
   ) {
     // Sort sessions by date descending
     final sortedSessions = List.of(sessions)
@@ -741,6 +743,14 @@ class _StudentListScreenState extends ConsumerState<StudentListScreen> {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
+                  if (!hasStudents) {
+                    AppSnackBar.show(
+                      context,
+                      message: l10n.addStudentsFirstToTakeAttendance,
+                      type: AppSnackBarType.warning,
+                    );
+                    return;
+                  }
                   if (classId != null) {
                     context.push('/attendance/new');
                   }

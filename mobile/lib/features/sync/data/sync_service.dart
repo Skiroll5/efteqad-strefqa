@@ -540,8 +540,9 @@ class SyncService {
       _db.attendanceRecords,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (local != null) {
-      if (local.updatedAt.isAfter(serverUpdatedAt)) {
-        // Local is newer, preserve it
+      final isServerDelete = data['isDeleted'] == true;
+      if (!isServerDelete && local.updatedAt.isAfter(serverUpdatedAt)) {
+        // Local is newer and not a delete override, preserve it
         return;
       }
     }
@@ -569,7 +570,8 @@ class SyncService {
       _db.attendanceSessions,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (local != null) {
-      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+      final isServerDelete = data['isDeleted'] == true;
+      if (!isServerDelete && local.updatedAt.isAfter(serverUpdatedAt)) {
         return;
       }
     }
@@ -597,7 +599,8 @@ class SyncService {
       _db.notes,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (local != null) {
-      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+      final isServerDelete = data['isDeleted'] == true;
+      if (!isServerDelete && local.updatedAt.isAfter(serverUpdatedAt)) {
         return;
       }
     }
@@ -626,7 +629,8 @@ class SyncService {
       _db.users,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (local != null) {
-      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+      final isServerDelete = data['isDeleted'] == true;
+      if (!isServerDelete && local.updatedAt.isAfter(serverUpdatedAt)) {
         return;
       }
     }
@@ -666,7 +670,8 @@ class SyncService {
       _db.classes,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (local != null) {
-      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+      final isServerDelete = data['isDeleted'] == true;
+      if (!isServerDelete && local.updatedAt.isAfter(serverUpdatedAt)) {
         return;
       }
     }
@@ -694,7 +699,8 @@ class SyncService {
       _db.students,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (local != null) {
-      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+      final isServerDelete = data['isDeleted'] == true;
+      if (!isServerDelete && local.updatedAt.isAfter(serverUpdatedAt)) {
         return;
       }
     }

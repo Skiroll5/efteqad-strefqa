@@ -221,6 +221,9 @@ const handlePush = async (req: AuthRequest, res: Response) => {
                 }));
             } else {
                 const sanitizedPayload = sanitizePayload(payload);
+                // Force server timestamp to fix clock skew issues
+                sanitizedPayload.updatedAt = new Date();
+
                 promises.push(dbModel.upsert({
                     where: { id: entityId },
                     create: { ...sanitizedPayload, id: entityId },

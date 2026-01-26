@@ -36,10 +36,12 @@ class ClassListItem extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     // Managers are now pre-fetched in the class object
     final managers = cls.managerNames ?? '';
-    
+
     // DEBUG: Log manager names
-    debugPrint('ClassListItem [${cls.name}]: managerNames = "${cls.managerNames}" (isEmpty: ${managers.isEmpty})');
-    
+    debugPrint(
+      'ClassListItem [${cls.name}]: managerNames = "${cls.managerNames}" (isEmpty: ${managers.isEmpty})',
+    );
+
     final percentageAsync = ref.watch(
       classAttendancePercentageProvider(cls.id),
     );
@@ -117,29 +119,147 @@ class ClassListItem extends ConsumerWidget {
                             cls.name,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.textPrimaryLight,
                             ),
                           ),
                           // Managers as subtitle
-                          if (managers.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 3),
-                              child: Text(
-                                managers,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: isDark ? Colors.white54 : Colors.black45,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )
-                          else if (cls.grade != null && cls.grade!.isNotEmpty)
+                          // Managers as subtitle (Chips)
+                          if (managers.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Builder(
+                              builder: (context) {
+                                final managerList = managers
+                                    .split(',')
+                                    .where((s) => s.trim().isNotEmpty)
+                                    .map((s) => s.trim())
+                                    .toList();
+                                final displayManagers = managerList
+                                    .take(3)
+                                    .toList();
+                                final remaining = managerList.length - 3;
+
+                                return Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: [
+                                    ...displayManagers.map(
+                                      (name) => Container(
+                                        padding: const EdgeInsets.only(
+                                          right: 8,
+                                        ), // icon + name + spacing
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.1,
+                                                )
+                                              : Colors.grey.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.1,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.05,
+                                                  ),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 20,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                color: AppColors.goldPrimary
+                                                    .withValues(alpha: 0.2),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  name.isNotEmpty
+                                                      ? name[0].toUpperCase()
+                                                      : '?',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        AppColors.goldPrimary,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                              child: Text(
+                                                name,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: isDark
+                                                      ? Colors.white70
+                                                      : Colors.black87,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    if (remaining > 0)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        height:
+                                            22, // adjust to match chip height (20 icon + borders/padding approx ~22-24)
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.05,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            '+$remaining',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark
+                                                  ? Colors.white54
+                                                  : Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ] else if (cls.grade != null && cls.grade!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 3),
                               child: Text(
                                 cls.grade!,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: isDark ? Colors.white54 : Colors.black45,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black45,
                                 ),
                               ),
                             ),
@@ -173,7 +293,13 @@ class ClassListItem extends ConsumerWidget {
                             value: 'rename',
                             child: Row(
                               children: [
-                                Icon(Icons.edit_rounded, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                                Icon(
+                                  Icons.edit_rounded,
+                                  size: 18,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
                                 const SizedBox(width: 10),
                                 Text(l10n.rename),
                               ],
@@ -183,7 +309,11 @@ class ClassListItem extends ConsumerWidget {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.redPrimary),
+                                Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 18,
+                                  color: AppColors.redPrimary,
+                                ),
                                 const SizedBox(width: 10),
                                 Text(
                                   l10n.delete,
@@ -237,9 +367,14 @@ class ClassListItem extends ConsumerWidget {
                             const SizedBox(width: 10),
                             // Percentage chip
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
-                                color: progressColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                                color: progressColor.withValues(
+                                  alpha: isDark ? 0.15 : 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(

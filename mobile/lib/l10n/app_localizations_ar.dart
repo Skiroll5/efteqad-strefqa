@@ -46,10 +46,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statisticsDashboard => 'الإحصائيات';
 
   @override
-  String get atRiskStudents => 'الطلاب المعرضون للخطر';
+  String get atRiskStudents => 'محتاجين افتقاد';
 
   @override
-  String get atRiskThreshold => 'حد الخطر';
+  String get atRiskThreshold => 'تنبيه الافتقاد';
 
   @override
   String thresholdCaption(Object threshold) {
@@ -65,7 +65,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get noAtRiskStudents => 'عمل رائع! لا يوجد طلاب معرضون للخطر حالياً.';
+  String get noAtRiskStudents => 'نشكر ربنا! مفيش حد محتاج افتقاد حالياً.';
 
   @override
   String get yourClasses => 'فصولك';
@@ -86,7 +86,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get waitingForClassAssignment => 'بانتظار تعيين الفصل';
 
   @override
-  String get createClass => 'إنشاء فصل';
+  String get createClass => 'إضافة فصل';
 
   @override
   String get addClass => 'إضافة فصل';
@@ -105,7 +105,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get serverTimeout =>
-      'انتهت مهلة الاتصال بالخادم. يرجى التحقق من الإنترنت أو المحاولة مرة أخرى.';
+      'انتهت مهلة الاتصال بالسيرفر. يرجى التحقق من الإنترنت أو المحاولة مرة أخرى.';
 
   @override
   String get rename => 'إعادة تسمية';
@@ -141,7 +141,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get visitationNotes => 'الملاحظات';
 
   @override
-  String get whatsappDefaultTemplate => 'أهلاً %firstname%،';
+  String get whatsappDefaultTemplate => 'ازيك يا %firstname%،';
 
   @override
   String get noNotes => 'لا توجد ملاحظات بعد.';
@@ -408,7 +408,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get whatsappTemplate => 'قالب واتساب';
+  String get whatsappTemplate => 'صيغة رسالة الواتساب';
 
   @override
   String get whatsappTemplateDesc => 'تخصيص الرسالة الافتراضية المرسلة للطلاب';
@@ -454,7 +454,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeDateTime => 'تغيير التاريخ والوقت';
 
   @override
-  String get noStudentsInClass => 'لا يوجد طلاب في هذا الفصل';
+  String get noStudentsInClass => 'لا يوجد مخدومين في هذا الفصل';
 
   @override
   String attendancePresentCount(Object present, Object total) {
@@ -462,7 +462,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tapToMark => 'اضغط على الطالب لتسجيل حضوره';
+  String get tapToMark => 'اضغط على المخدوم لتسجيل حضوره';
 
   @override
   String get markAll => 'الكل';
@@ -542,10 +542,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get successSaveTemplate => 'تم حفظ القالب بنجاح';
+  String get successSaveTemplate => 'تم حفظ الرسالة الإفتراضية بنجاح';
 
   @override
-  String get errorSaveTemplate => 'فشل حفظ القالب';
+  String get errorSaveTemplate => 'فشل حفظ الرسالة الإفتراضية';
 
   @override
   String get successResetData =>
@@ -653,7 +653,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String whatsappMessageHint(Object firstname) {
-    return 'أهلاً $firstname، كيف حالك؟';
+    return 'إزيك يا $firstname، طمني عليك';
   }
 
   @override
@@ -993,7 +993,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get serverConnectionError =>
-      'لا يمكن الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
+      'لا يمكن الاتصال بالسيرفر. يرجى التحقق من اتصالك بالإنترنت.';
 
   @override
   String get tryAgain => 'حاول مجدداً';
@@ -1014,7 +1014,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get willAutoRetry => 'ستتم إعادة المحاولة عند الاتصال';
 
   @override
-  String get serverError => 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
+  String get serverError => 'خطأ في السيرفر. يرجى المحاولة لاحقاً.';
 
   @override
   String get unauthorized => 'غير مصرح. يرجى تسجيل الدخول مرة أخرى.';
@@ -1087,7 +1087,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirmEmailDescription =>
-      'لقد أرسلنا رابط تأكيد إلى بريدك الإلكتروني. يرجى الضغط عليه لتنشيط حسابك.';
+      'لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني. يرجى إدخاله لتفعيل حسابك.';
 
   @override
   String get resendEmail => 'إعادة إرسال البريد';
@@ -1102,8 +1102,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forgotPasswordTitle => 'استعادة كلمة المرور';
 
   @override
-  String get forgotPasswordSubtitle =>
-      'اختر الطريقة التي تفضلها لاستعادة كلمة المرور';
+  String get forgotPasswordSubtitle => 'ادخل إيميلك لاستعادة كلمة المرور';
 
   @override
   String get recoverViaEmail => 'استعادة عبر البريد الإلكتروني';
@@ -1124,7 +1123,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterNewPassword => 'أدخل كلمة المرور الجديدة';
 
   @override
-  String get newPasswordHint => 'أدخل 6 أحرف على الأقل';
+  String get newPasswordHint => 'أدخل 8 أحرف على الأقل';
 
   @override
   String get confirmNewPassword => 'تأكيد كلمة المرور الجديدة';
@@ -1242,7 +1241,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get showAll => 'عرض الكل';
 
   @override
-  String get atRiskOnly => 'المعرضون للخطر فقط';
+  String get atRiskOnly => 'اللي محتاجين افتقاد بس';
 
   @override
   String get assignManagers => 'تعيين المديرين';

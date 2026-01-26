@@ -62,8 +62,8 @@ class _WhatsAppTemplateScreenState
     final l10n = AppLocalizations.of(context);
     // Preview logic remains same but localized if needed? Preview text is user input.
     final previewText = _controller.text
-        .replaceAll('{firstname}', 'John')
-        .replaceAll('{name}', 'John Doe')
+        .replaceAll('{firstname}', 'كيرلس')
+        .replaceAll('{name}', 'كيرلس يسطس')
         .replaceAll('{age}', '25');
 
     return Scaffold(
@@ -101,7 +101,7 @@ class _WhatsAppTemplateScreenState
               controller: _controller,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: l10n.whatsappMessageHint('John'),
+                hintText: l10n.whatsappMessageHint('كيرلس'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

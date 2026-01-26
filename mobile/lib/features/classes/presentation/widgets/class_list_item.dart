@@ -154,69 +154,53 @@ class ClassListItem extends ConsumerWidget {
                                         ), // More premium spacing
                                         decoration: BoxDecoration(
                                           color: isDark
-                                              ? AppColors.surfaceLight
-                                                    .withValues(alpha: 0.08)
+                                        padding: const EdgeInsetsDirectional.only(
+                                          start: 4, 
+                                          top: 4, 
+                                          bottom: 4, 
+                                          end: 12
+                                        ), 
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? const Color(0xFF2C2C2E) // Lighter, cleaner dark grey
                                               : Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
+                                          borderRadius: BorderRadius.circular(30),
                                           border: Border.all(
                                             color: isDark
-                                                ? Colors.white.withValues(
-                                                    alpha: 0.12,
-                                                  )
-                                                : Colors.black.withValues(
-                                                    alpha: 0.08,
-                                                  ),
+                                                ? Colors.white.withOpacity(0.15)
+                                                : Colors.black.withOpacity(0.08),
                                           ),
-                                          boxShadow: isDark
-                                              ? []
-                                              : [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withValues(
-                                                          alpha: 0.03,
-                                                        ),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ],
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            )
+                                          ],
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment
-                                              .center, // Ensure vertical centering
+                                          crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
                                             Container(
-                                              width: 24, // Larger avatar
-                                              height: 24,
+                                              width: 26, 
+                                              height: 26,
                                               decoration: BoxDecoration(
                                                 gradient: LinearGradient(
                                                   begin: Alignment.topLeft,
                                                   end: Alignment.bottomRight,
                                                   colors: isDark
-                                                      ? [
-                                                          AppColors.goldPrimary
-                                                              .withValues(
-                                                                alpha: 0.3,
-                                                              ),
-                                                          AppColors.goldDark
-                                                              .withValues(
-                                                                alpha: 0.3,
-                                                              ),
-                                                        ]
-                                                      : [
-                                                          AppColors.goldPrimary
-                                                              .withValues(
-                                                                alpha: 0.2,
-                                                              ),
-                                                          AppColors.goldLight
-                                                              .withValues(
-                                                                alpha: 0.2,
-                                                              ),
-                                                        ],
+                                                      ? [const Color(0xFFFFD700), const Color(0xFFFFA500)] // Gold gradient
+                                                      : [const Color(0xFFFFD700), const Color(0xFFFFC107)],
                                                 ),
                                                 shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.2),
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  )
+                                                ],
                                               ),
                                               child: Center(
                                                 child: Text(
@@ -224,11 +208,10 @@ class ClassListItem extends ConsumerWidget {
                                                       ? name[0].toUpperCase()
                                                       : '?',
                                                   style: TextStyle(
-                                                    fontSize: 12, // Larger text
-                                                    fontWeight: FontWeight.bold,
-                                                    color: isDark
-                                                        ? AppColors.goldPrimary
-                                                        : AppColors.goldDark,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: Colors.black.withOpacity(0.8), // Dark text on Gold is better contrast
+                                                    height: 1.0, 
                                                   ),
                                                 ),
                                               ),
@@ -236,13 +219,11 @@ class ClassListItem extends ConsumerWidget {
                                             const SizedBox(width: 8),
                                             Flexible(
                                               child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                  bottom: 1,
-                                                ), // Micro-adjustment for visual center
+                                                padding: const EdgeInsets.only(bottom: 2), // Slight visual lift
                                                 child: Text(
                                                   name,
                                                   style: TextStyle(
-                                                    fontSize: 12, // Larger text
+                                                    fontSize: 13,
                                                     fontWeight: FontWeight.w600,
                                                     color: isDark
                                                         ? Colors.white

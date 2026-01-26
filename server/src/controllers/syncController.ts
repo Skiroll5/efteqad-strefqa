@@ -367,7 +367,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
     // 1. Students
     const students = await prisma.student.findMany({
         where: {
-            updatedAt: { gt: sinceDate },
+            updatedAt: { gte: sinceDate },
             ...studentFilter
         },
     });
@@ -375,7 +375,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
     // 2. Attendance Sessions
     const attendanceSessions = await prisma.attendanceSession.findMany({
         where: {
-            updatedAt: { gt: sinceDate },
+            updatedAt: { gte: sinceDate },
             ...sessionFilter
         },
     });
@@ -383,7 +383,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
     // 3. Classes (with managers for managerNames de-normalization)
     const classesRaw = await prisma.class.findMany({
         where: {
-            updatedAt: { gt: sinceDate },
+            updatedAt: { gte: sinceDate },
             ...classFilter
         },
         include: {
@@ -411,7 +411,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
 
     // 4. Attendance Records
     // For non-admins, valid records are those belonging to sessions in managed classes
-    const attendanceWhere: any = { updatedAt: { gt: sinceDate } };
+    const attendanceWhere: any = { updatedAt: { gte: sinceDate } };
     if (role !== 'ADMIN') {
         attendanceWhere.session = { classId: { in: managedClassIds } };
     }
@@ -420,7 +420,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
 
     // 5. Notes
     // For non-admins, notes regarding students in managed classes
-    const noteWhere: any = { updatedAt: { gt: sinceDate } };
+    const noteWhere: any = { updatedAt: { gte: sinceDate } };
     if (role !== 'ADMIN') {
         noteWhere.student = { classId: { in: managedClassIds } };
     }
@@ -435,7 +435,7 @@ const handlePull = async (req: AuthRequest, res: Response) => {
     // But 'users' table is mainly for login. The 'class_managers' table links them.
     // Let's keep it simple: Admins fetch all. Non-admins fetches themselves + users who are managers of their managed classes.
 
-    let userWhere: any = { updatedAt: { gt: sinceDate } };
+    let userWhere: any = { updatedAt: { gte: sinceDate } };
     if (role !== 'ADMIN') {
         // Find users who manage the same classes
         const managersOfMyClasses = await prisma.classManager.findMany({

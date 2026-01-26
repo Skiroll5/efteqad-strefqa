@@ -137,94 +137,87 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              // Selected Chips
-                              ..._selectedUsers.map((user) {
-                                return Chip(
-                                  label: Text(
-                                    user['name'] ?? '',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark
-                                          ? AppColors.textPrimaryDark
-                                          : AppColors.textPrimaryLight,
-                                    ),
-                                  ),
-                                  avatar: CircleAvatar(
-                                    backgroundColor: AppColors.goldPrimary,
-                                    child: Text(
-                                      (user['name'] as String? ?? '')
-                                              .characters
-                                              .firstOrNull
-                                              ?.toUpperCase() ??
-                                          '',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                          if (_selectedUsers.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ..._selectedUsers.map((user) {
+                                    return Chip(
+                                      label: Text(
+                                        user['name'] ?? '',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? AppColors.textPrimaryDark
+                                              : AppColors.textPrimaryLight,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  deleteIcon: Icon(
-                                    Icons.close,
-                                    size: 16,
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.black54,
-                                  ),
-                                  onDeleted: () {
-                                    setState(() {
-                                      _selectedManagerIds.remove(user['id']);
-                                      _selectedUsers.remove(user);
-                                    });
-                                  },
-                                  backgroundColor: isDark
-                                      ? Colors.white.withValues(alpha: 0.1)
-                                      : Colors.white,
-                                  side: BorderSide.none,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                );
-                              }),
-
-                              // Search TextField integrated
-                              SizedBox(
-                                width: 150,
-                                child: TextField(
-                                  controller: _searchController,
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: _selectedUsers.isEmpty
-                                        ? l10n.search
-                                        : '',
-                                    hintStyle: TextStyle(
-                                      color: isDark
-                                          ? Colors.white38
-                                          : Colors.black38,
-                                    ),
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                  onChanged: (val) {
-                                    setState(
-                                      () => _searchQuery = val.toLowerCase(),
+                                      avatar: CircleAvatar(
+                                        backgroundColor: AppColors.goldPrimary,
+                                        child: Text(
+                                          (user['name'] as String? ?? '')
+                                                  .characters
+                                                  .firstOrNull
+                                                  ?.toUpperCase() ??
+                                              '',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      deleteIcon: Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.black54,
+                                      ),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _selectedManagerIds.remove(
+                                            user['id'],
+                                          );
+                                          _selectedUsers.remove(user);
+                                        });
+                                      },
+                                      backgroundColor: isDark
+                                          ? Colors.white.withValues(alpha: 0.1)
+                                          : Colors.white,
+                                      side: BorderSide.none,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
                                     );
-                                  },
-                                ),
+                                  }),
+                                ],
                               ),
-                            ],
+                            ),
+
+                          // Search TextField - Full Width
+                          TextField(
+                            controller: _searchController,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: l10n.search,
+                              hintStyle: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black38,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                              ),
+                            ),
+                            onChanged: (val) {
+                              setState(() => _searchQuery = val.toLowerCase());
+                            },
                           ),
                         ],
                       ),
@@ -256,9 +249,15 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
                           ),
                         ),
                         data: (users) {
-                          // Filter: Match query AND not already selected
+                          // Filter: Match query AND not already selected AND active AND not denied
                           final filteredUsers = users.where((u) {
                             final id = u['id'] as String;
+
+                            // Essential checks: Active and Not Denied
+                            final isActive = u['isActive'] == true;
+                            final isDenied = u['activationDenied'] == true;
+                            if (!isActive || isDenied) return false;
+
                             if (_selectedManagerIds.contains(id)) return false;
 
                             if (_searchQuery.isEmpty)

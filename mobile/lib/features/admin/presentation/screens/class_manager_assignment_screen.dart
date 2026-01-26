@@ -28,7 +28,8 @@ class _ClassManagerAssignmentScreenState
     extends ConsumerState<ClassManagerAssignmentScreen> {
   Timer? _retryTimer;
   bool _isAutoRetrying = false;
-  bool _hasLoadedFreshData = false; // Track if we've loaded fresh data since screen entry
+  bool _hasLoadedFreshData =
+      false; // Track if we've loaded fresh data since screen entry
 
   @override
   void initState() {
@@ -116,7 +117,9 @@ class _ClassManagerAssignmentScreenState
     final firstError = managersAsync.error ?? allUsersAsync.error;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -183,6 +186,7 @@ class _ClassManagerAssignmentScreenState
       return !managerIds.contains(u['id']) &&
           u['role'] != 'ADMIN' &&
           u['isEnabled'] == true &&
+          u['isActive'] == true &&
           u['isDeleted'] != true;
     }).toList();
 
@@ -261,26 +265,23 @@ class _ClassManagerAssignmentScreenState
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return _ManagerCard(
-                      user: managers[index],
-                      isManager: true,
-                      classId: widget.classId,
-                      l10n: l10n,
-                      isDark: isDark,
-                      index: index,
-                      onActionComplete: _forceRefreshAll,
-                    )
-                        .animate()
-                        .fadeIn(
-                          delay: Duration(milliseconds: 150 + (index * 40)),
-                          duration: 250.ms,
-                        )
-                        .slideX(begin: -0.03, curve: Curves.easeOut);
-                  },
-                  childCount: managers.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return _ManagerCard(
+                        user: managers[index],
+                        isManager: true,
+                        classId: widget.classId,
+                        l10n: l10n,
+                        isDark: isDark,
+                        index: index,
+                        onActionComplete: _forceRefreshAll,
+                      )
+                      .animate()
+                      .fadeIn(
+                        delay: Duration(milliseconds: 150 + (index * 40)),
+                        duration: 250.ms,
+                      )
+                      .slideX(begin: -0.03, curve: Curves.easeOut);
+                }, childCount: managers.length),
               ),
             ),
 
@@ -317,33 +318,28 @@ class _ClassManagerAssignmentScreenState
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return _ManagerCard(
-                      user: availableUsers[index],
-                      isManager: false,
-                      classId: widget.classId,
-                      l10n: l10n,
-                      isDark: isDark,
-                      index: index,
-                      onActionComplete: _forceRefreshAll,
-                    )
-                        .animate()
-                        .fadeIn(
-                          delay: Duration(milliseconds: 250 + (index * 30)),
-                          duration: 250.ms,
-                        )
-                        .slideX(begin: 0.03, curve: Curves.easeOut);
-                  },
-                  childCount: availableUsers.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return _ManagerCard(
+                        user: availableUsers[index],
+                        isManager: false,
+                        classId: widget.classId,
+                        l10n: l10n,
+                        isDark: isDark,
+                        index: index,
+                        onActionComplete: _forceRefreshAll,
+                      )
+                      .animate()
+                      .fadeIn(
+                        delay: Duration(milliseconds: 250 + (index * 30)),
+                        duration: 250.ms,
+                      )
+                      .slideX(begin: 0.03, curve: Curves.easeOut);
+                }, childCount: availableUsers.length),
               ),
             ),
 
           // Bottom padding
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 40),
-          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
     );
@@ -375,9 +371,7 @@ class _StatCard extends StatelessWidget {
             ? color.withValues(alpha: 0.1)
             : color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: color.withValues(alpha: isDark ? 0.2 : 0.12),
-        ),
+        border: Border.all(color: color.withValues(alpha: isDark ? 0.2 : 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,7 +458,9 @@ class _EmptySection extends StatelessWidget {
             : Colors.black.withValues(alpha: 0.015),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.04),
         ),
       ),
       child: Row(
@@ -519,9 +515,7 @@ class _ManagerCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.white,
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -572,7 +566,9 @@ class _ManagerCard extends ConsumerWidget {
                         userName,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? Colors.white
+                              : AppColors.textPrimaryLight,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -596,11 +592,18 @@ class _ManagerCard extends ConsumerWidget {
                 const SizedBox(width: 12),
                 // Action Button
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isManager
-                        ? AppColors.redPrimary.withValues(alpha: isDark ? 0.15 : 0.1)
-                        : AppColors.goldPrimary.withValues(alpha: isDark ? 0.15 : 0.1),
+                        ? AppColors.redPrimary.withValues(
+                            alpha: isDark ? 0.15 : 0.1,
+                          )
+                        : AppColors.goldPrimary.withValues(
+                            alpha: isDark ? 0.15 : 0.1,
+                          ),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -608,14 +611,18 @@ class _ManagerCard extends ConsumerWidget {
                     children: [
                       Icon(
                         isManager ? Icons.remove_rounded : Icons.add_rounded,
-                        color: isManager ? AppColors.redPrimary : AppColors.goldPrimary,
+                        color: isManager
+                            ? AppColors.redPrimary
+                            : AppColors.goldPrimary,
                         size: 16,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         isManager ? l10n.remove : l10n.addManager,
                         style: TextStyle(
-                          color: isManager ? AppColors.redPrimary : AppColors.goldPrimary,
+                          color: isManager
+                              ? AppColors.redPrimary
+                              : AppColors.goldPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),

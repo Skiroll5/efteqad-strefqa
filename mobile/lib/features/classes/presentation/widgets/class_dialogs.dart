@@ -6,8 +6,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/classes_controller.dart';
 import '../../../../core/database/app_database.dart';
 
-import '../../../admin/data/admin_controller.dart';
-
 Future<void> showRenameClassDialog(
   BuildContext context,
   WidgetRef ref,

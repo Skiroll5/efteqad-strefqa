@@ -465,5 +465,7 @@
   "invalidOtp": "رمز التحقق غير صحيح",
   "noSessionsYet": "لا توجد حصص بعد",
   "showAll": "عرض الكل",
-  "atRiskOnly": "المعرضون للخطر فقط"
+  "atRiskOnly": "المعرضون للخطر فقط",
+  "assignManagers": "تعيين المديرين",
+  "assignManagersCaption": "ابحث واختر المستخدمين لإدارة هذا الفصل"
 }

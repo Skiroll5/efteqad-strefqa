@@ -18,6 +18,10 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
   final _nameController = TextEditingController();
   final _searchController = TextEditingController();
   final _selectedManagerIds = <String>{};
+
+  // Store full user objects for chips display
+  final _selectedUsers = <Map<String, dynamic>>[];
+
   String _searchQuery = '';
   bool _isCreating = false;
 
@@ -39,7 +43,7 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(l10n.createNewClass),
-        centerTitle: true,
+        centerTitle: false, // Left aligned title
         elevation: 0,
         backgroundColor: theme.colorScheme.surface,
         leading: IconButton(
@@ -82,11 +86,10 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
 
                     _buildPremiumTextField(
                           controller: _nameController,
-                          hint: l10n
-                              .classNameHint, // "e.g. 5th Grade Sunday School"
+                          hint: l10n.classNameHint,
                           icon: Icons.class_outlined,
                           isDark: isDark,
-                          autoFocus: true,
+                          autoFocus: true, // Focus name first
                         )
                         .animate()
                         .fade(delay: 200.ms)
@@ -96,7 +99,7 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
 
                     // 2. Managers Selection Header
                     Text(
-                      "Assign Managers", // Localize later if key missing
+                      l10n.assignManagers,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isDark
@@ -106,7 +109,7 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
                     ).animate().fade(delay: 300.ms).slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 8),
                     Text(
-                      "Search and select users to manage this class",
+                      l10n.assignManagersCaption,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: isDark
                             ? AppColors.textSecondaryDark
@@ -116,57 +119,151 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Search Bar
-                    _buildPremiumTextField(
-                      controller: _searchController,
-                      hint: l10n.search,
-                      icon: Icons.search,
-                      isDark: isDark,
-                      onChanged: (val) =>
-                          setState(() => _searchQuery = val.toLowerCase()),
-                    ).animate().fade(delay: 400.ms),
-
-                    const SizedBox(height: 16),
-
-                    // Users List
+                    // Multi-Select Input Field
                     Container(
-                      constraints: const BoxConstraints(maxHeight: 400),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.03)
-                            : Colors.black.withValues(alpha: 0.03),
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.grey.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.05),
+                          color: isDark ? Colors.white10 : Colors.black12,
                         ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              // Selected Chips
+                              ..._selectedUsers.map((user) {
+                                return Chip(
+                                  label: Text(
+                                    user['name'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight,
+                                    ),
+                                  ),
+                                  avatar: CircleAvatar(
+                                    backgroundColor: AppColors.goldPrimary,
+                                    child: Text(
+                                      (user['name'] as String? ?? '')
+                                              .characters
+                                              .firstOrNull
+                                              ?.toUpperCase() ??
+                                          '',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  deleteIcon: Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.black54,
+                                  ),
+                                  onDeleted: () {
+                                    setState(() {
+                                      _selectedManagerIds.remove(user['id']);
+                                      _selectedUsers.remove(user);
+                                    });
+                                  },
+                                  backgroundColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.white,
+                                  side: BorderSide.none,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                );
+                              }),
+
+                              // Search TextField integrated
+                              SizedBox(
+                                width: 150,
+                                child: TextField(
+                                  controller: _searchController,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: _selectedUsers.isEmpty
+                                        ? l10n.search
+                                        : '',
+                                    hintStyle: TextStyle(
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.black38,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                  ),
+                                  onChanged: (val) {
+                                    setState(
+                                      () => _searchQuery = val.toLowerCase(),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ).animate().fade(delay: 400.ms),
+
+                    // Suggestions List (Only visible when typing or focused? Always visible for now if query exists or just to show options)
+                    // Let's show suggestions always, filtering by query, excluding selected
+                    const SizedBox(height: 16),
+
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.02)
+                            : Colors.black.withValues(alpha: 0.02),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: allUsersAsync.when(
                         loading: () => const Center(
                           child: Padding(
-                            padding: EdgeInsets.all(32),
+                            padding: EdgeInsets.all(16),
                             child: CircularProgressIndicator(),
                           ),
                         ),
                         error: (e, s) => Center(
                           child: Padding(
-                            padding: const EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(16),
                             child: Text("Error loading users"),
                           ),
                         ),
                         data: (users) {
-                          if (users.isEmpty) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32),
-                                child: Text("No users found"),
-                              ),
-                            );
-                          }
-
-                          // Filter users
+                          // Filter: Match query AND not already selected
                           final filteredUsers = users.where((u) {
+                            final id = u['id'] as String;
+                            if (_selectedManagerIds.contains(id)) return false;
+
+                            if (_searchQuery.isEmpty)
+                              return true; // Show all available if empty query
+
                             final name = (u['name'] as String? ?? '')
                                 .toLowerCase();
                             final email = (u['email'] as String? ?? '')
@@ -176,69 +273,63 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
                           }).toList();
 
                           if (filteredUsers.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32),
-                                child: Text("No matching users"),
-                              ),
-                            );
+                            if (_searchQuery.isNotEmpty) {
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Center(child: Text(l10n.noUsersFound)),
+                              );
+                            }
+                            return const SizedBox.shrink(); // Don't show empty box if no query and no users left
                           }
 
                           return ListView.builder(
                             shrinkWrap: true,
                             itemCount: filteredUsers.length,
-                            padding: EdgeInsets.zero,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             itemBuilder: (context, index) {
                               final user = filteredUsers[index];
-                              final userId = user['id'] as String;
-                              final isSelected = _selectedManagerIds.contains(
-                                userId,
-                              );
-
-                              return Column(
-                                children: [
-                                  Material(
-                                    color: Colors.transparent,
-                                    child: CheckboxListTile(
-                                      value: isSelected,
-                                      title: Text(
-                                        user['name'] ?? 'Unknown',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      subtitle: Text(user['email'] ?? ''),
-                                      activeColor: AppColors.goldPrimary,
-                                      checkColor: Colors.white,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 4,
-                                          ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      onChanged: (val) {
-                                        setState(() {
-                                          if (val == true) {
-                                            _selectedManagerIds.add(userId);
-                                          } else {
-                                            _selectedManagerIds.remove(userId);
-                                          }
-                                        });
-                                      },
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: AppColors.goldPrimary
+                                      .withValues(alpha: 0.2),
+                                  child: Text(
+                                    (user['name'] as String? ?? '')
+                                            .characters
+                                            .firstOrNull
+                                            ?.toUpperCase() ??
+                                        '',
+                                    style: TextStyle(
+                                      color: AppColors.goldPrimary,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  if (index < filteredUsers.length - 1)
-                                    Divider(
-                                      height: 1,
-                                      indent: 16,
-                                      endIndent: 16,
-                                      color: isDark
-                                          ? Colors.white10
-                                          : Colors.black12,
-                                    ),
-                                ],
+                                ),
+                                title: Text(
+                                  user['name'] ?? '',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  user['email'] ?? '',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.black54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    _selectedManagerIds.add(user['id']);
+                                    _selectedUsers.add(user);
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                  });
+                                },
                               );
                             },
                           );
@@ -246,7 +337,6 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
                       ),
                     ).animate().fade(delay: 500.ms),
 
-                    // Spacer for keyboard
                     SizedBox(
                       height: MediaQuery.of(context).viewInsets.bottom + 20,
                     ),

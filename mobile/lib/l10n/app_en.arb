@@ -576,5 +576,7 @@
   "invalidOtp": "Invalid verification code",
   "noSessionsYet": "No sessions yet",
   "showAll": "Show All",
-  "atRiskOnly": "At Risk Only"
+  "atRiskOnly": "At Risk Only",
+  "assignManagers": "Assign Managers",
+  "assignManagersCaption": "Search and select users to manage this class"
 }

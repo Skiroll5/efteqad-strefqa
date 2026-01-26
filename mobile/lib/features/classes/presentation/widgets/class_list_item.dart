@@ -147,39 +147,45 @@ class ClassListItem extends ConsumerWidget {
                                     ...displayManagers.map(
                                       (name) => Container(
                                         padding: const EdgeInsets.fromLTRB(
-                                          2,
-                                          2,
-                                          8,
-                                          2,
-                                        ), // tighter padding left
+                                          4,
+                                          4,
+                                          12,
+                                          4,
+                                        ), // More premium spacing
                                         decoration: BoxDecoration(
                                           color: isDark
                                               ? AppColors.surfaceLight
-                                                    .withValues(alpha: 0.1)
-                                        padding: const EdgeInsets.fromLTRB(4, 4, 12, 4), // More premium spacing
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? AppColors.surfaceLight.withValues(alpha: 0.08)
+                                                    .withValues(alpha: 0.08)
                                               : Colors.white,
-                                          borderRadius: BorderRadius.circular(30),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                           border: Border.all(
                                             color: isDark
-                                                ? Colors.white.withValues(alpha: 0.12)
-                                                : Colors.black.withValues(alpha: 0.08),
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.08,
+                                                  ),
                                           ),
                                           boxShadow: isDark
                                               ? []
                                               : [
                                                   BoxShadow(
-                                                    color: Colors.black.withValues(alpha: 0.03),
+                                                    color: Colors.black
+                                                        .withValues(
+                                                          alpha: 0.03,
+                                                        ),
                                                     blurRadius: 4,
                                                     offset: const Offset(0, 2),
-                                                  )
+                                                  ),
                                                 ],
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.center, // Ensure vertical centering
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .center, // Ensure vertical centering
                                           children: [
                                             Container(
                                               width: 24, // Larger avatar
@@ -189,8 +195,26 @@ class ClassListItem extends ConsumerWidget {
                                                   begin: Alignment.topLeft,
                                                   end: Alignment.bottomRight,
                                                   colors: isDark
-                                                      ? [AppColors.goldPrimary.withValues(alpha: 0.3), AppColors.goldDark.withValues(alpha: 0.3)]
-                                                      : [AppColors.goldPrimary.withValues(alpha: 0.2), AppColors.goldLight.withValues(alpha: 0.2)],
+                                                      ? [
+                                                          AppColors.goldPrimary
+                                                              .withValues(
+                                                                alpha: 0.3,
+                                                              ),
+                                                          AppColors.goldDark
+                                                              .withValues(
+                                                                alpha: 0.3,
+                                                              ),
+                                                        ]
+                                                      : [
+                                                          AppColors.goldPrimary
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                          AppColors.goldLight
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                        ],
                                                 ),
                                                 shape: BoxShape.circle,
                                               ),
@@ -212,19 +236,26 @@ class ClassListItem extends ConsumerWidget {
                                             const SizedBox(width: 8),
                                             Flexible(
                                               child: Padding(
-                                                padding: const EdgeInsets.only(bottom: 1), // Micro-adjustment for visual center
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 1,
+                                                ), // Micro-adjustment for visual center
                                                 child: Text(
                                                   name,
                                                   style: TextStyle(
                                                     fontSize: 12, // Larger text
                                                     fontWeight: FontWeight.w600,
                                                     color: isDark
-                                                        ? Colors.white.withValues(alpha: 0.9)
-                                                        : AppColors.textPrimaryLight,
+                                                        ? Colors.white
+                                                              .withValues(
+                                                                alpha: 0.9,
+                                                              )
+                                                        : AppColors
+                                                              .textPrimaryLight,
                                                     letterSpacing: -0.1,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ),
@@ -238,15 +269,24 @@ class ClassListItem extends ConsumerWidget {
                                           horizontal: 10,
                                           vertical: 6,
                                         ),
-                                        height: 34, // Match approx height of chips (4+24+4 + borders ~34)
+                                        height:
+                                            34, // Match approx height of chips (4+24+4 + borders ~34)
                                         decoration: BoxDecoration(
                                           color: isDark
-                                              ? Colors.white.withValues(alpha: 0.05)
-                                              : Colors.black.withValues(alpha: 0.04),
-                                          borderRadius: BorderRadius.circular(30),
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.04,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                           border: Border.all(
                                             color: isDark
-                                                ? Colors.white.withValues(alpha: 0.05)
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.05,
+                                                  )
                                                 : Colors.transparent,
                                           ),
                                         ),

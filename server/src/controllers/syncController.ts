@@ -429,7 +429,23 @@ const handlePull = async (req: AuthRequest, res: Response) => {
     if (role !== 'ADMIN') {
         noteWhere.student = { classId: { in: managedClassIds } };
     }
-    const notes = await prisma.note.findMany({ where: noteWhere });
+    const notesRaw = await prisma.note.findMany({
+        where: noteWhere,
+        include: {
+            author: {
+                select: { name: true }
+            }
+        }
+    });
+
+    // De-normalize author for sync
+    const notes = notesRaw.map((n: any) => {
+        const { author, ...noteData } = n;
+        return {
+            ...noteData,
+            authorName: author?.name
+        };
+    });
 
     // 6. Users
     // Admins see all users. Managers see themselves + other managers of their classes?

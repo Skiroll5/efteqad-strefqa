@@ -467,5 +467,11 @@
   "showAll": "عرض الكل",
   "atRiskOnly": "المعرضون للخطر فقط",
   "assignManagers": "تعيين المديرين",
-  "assignManagersCaption": "ابحث واختر المستخدمين لإدارة هذا الفصل"
+  "assignManagersCaption": "ابحث واختر المستخدمين لإدارة هذا الفصل",
+  "deleteClassConfirmation": "حذف {className}؟",
+  "@deleteClassConfirmation": {
+    "placeholders": {
+        "className": {}
+    }
+  }
 }

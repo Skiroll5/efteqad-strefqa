@@ -3,6 +3,8 @@ import express from 'express';
 import {
     listClasses,
     createClass,
+    updateClass,
+    deleteClass,
     assignManager,
     removeManager,
     getClassManagers
@@ -19,6 +21,12 @@ router.get('/', listClasses);
 
 // POST /classes - Create a new class
 router.post('/', createClass);
+
+// PUT /classes/:id - Update a class
+router.put('/:id', updateClass);
+
+// DELETE /classes/:id - Delete a class
+router.delete('/:id', deleteClass);
 
 // GET /classes/:id/managers - Get all managers for a class
 router.get('/:id/managers', getClassManagers);

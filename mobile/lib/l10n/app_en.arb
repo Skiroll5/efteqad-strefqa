@@ -578,5 +578,11 @@
   "showAll": "Show All",
   "atRiskOnly": "At Risk Only",
   "assignManagers": "Assign Managers",
-  "assignManagersCaption": "Search and select users to manage this class"
+  "assignManagersCaption": "Search and select users to manage this class",
+  "deleteClassConfirmation": "Delete {className}?",
+  "@deleteClassConfirmation": {
+    "placeholders": {
+        "className": {}
+    }
+  }
 }

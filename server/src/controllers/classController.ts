@@ -75,13 +75,14 @@ export const listClasses = async (req: Request, res: Response) => {
 // Create a new class
 export const createClass = async (req: Request, res: Response) => {
     try {
-        const { name, managers } = req.body;
+        const { id, name, managers } = req.body;
         if (!name) return res.status(400).json({ message: 'Class name required' });
 
         const managerIds: string[] = Array.isArray(managers) ? managers : [];
 
         const newClass = await prisma.class.create({
             data: {
+                id: id || undefined, // Use provided ID if available
                 name,
                 managers: {
                     create: managerIds.map((userId) => ({
@@ -205,6 +206,68 @@ export const removeManager = async (req: Request, res: Response) => {
         });
 
         res.json({ message: 'Manager removed' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+// Update a class
+export const updateClass = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        const { name } = req.body;
+
+        if (!id || !name) {
+            return res.status(400).json({ message: 'Class ID and name required' });
+        }
+
+        const updatedClass = await prisma.class.update({
+            where: { id },
+            data: {
+                name,
+                updatedAt: new Date()
+            }
+        });
+
+        res.json({ message: 'Class updated', class: updatedClass });
+
+        // Real-time update
+        const io = getIO();
+        io.emit('sync_update');
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+// Delete a class
+export const deleteClass = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+
+        if (!id) {
+            return res.status(400).json({ message: 'Class ID required' });
+        }
+
+        // Soft delete class
+        await prisma.class.update({
+            where: { id },
+            data: {
+                isDeleted: true,
+                deletedAt: new Date(),
+                updatedAt: new Date()
+            }
+        });
+
+        // Also soft delete related sessions/managers? 
+        // Logic might vary, but usually we cascade delete or just leave them orphans if we want history.
+        // For sync consistency, let's touch them or just rely on client filtering.
+        // But strictly, we should mark valid relations as deleted OR just rely on 'isDeleted' prop of Class.
+
+        res.json({ message: 'Class deleted' });
+
+        // Real-time update
+        const io = getIO();
+        io.emit('sync_update');
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

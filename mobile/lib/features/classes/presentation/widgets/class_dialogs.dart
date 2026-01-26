@@ -53,6 +53,9 @@ Future<void> showRenameClassDialog(
               l10n.rename,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 24),
@@ -178,7 +181,7 @@ Future<void> showDeleteClassDialog(
             const SizedBox(height: 16),
             // Title
             Text(
-              '${l10n.delete} "${cls.name}"?',
+              l10n.deleteClassConfirmation(cls.name),
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark

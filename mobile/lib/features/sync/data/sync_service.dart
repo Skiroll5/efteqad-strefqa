@@ -143,6 +143,30 @@ class SyncService {
       }
     });
 
+    _socket?.on('manager_assignment_changed', (data) async {
+      debugPrint('SyncService: Received manager_assignment_changed: $data');
+      final currentUser = _ref.read(authControllerProvider).asData?.value;
+
+      if (currentUser != null && data['userId'] == currentUser.id) {
+        if (data['action'] == 'removed') {
+          // Immediately remove from local DB to reflect UI change
+          final classId = data['classId'];
+          await (_db.delete(
+            _db.classes,
+          )..where((t) => t.id.equals(classId))).go();
+        } else if (data['action'] == 'assigned') {
+          // Pull to get the new class data
+          if (!_isSyncing) {
+            try {
+              await pullChanges();
+            } catch (e) {
+              // Silently fail
+            }
+          }
+        }
+      }
+    });
+
     _socket?.on('app_notification', (data) {
       _handleAppNotification(data);
     });

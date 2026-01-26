@@ -156,38 +156,42 @@ class ClassListItem extends ConsumerWidget {
                                           color: isDark
                                               ? AppColors.surfaceLight
                                                     .withValues(alpha: 0.1)
-                                              : Colors.grey.withValues(
-                                                  alpha: 0.08,
-                                                ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
+                                        padding: const EdgeInsets.fromLTRB(4, 4, 12, 4), // More premium spacing
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? AppColors.surfaceLight.withValues(alpha: 0.08)
+                                              : Colors.white,
+                                          borderRadius: BorderRadius.circular(30),
                                           border: Border.all(
                                             color: isDark
-                                                ? Colors.white.withValues(
-                                                    alpha: 0.08,
-                                                  )
-                                                : Colors.black.withValues(
-                                                    alpha: 0.03,
-                                                  ),
+                                                ? Colors.white.withValues(alpha: 0.12)
+                                                : Colors.black.withValues(alpha: 0.08),
                                           ),
+                                          boxShadow: isDark
+                                              ? []
+                                              : [
+                                                  BoxShadow(
+                                                    color: Colors.black.withValues(alpha: 0.03),
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  )
+                                                ],
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.center, // Ensure vertical centering
                                           children: [
                                             Container(
-                                              width: 20,
-                                              height: 20,
+                                              width: 24, // Larger avatar
+                                              height: 24,
                                               decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? AppColors.goldPrimary
-                                                          .withValues(
-                                                            alpha: 0.2,
-                                                          )
-                                                    : AppColors.goldPrimary
-                                                          .withValues(
-                                                            alpha: 0.15,
-                                                          ),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: isDark
+                                                      ? [AppColors.goldPrimary.withValues(alpha: 0.3), AppColors.goldDark.withValues(alpha: 0.3)]
+                                                      : [AppColors.goldPrimary.withValues(alpha: 0.2), AppColors.goldLight.withValues(alpha: 0.2)],
+                                                ),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Center(
@@ -196,7 +200,7 @@ class ClassListItem extends ConsumerWidget {
                                                       ? name[0].toUpperCase()
                                                       : '?',
                                                   style: TextStyle(
-                                                    fontSize: 10,
+                                                    fontSize: 12, // Larger text
                                                     fontWeight: FontWeight.bold,
                                                     color: isDark
                                                         ? AppColors.goldPrimary
@@ -205,20 +209,23 @@ class ClassListItem extends ConsumerWidget {
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(width: 6),
+                                            const SizedBox(width: 8),
                                             Flexible(
-                                              child: Text(
-                                                name,
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: isDark
-                                                      ? Colors.white70
-                                                      : Colors.black87,
-                                                  letterSpacing: -0.2,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(bottom: 1), // Micro-adjustment for visual center
+                                                child: Text(
+                                                  name,
+                                                  style: TextStyle(
+                                                    fontSize: 12, // Larger text
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isDark
+                                                        ? Colors.white.withValues(alpha: 0.9)
+                                                        : AppColors.textPrimaryLight,
+                                                    letterSpacing: -0.1,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ],
@@ -228,28 +235,26 @@ class ClassListItem extends ConsumerWidget {
                                     if (remaining > 0)
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
+                                          horizontal: 10,
+                                          vertical: 6,
                                         ),
-                                        height:
-                                            22, // adjust to match chip height (20 icon + borders/padding approx ~22-24)
+                                        height: 34, // Match approx height of chips (4+24+4 + borders ~34)
                                         decoration: BoxDecoration(
                                           color: isDark
-                                              ? Colors.white.withValues(
-                                                  alpha: 0.05,
-                                                )
-                                              : Colors.black.withValues(
-                                                  alpha: 0.05,
-                                                ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
+                                              ? Colors.white.withValues(alpha: 0.05)
+                                              : Colors.black.withValues(alpha: 0.04),
+                                          borderRadius: BorderRadius.circular(30),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(alpha: 0.05)
+                                                : Colors.transparent,
                                           ),
                                         ),
                                         child: Center(
                                           child: Text(
                                             '+$remaining',
                                             style: TextStyle(
-                                              fontSize: 10,
+                                              fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: isDark
                                                   ? Colors.white54

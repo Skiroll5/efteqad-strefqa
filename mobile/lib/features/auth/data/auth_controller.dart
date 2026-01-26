@@ -31,12 +31,55 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
       if (token != null && userData != null) {
         final user = User.fromJson(jsonDecode(userData));
         state = AsyncValue.data(user);
+
+        // Also verify integrity against local DB immediately
+        refreshUser();
       } else {
         state = const AsyncValue.data(null);
       }
     } catch (e) {
       // If error (e.g. corrupt json), logout
       state = const AsyncValue.data(null);
+    }
+  }
+
+  /// Refreshes the current user state from the local database
+  Future<void> refreshUser() async {
+    final currentUser = state.asData?.value;
+    if (currentUser == null) return;
+
+    try {
+      final dbUser = await (_db.select(
+        _db.users,
+      )..where((u) => u.id.equals(currentUser.id))).getSingleOrNull();
+
+      if (dbUser != null) {
+        // Map DB user to Domain User
+        final updatedUser = User(
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          role: dbUser.role,
+          classId: dbUser.classId,
+          whatsappTemplate: dbUser.whatsappTemplate,
+          isActive: dbUser.isActive,
+          isEnabled: dbUser.isEnabled ?? true,
+          activationDenied: dbUser.activationDenied ?? false,
+          createdAt: dbUser.createdAt,
+          updatedAt: dbUser.updatedAt,
+        );
+
+        // Only update if changed
+        if (state.asData?.value != updatedUser) {
+          state = AsyncValue.data(updatedUser);
+
+          // Update prefs too for next restart
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(updatedUser.toJson()));
+        }
+      }
+    } catch (e) {
+      // Ignore DB errors during refresh
     }
   }
 

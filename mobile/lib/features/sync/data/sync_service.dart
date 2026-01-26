@@ -136,6 +136,7 @@ class SyncService {
       if (!_isSyncing) {
         try {
           await pullChanges();
+          await _ref.read(authControllerProvider.notifier).refreshUser();
         } catch (e) {
           // Silently fail
         }

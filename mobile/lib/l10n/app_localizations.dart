@@ -605,7 +605,7 @@ abstract class AppLocalizations {
   /// No description provided for @classNameHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Sunday School - Grade 3'**
+  /// **'e.g. Primary 3'**
   String get classNameHint;
 
   /// No description provided for @gradeOptional.

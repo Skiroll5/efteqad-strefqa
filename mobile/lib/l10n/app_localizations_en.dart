@@ -275,7 +275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get className => 'Class Name';
 
   @override
-  String get classNameHint => 'e.g. Sunday School - Grade 3';
+  String get classNameHint => 'e.g. Primary 3';
 
   @override
   String get gradeOptional => 'Grade (Optional)';

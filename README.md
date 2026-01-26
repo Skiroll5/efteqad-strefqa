@@ -55,7 +55,7 @@ npm install
 Create a `.env` file in the `server` directory (or ensure the environment is configured) with the following variables:
 
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/efteqad_db?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/wadeea_db?schema=public"
 PORT=3000
 JWT_SECRET="your_jwt_secret_key"
 ```

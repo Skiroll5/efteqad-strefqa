@@ -61,8 +61,8 @@ const startServer = async () => {
         // Initialize Scheduled Jobs
         initScheduledJobs();
 
-        httpServer.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+        httpServer.listen(Number(PORT), '0.0.0.0', () => {
+            console.log(`Server is running on port ${PORT} and listening on 0.0.0.0`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);

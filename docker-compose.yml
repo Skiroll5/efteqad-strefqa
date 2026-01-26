@@ -3,12 +3,12 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: efteqad_db
+    container_name: wadeea_db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: efteqad_db
+      POSTGRES_DB: wadeea_db
     ports:
       - "5432:5432"
     volumes:

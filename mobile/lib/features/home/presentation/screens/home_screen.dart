@@ -259,7 +259,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              await ref.read(syncServiceProvider).pullChanges();
+              await ref.read(syncServiceProvider).pullChanges(force: true);
             },
             child: ReorderableListView(
               buildDefaultDragHandles: false,

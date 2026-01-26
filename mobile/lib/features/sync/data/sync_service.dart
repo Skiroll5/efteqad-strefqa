@@ -54,7 +54,7 @@ class SyncService {
     // Also do an initial sync on startup
     Future.delayed(const Duration(seconds: 2), () async {
       try {
-        await sync();
+        await pullChanges(force: false); // Will auto-detect if DB is empty
       } catch (e) {
         // print('SyncService: Initial sync failed: $e');
       }
@@ -178,11 +178,9 @@ class SyncService {
     final title = data['title']?.toString();
     final message = data['message']?.toString() ?? 'Update received.';
 
-    _ref.read(uiNotificationServiceProvider).show(
-          message: message,
-          title: title,
-          level: level,
-        );
+    _ref
+        .read(uiNotificationServiceProvider)
+        .show(message: message, title: title, level: level);
   }
 
   UiNotificationLevel _parseNotificationLevel(String? level) {
@@ -240,6 +238,8 @@ class SyncService {
 
       // Optional: Pull changes to get any server-side computed fields / triggers
       // catchError to ensure we don't block UI if pull fails
+      // Optional: Pull changes to get any server-side computed fields / triggers
+      // catchError to ensure we don't block UI if pull fails
       pullChanges().catchError((_) {});
     } catch (e) {
       // 3. Failure: Check if we should fallback
@@ -294,7 +294,7 @@ class SyncService {
   /// Manually trigger a full sync
   Future<void> sync() async {
     await pushChanges();
-    await pullChanges();
+    await pullChanges(force: true);
   }
 
   Future<void> pushChanges() async {
@@ -391,9 +391,25 @@ class SyncService {
     }
   }
 
-  Future<void> pullChanges() async {
+  Future<void> pullChanges({bool force = false}) async {
     final prefs = await SharedPreferences.getInstance();
-    final lastSync = prefs.getString('last_sync_timestamp');
+    String? lastSync = prefs.getString('last_sync_timestamp');
+
+    // Integrity Check: If we have a timestamp but DB is empty, force full sync
+    // This fixes the "empty home screen" bug if data was wiped but prefs remained
+    if (lastSync != null && !force) {
+      final isEmpty = await _isDatabaseEmpty();
+      if (isEmpty) {
+        debugPrint(
+          'SyncService: Integrity check failed (Data empty but timestamp exists). Forcing full sync.',
+        );
+        force = true;
+      }
+    }
+
+    if (force) {
+      lastSync = null; // Ignore timestamp to fetch everything
+    }
 
     final token = await _getToken();
     if (token == null) return;
@@ -420,6 +436,16 @@ class SyncService {
             await _upsertUser(u);
           }
         }
+        if (changes['classes'] != null) {
+          debugPrint(
+            'SyncService: Received ${(changes['classes'] as List).length} classes to sync',
+          );
+          for (var c in changes['classes']) {
+            await _upsertClassFromSync(c);
+          }
+        } else {
+          debugPrint('SyncService: No classes in sync response');
+        }
         if (changes['students'] != null) {
           for (var s in changes['students']) {
             await _upsertStudentFromSync(s);
@@ -430,22 +456,14 @@ class SyncService {
             await _upsertAttendance(a);
           }
         }
-        if (changes['notes'] != null) {
-          for (var n in changes['notes']) {
-            await _upsertNote(n);
-          }
-        }
-        if (changes['classes'] != null) {
-          debugPrint('SyncService: Received ${(changes['classes'] as List).length} classes to sync');
-          for (var c in changes['classes']) {
-            await _upsertClassFromSync(c);
-          }
-        } else {
-          debugPrint('SyncService: No classes in sync response');
-        }
         if (changes['attendance_sessions'] != null) {
           for (var s in changes['attendance_sessions']) {
             await _upsertAttendanceSession(s);
+          }
+        }
+        if (changes['notes'] != null) {
+          for (var n in changes['notes']) {
+            await _upsertNote(n);
           }
         }
         // Class Managers table removed for security - no longer synced
@@ -474,14 +492,42 @@ class SyncService {
     }
   }
 
+  Future<bool> _isDatabaseEmpty() async {
+    // Check key tables to see if they are empty
+    // We check users and classes as they are foundational
+    final userCount = await _db.select(_db.users).get().then((l) => l.length);
+    if (userCount == 0) return true;
+
+    final classCount = await _db
+        .select(_db.classes)
+        .get()
+        .then((l) => l.length);
+    if (classCount == 0) return true;
+
+    return false;
+  }
+
   Future<void> _upsertAttendance(Map<String, dynamic> data) async {
+    final id = data['id'] as String;
+    final serverUpdatedAt = DateTime.parse(data['updatedAt']);
+
+    final local = await (_db.select(
+      _db.attendanceRecords,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (local != null) {
+      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+        // Local is newer, preserve it
+        return;
+      }
+    }
+
     final entity = AttendanceRecordsCompanion(
-      id: Value(data['id']),
+      id: Value(id),
       sessionId: Value(data['sessionId']),
       studentId: Value(data['studentId']),
       status: Value(data['status']),
       createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      updatedAt: Value(serverUpdatedAt),
       isDeleted: Value(data['isDeleted'] ?? false),
       deletedAt: Value(
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
@@ -491,13 +537,25 @@ class SyncService {
   }
 
   Future<void> _upsertAttendanceSession(Map<String, dynamic> data) async {
+    final id = data['id'] as String;
+    final serverUpdatedAt = DateTime.parse(data['updatedAt']);
+
+    final local = await (_db.select(
+      _db.attendanceSessions,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (local != null) {
+      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+        return;
+      }
+    }
+
     final entity = AttendanceSessionsCompanion(
-      id: Value(data['id']),
+      id: Value(id),
       classId: Value(data['classId']),
       date: Value(DateTime.parse(data['date'])),
       note: Value(data['note']),
       createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      updatedAt: Value(serverUpdatedAt),
       isDeleted: Value(data['isDeleted'] ?? false),
       deletedAt: Value(
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
@@ -507,14 +565,26 @@ class SyncService {
   }
 
   Future<void> _upsertNote(Map<String, dynamic> data) async {
+    final id = data['id'] as String;
+    final serverUpdatedAt = DateTime.parse(data['updatedAt']);
+
+    final local = await (_db.select(
+      _db.notes,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (local != null) {
+      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+        return;
+      }
+    }
+
     final entity = NotesCompanion(
-      id: Value(data['id']),
+      id: Value(id),
       studentId: Value(data['studentId']),
       authorId: Value(data['authorId']),
       authorName: Value(data['authorName']), // De-normalized
       content: Value(data['content']),
       createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      updatedAt: Value(serverUpdatedAt),
       isDeleted: Value(data['isDeleted'] ?? false),
       deletedAt: Value(
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
@@ -524,8 +594,20 @@ class SyncService {
   }
 
   Future<void> _upsertUser(Map<String, dynamic> data) async {
+    final id = data['id'] as String;
+    final serverUpdatedAt = DateTime.parse(data['updatedAt']);
+
+    final local = await (_db.select(
+      _db.users,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (local != null) {
+      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+        return;
+      }
+    }
+
     final entity = UsersCompanion(
-      id: Value(data['id']),
+      id: Value(id),
       email: Value(data['email']),
       name: Value(data['name']),
       role: Value(data['role']),
@@ -535,7 +617,7 @@ class SyncService {
       isEnabled: Value(data['isEnabled'] ?? true),
       activationDenied: Value(data['activationDenied'] ?? false),
       createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      updatedAt: Value(serverUpdatedAt),
       isDeleted: Value(data['isDeleted'] ?? false),
       deletedAt: Value(
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
@@ -548,15 +630,29 @@ class SyncService {
 
   Future<void> _upsertClassFromSync(Map<String, dynamic> data) async {
     // DEBUG: Log incoming class data
-    debugPrint('SyncService _upsertClassFromSync: id=${data['id']}, name=${data['name']}, managerNames=${data['managerNames']}');
-    
+    debugPrint(
+      'SyncService _upsertClassFromSync: id=${data['id']}, name=${data['name']}, managerNames=${data['managerNames']}',
+    );
+
+    final id = data['id'] as String;
+    final serverUpdatedAt = DateTime.parse(data['updatedAt']);
+
+    final local = await (_db.select(
+      _db.classes,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (local != null) {
+      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+        return;
+      }
+    }
+
     final entity = ClassesCompanion(
-      id: Value(data['id']),
+      id: Value(id),
       name: Value(data['name']),
       grade: Value(data['grade']),
       managerNames: Value(data['managerNames']), // De-normalized
       createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      updatedAt: Value(serverUpdatedAt),
       isDeleted: Value(data['isDeleted'] ?? false),
       deletedAt: Value(
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,
@@ -566,8 +662,20 @@ class SyncService {
   }
 
   Future<void> _upsertStudentFromSync(Map<String, dynamic> data) async {
+    final id = data['id'] as String;
+    final serverUpdatedAt = DateTime.parse(data['updatedAt']);
+
+    final local = await (_db.select(
+      _db.students,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (local != null) {
+      if (local.updatedAt.isAfter(serverUpdatedAt)) {
+        return;
+      }
+    }
+
     final entity = StudentsCompanion(
-      id: Value(data['id']),
+      id: Value(id),
       name: Value(data['name']),
       phone: Value(data['phone']),
       address: Value(data['address']),
@@ -576,7 +684,7 @@ class SyncService {
       ),
       classId: Value(data['classId']),
       createdAt: Value(DateTime.parse(data['createdAt'])),
-      updatedAt: Value(DateTime.parse(data['updatedAt'])),
+      updatedAt: Value(serverUpdatedAt),
       isDeleted: Value(data['isDeleted'] ?? false),
       deletedAt: Value(
         data['deletedAt'] != null ? DateTime.parse(data['deletedAt']) : null,

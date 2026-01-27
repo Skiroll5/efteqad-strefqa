@@ -18,15 +18,15 @@ final atRiskStudentsProvider = StreamProvider<List<AtRiskStudent>>((ref) {
 /// Provider for at-risk students filtered by a specific class
 final classAtRiskStudentsProvider =
     StreamProvider.family<List<AtRiskStudent>, String>((ref, classId) {
-  final allAtRisk = ref.watch(atRiskStudentsProvider);
-  return allAtRisk.when(
-    data: (students) => Stream.value(
-      students.where((s) => s.student.classId == classId).toList(),
-    ),
-    loading: () => const Stream.empty(),
-    error: (e, st) => Stream.error(e, st),
-  );
-});
+      final allAtRisk = ref.watch(atRiskStudentsProvider);
+      return allAtRisk.when(
+        data: (students) => Stream.value(
+          students.where((s) => s.student.classId == classId).toList(),
+        ),
+        loading: () => const Stream.empty(),
+        error: (e, st) => Stream.error(e, st),
+      );
+    });
 
 final weeklyStatsProvider = StreamProvider<List<WeeklyStats>>((ref) {
   final repo = ref.watch(statisticsRepositoryProvider);
@@ -147,9 +147,9 @@ class StatisticsRepository {
 
       final classSessions = sessionsByClass[classId] ?? [];
 
-      // Get recent sessions (already sorted desc)
-      final recentSessions = classSessions.take(threshold).toList();
-      if (recentSessions.isEmpty) continue;
+      // Get all sessions (already sorted desc) to count true consecutive absences
+      // final recentSessions = classSessions.take(threshold).toList(); // OLD: incorrectly capped count
+      if (classSessions.isEmpty) continue;
 
       // Create a set of session IDs for this class to filter relevant records
       final classSessionIds = classSessions.map((s) => s.id).toSet();
@@ -177,7 +177,7 @@ class StatisticsRepository {
 
         // Calculate Consecutive Absences
         int currentConsecutive = 0;
-        for (var session in recentSessions) {
+        for (var session in classSessions) {
           final record = relevantRecords
               .where((r) => r.sessionId == session.id)
               .firstOrNull;

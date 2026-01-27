@@ -30,18 +30,17 @@ services:
       - acme:/etc/acme.sh
     environment:
       - DEFAULT_EMAIL=wadeea@strefqa.com
-
   # 3. YOUR FLUTTER APP
-  flutter-app:
-    build: . # Assumes Dockerfile is in the same folder
-    container_name: wadeea-web
-    restart: always
-    environment:
-      # These two lines tell the proxy to auto-generate SSL for this domain:
-      - VIRTUAL_HOST=strefqa.com,www.strefqa.com
-      - LETSENCRYPT_HOST=strefqa.com,www.strefqa.com
-    # Note: No "ports" section needed! The proxy talks to this container internally.
+flutter-app:
+  build:
+    context: .. # Move context UP one level so it can see 'mobile'
+    dockerfile: ./Dockerfile # Point back to where the Dockerfile actually is
 
+  container_name: wadeea-web
+  restart: always
+  environment:
+    - VIRTUAL_HOST=waddea.strefqa.com,www.wadeea.strefqa.com
+    - LETSENCRYPT_HOST=waddea.strefqa.com,www.wadeea.strefqa.com
 volumes:
   certs:
   vhost:

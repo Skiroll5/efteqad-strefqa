@@ -497,6 +497,7 @@ class _InsightsSection extends ConsumerWidget {
     final classesSessionsAsync = ref.watch(classesLatestSessionsProvider);
     final allStudentsAsync = ref.watch(studentsStreamProvider);
     final optimisticOrder = ref.watch(optimisticClassOrderProvider);
+    final persistedOrderAsync = ref.watch(classOrderProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -525,11 +526,13 @@ class _InsightsSection extends ConsumerWidget {
             var activeSessions = sessions.where((s) => s.hasSession).toList();
             if (activeSessions.isEmpty) return const SizedBox.shrink();
 
-            // Apply optimistic order if available
-            if (optimisticOrder != null && optimisticOrder.isNotEmpty) {
+            // Apply order: Optimistic (if drag happened) > Persisted > Default
+            final order = optimisticOrder ?? persistedOrderAsync.value ?? [];
+
+            if (order.isNotEmpty) {
               activeSessions.sort((a, b) {
-                final indexA = optimisticOrder.indexOf(a.classId);
-                final indexB = optimisticOrder.indexOf(b.classId);
+                final indexA = order.indexOf(a.classId);
+                final indexB = order.indexOf(b.classId);
                 if (indexA == -1 && indexB == -1) return 0;
                 if (indexA == -1) return 1;
                 if (indexB == -1) return -1;

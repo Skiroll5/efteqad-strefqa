@@ -263,11 +263,13 @@ class _AddClassScreenState extends ConsumerState<AddClassScreen> {
                               final isDenied = u['activationDenied'] == true;
                               if (!isActive || isDenied) return false;
 
-                              if (_selectedManagerIds.contains(id))
+                              if (_selectedManagerIds.contains(id)) {
                                 return false;
+                              }
 
-                              if (_searchQuery.isEmpty)
+                              if (_searchQuery.isEmpty) {
                                 return true; // Show all available if empty query
+                              }
 
                               final name = (u['name'] as String? ?? '')
                                   .toLowerCase();

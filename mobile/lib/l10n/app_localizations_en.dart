@@ -144,9 +144,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get visitationNotes => 'Notes';
 
   @override
-  String get whatsappDefaultTemplate => 'Hi %firstname%,';
-
-  @override
   String get noNotes => 'No notes yet.';
 
   @override
@@ -655,9 +652,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyMessage => '(Empty message)';
 
   @override
-  String whatsappMessageHint(Object firstname) {
-    return 'Hello $firstname, how are you?';
-  }
+  String get whatsappMessageHint => 'Hello [firstname], how are you?';
+
+  @override
+  String get whatsappDefaultTemplate => 'إزيك يا [firstname]';
 
   @override
   String get notificationSettingsDesc => 'Manage push notifications';

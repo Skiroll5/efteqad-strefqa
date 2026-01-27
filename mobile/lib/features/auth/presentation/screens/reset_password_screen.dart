@@ -203,18 +203,20 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(isDark ? 0.08 : 0.9),
+                          color: Colors.white.withValues(
+                            alpha: isDark ? 0.08 : 0.9,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color:
                                   (isDark
                                           ? AppColors.goldPrimary
                                           : AppColors.bluePrimary)
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                               blurRadius: 30,
                             ),
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),

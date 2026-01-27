@@ -63,8 +63,8 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
           classId: dbUser.classId,
           whatsappTemplate: dbUser.whatsappTemplate,
           isActive: dbUser.isActive,
-          isEnabled: dbUser.isEnabled ?? true,
-          activationDenied: dbUser.activationDenied ?? false,
+          isEnabled: dbUser.isEnabled,
+          activationDenied: dbUser.activationDenied,
           createdAt: dbUser.createdAt,
           updatedAt: dbUser.updatedAt,
         );
@@ -251,7 +251,8 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
 
       state = AsyncValue.data(updatedUser);
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      print('Error updating whatsapp template: $e\n$st');
       return false;
     }
   }

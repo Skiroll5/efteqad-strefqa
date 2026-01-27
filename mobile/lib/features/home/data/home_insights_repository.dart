@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../core/database/app_database.dart';
 import '../../classes/data/class_order_service.dart';
+import '../../auth/domain/user_model.dart' as domain;
 
 final homeInsightsRepositoryProvider = Provider<HomeInsightsRepository>((ref) {
   return HomeInsightsRepository(ref.read(appDatabaseProvider));
@@ -23,7 +24,9 @@ class HomeInsightsRepository {
 
   HomeInsightsRepository(this._db);
 
-  Future<List<ClassSessionStatus>> getClassesLatestSessions({List<String> classOrder = const []}) async {
+  Future<List<ClassSessionStatus>> getClassesLatestSessions({
+    List<String> classOrder = const [],
+  }) async {
     final result = <ClassSessionStatus>[];
 
     // 1. Get all active classes
@@ -47,6 +50,9 @@ class HomeInsightsRepository {
     //   GROUP BY class_id
     // ) latest ON s.class_id = latest.class_id AND s.date = latest.max_date
     // WHERE s.is_deleted = 0 AND s.class_id IN (...)
+
+    // Safety check for empty classIds to avoid SQL error
+    if (classIds.isEmpty) return [];
 
     final sessionsQuery = _db.customSelect(
       'SELECT s.* FROM attendance_sessions s '
@@ -73,10 +79,11 @@ class HomeInsightsRepository {
 
     List<AttendanceRecord> allRecords = [];
     if (sessionIds.isNotEmpty) {
-      allRecords = await (_db.select(_db.attendanceRecords)
-            ..where(
-                (t) => t.sessionId.isIn(sessionIds) & t.isDeleted.equals(false)))
-          .get();
+      allRecords =
+          await (_db.select(_db.attendanceRecords)..where(
+                (t) => t.sessionId.isIn(sessionIds) & t.isDeleted.equals(false),
+              ))
+              .get();
     }
 
     final recordsMap = <String, List<AttendanceRecord>>{};
@@ -124,7 +131,7 @@ class HomeInsightsRepository {
       result.sort((a, b) {
         final indexA = classOrder.indexOf(a.classId);
         final indexB = classOrder.indexOf(b.classId);
-        
+
         // Both in order list - sort by order
         if (indexA >= 0 && indexB >= 0) {
           return indexA.compareTo(indexB);
@@ -166,19 +173,19 @@ class HomeInsightsRepository {
         });
   }
 
-  Future<String> getStudentWhatsAppMessage(String studentId) async {
-    // 1. Get current active user
-    final user =
-        await (_db.select(_db.users)
-              ..where((t) => t.isActive.equals(true))
-              ..limit(1))
-            .getSingleOrNull();
+  Future<String> getStudentWhatsAppMessage(
+    String studentId, {
+    required domain.User user,
+    required String defaultTemplate,
+  }) async {
+    // 1. Get Student for placeholders
+    final student = await (_db.select(
+      _db.students,
+    )..where((t) => t.id.equals(studentId))).getSingleOrNull();
 
-    // Default message if no user or template found
-    const defaultMsg =
-        "Hello, we noticed that the student has been absent recently. Is everything okay?";
+    if (student == null) return defaultTemplate;
 
-    if (user == null) return defaultMsg;
+    String message = defaultTemplate;
 
     // 2. Check custom preference for this student
     final pref =
@@ -190,15 +197,43 @@ class HomeInsightsRepository {
     if (pref != null &&
         pref.customWhatsappMessage != null &&
         pref.customWhatsappMessage!.isNotEmpty) {
-      return pref.customWhatsappMessage!;
+      message = pref.customWhatsappMessage!;
+    }
+    // 3. Check user's global template (if not null, use it even if empty to allow clearing)
+    else if (user.whatsappTemplate != null) {
+      message = user.whatsappTemplate!;
+    }
+    // 4. Fallback to passed defaultTemplate (already set)
+
+    // 5. Replace placeholders
+    if (message.isEmpty) return "";
+
+    final firstName = student.name.split(' ').first;
+    // Handle both old style {}, %, and new style [] placeholders
+    message = message
+        .replaceAll('{firstname}', firstName)
+        .replaceAll('%firstname%', firstName)
+        .replaceAll('[firstname]', firstName);
+    message = message
+        .replaceAll('{name}', student.name)
+        .replaceAll('[name]', student.name);
+
+    if (student.birthdate != null) {
+      final now = DateTime.now();
+      final birthdate = student.birthdate!;
+      int age = (now.year - birthdate.year).toInt();
+      if (now.month < birthdate.month ||
+          (now.month == birthdate.month && now.day < birthdate.day)) {
+        age--;
+      }
+      message = message
+          .replaceAll('{age}', age.toString())
+          .replaceAll('[age]', age.toString());
+    } else {
+      message = message.replaceAll('{age}', '').replaceAll('[age]', '');
     }
 
-    // 3. Check user's global template
-    if (user.whatsappTemplate != null && user.whatsappTemplate!.isNotEmpty) {
-      return user.whatsappTemplate!;
-    }
-
-    return defaultMsg;
+    return message;
   }
 }
 

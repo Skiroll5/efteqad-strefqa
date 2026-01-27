@@ -632,21 +632,27 @@ class StudentDetailScreen extends ConsumerWidget {
     }
   }
 
-  String _buildTemplateMessage(BuildContext context, WidgetRef ref, Student student) {
+  String _buildTemplateMessage(
+    BuildContext context,
+    WidgetRef ref,
+    Student student,
+  ) {
     final user = ref.read(authControllerProvider).value;
-    String initialMessage = user?.whatsappTemplate ?? '';
     final l10n = AppLocalizations.of(context)!;
 
-    if (initialMessage.isEmpty) {
-      initialMessage = l10n.whatsappDefaultTemplate;
-    }
+    // If null, use default. If empty string, keep it empty.
+    String initialMessage =
+        user?.whatsappTemplate ?? l10n.whatsappDefaultTemplate;
 
     final firstName = student.name.split(' ').first;
-    // Handle both old style {} and new style %% placeholders to be safe
+    // Handle both old style {}, %, and new style [] placeholders
     initialMessage = initialMessage
         .replaceAll('{firstname}', firstName)
-        .replaceAll('%firstname%', firstName);
-    initialMessage = initialMessage.replaceAll('{name}', student.name);
+        .replaceAll('%firstname%', firstName)
+        .replaceAll('[firstname]', firstName);
+    initialMessage = initialMessage
+        .replaceAll('{name}', student.name)
+        .replaceAll('[name]', student.name);
 
     if (student.birthdate != null) {
       final now = DateTime.now();
@@ -656,7 +662,9 @@ class StudentDetailScreen extends ConsumerWidget {
           (now.month == birthdate.month && now.day < birthdate.day)) {
         age--;
       }
-      initialMessage = initialMessage.replaceAll('{age}', age.toString());
+      initialMessage = initialMessage
+          .replaceAll('{age}', age.toString())
+          .replaceAll('[age]', age.toString());
     } else {
       initialMessage = initialMessage.replaceAll('{age}', '');
     }
@@ -676,7 +684,8 @@ class StudentDetailScreen extends ConsumerWidget {
 
     if (!context.mounted) return;
 
-    final initialMessage = customMessage ?? _buildTemplateMessage(context, ref, student);
+    final initialMessage =
+        customMessage ?? _buildTemplateMessage(context, ref, student);
 
     final messageController = TextEditingController(text: initialMessage);
     final theme = Theme.of(context);

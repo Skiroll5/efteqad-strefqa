@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/config/api_config.dart';
 import 'package:google_sign_in/google_sign_in.dart' as gsi;
+import 'package:shared_preferences/shared_preferences.dart';
 
 final authRepositoryProvider = Provider((ref) => AuthRepository(Dio()));
 
@@ -259,16 +260,24 @@ class AuthRepository {
     String? whatsappTemplate,
   }) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
       final response = await _dio.put(
         '$_baseUrl/users/me',
         data: {
           if (name != null) 'name': name,
           if (whatsappTemplate != null) 'whatsappTemplate': whatsappTemplate,
         },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return response.data; // { message, user }
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'Update failed';
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        throw data['message'] ?? 'Update failed';
+      }
+      throw data?.toString() ?? 'Update failed';
     }
   }
 }

@@ -308,13 +308,13 @@ export const updateProfile = async (req: Request, res: Response) => {
                 ...(name && { name }),
                 ...(whatsappTemplate !== undefined && { whatsappTemplate }),
             },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                whatsappTemplate: true,
-            }
+            // select: {
+            //     id: true,
+            //     name: true,
+            //     email: true,
+            //     role: true,
+            //     whatsappTemplate: true,
+            // }
         });
 
         res.json({ message: 'Profile updated', user: updatedUser });

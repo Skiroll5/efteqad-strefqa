@@ -159,9 +159,11 @@ class ClassListItem extends ConsumerWidget {
                                           ), // Fully rounded pill
                                           border: Border.all(
                                             color: isDark
-                                                ? Colors.white.withOpacity(0.12)
-                                                : Colors.black.withOpacity(
-                                                    0.06,
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.06,
                                                   ),
                                           ),
                                         ),
@@ -197,9 +199,11 @@ class ClassListItem extends ConsumerWidget {
                                           ),
                                           border: Border.all(
                                             color: isDark
-                                                ? Colors.white.withOpacity(0.12)
-                                                : Colors.black.withOpacity(
-                                                    0.06,
+                                                ? Colors.white.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : Colors.black.withValues(
+                                                    alpha: 0.06,
                                                   ),
                                           ),
                                         ),

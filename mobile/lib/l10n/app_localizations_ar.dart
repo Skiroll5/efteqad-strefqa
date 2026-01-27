@@ -141,9 +141,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get visitationNotes => 'الملاحظات';
 
   @override
-  String get whatsappDefaultTemplate => 'ازيك يا %firstname%،';
-
-  @override
   String get noNotes => 'لا توجد ملاحظات بعد.';
 
   @override
@@ -652,9 +649,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emptyMessage => '(رسالة فارغة)';
 
   @override
-  String whatsappMessageHint(Object firstname) {
-    return 'إزيك يا $firstname، طمني عليك';
-  }
+  String get whatsappMessageHint => 'إزيك يا [firstname]';
+
+  @override
+  String get whatsappDefaultTemplate => 'إزيك يا [firstname]';
 
   @override
   String get notificationSettingsDesc => 'إدارة الإشعارات';

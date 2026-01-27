@@ -350,12 +350,6 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get visitationNotes;
 
-  /// No description provided for @whatsappDefaultTemplate.
-  ///
-  /// In en, this message translates to:
-  /// **'Hi %firstname%,'**
-  String get whatsappDefaultTemplate;
-
   /// No description provided for @noNotes.
   ///
   /// In en, this message translates to:
@@ -1301,8 +1295,14 @@ abstract class AppLocalizations {
   /// No description provided for @whatsappMessageHint.
   ///
   /// In en, this message translates to:
-  /// **'Hello {firstname}, how are you?'**
-  String whatsappMessageHint(Object firstname);
+  /// **'Hello [firstname], how are you?'**
+  String get whatsappMessageHint;
+
+  /// No description provided for @whatsappDefaultTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'إزيك يا [firstname]'**
+  String get whatsappDefaultTemplate;
 
   /// No description provided for @notificationSettingsDesc.
   ///

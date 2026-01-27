@@ -7,6 +7,7 @@ import 'package:mobile/core/components/premium_card.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/features/home/data/home_insights_repository.dart';
 import 'package:mobile/features/statistics/data/statistics_repository.dart';
+import 'package:mobile/features/auth/data/auth_controller.dart';
 import 'package:mobile/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -141,12 +142,23 @@ class _GlobalAtRiskItem extends ConsumerWidget {
     }
   }
 
-  Future<void> _openWhatsApp(WidgetRef ref, String phoneNumber) async {
+  Future<void> _openWhatsApp(
+    BuildContext context,
+    WidgetRef ref,
+    String phoneNumber,
+  ) async {
     var cleanNumber = phoneNumber.replaceAll(RegExp(r'\D'), '');
     final repo = ref.read(homeInsightsRepositoryProvider);
-    String message = await repo.getStudentWhatsAppMessage(item.student.id);
-    message = message.replaceAll('{student_name}', item.student.name);
-    message = message.replaceAll('{name}', item.student.name);
+    final user = ref.read(authControllerProvider).value;
+
+    // Use default if user is null (shouldn't happen if logged in)
+    if (user == null) return;
+
+    final message = await repo.getStudentWhatsAppMessage(
+      item.student.id,
+      user: user,
+      defaultTemplate: AppLocalizations.of(context)!.whatsappDefaultTemplate,
+    );
 
     final Uri launchUri = Uri.parse(
       "https://wa.me/$cleanNumber?text=${Uri.encodeComponent(message)}",
@@ -392,7 +404,8 @@ class _GlobalAtRiskItem extends ConsumerWidget {
                           icon: FontAwesomeIcons.whatsapp,
                           label: l10n.whatsappButton,
                           color: const Color(0xFF25D366),
-                          onTap: () => _openWhatsApp(ref, item.phoneNumber!),
+                          onTap: () =>
+                              _openWhatsApp(context, ref, item.phoneNumber!),
                           isDark: isDark,
                         ),
                       ),

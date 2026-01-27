@@ -24,7 +24,20 @@ class _WhatsAppTemplateScreenState
   void initState() {
     super.initState();
     final user = ref.read(authControllerProvider).value;
-    _controller = TextEditingController(text: user?.whatsappTemplate ?? '');
+    _controller = TextEditingController(text: user?.whatsappTemplate);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_controller.text.isEmpty) {
+      final user = ref.read(authControllerProvider).value;
+      if (user?.whatsappTemplate == null) {
+        _controller.text = AppLocalizations.of(
+          context,
+        )!.whatsappDefaultTemplate;
+      }
+    }
   }
 
   @override
@@ -63,8 +76,11 @@ class _WhatsAppTemplateScreenState
     // Preview logic remains same but localized if needed? Preview text is user input.
     final previewText = _controller.text
         .replaceAll('{firstname}', 'كيرلس')
+        .replaceAll('[firstname]', 'كيرلس')
         .replaceAll('{name}', 'كيرلس يسطس')
-        .replaceAll('{age}', '25');
+        .replaceAll('[name]', 'كيرلس يسطس')
+        .replaceAll('{age}', '25')
+        .replaceAll('[age]', '25');
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n!.whatsappTemplate)),
@@ -91,9 +107,9 @@ class _WhatsAppTemplateScreenState
             Wrap(
               spacing: 8,
               children: [
-                _buildTag("{firstname}", isDark),
-                _buildTag("{name}", isDark),
-                _buildTag("{age}", isDark),
+                _buildTag("[firstname]", isDark),
+                _buildTag("[name]", isDark),
+                _buildTag("[age]", isDark),
               ],
             ),
             const SizedBox(height: 24),
@@ -101,7 +117,10 @@ class _WhatsAppTemplateScreenState
               controller: _controller,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: l10n.whatsappMessageHint('كيرلس'),
+                hintText: l10n.whatsappMessageHint.replaceAll(
+                  '[firstname]',
+                  'كيرلس',
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

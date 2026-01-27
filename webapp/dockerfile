@@ -5,4 +5,4 @@ COPY webapp/default.conf /etc/nginx/conf.d/default.conf
 
 # Copy the BUILT files from the previous stage
 # Notice we copy from "--from=build" instead of the local file system
-COPY --from=build /app/mobile/build/web /usr/share/nginx/html
+COPY /wadeea/mobile/build/web /usr/share/nginx/html

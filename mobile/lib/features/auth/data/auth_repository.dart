@@ -24,9 +24,9 @@ class AuthRepository {
   final String _baseUrl = ApiConfig.baseUrl;
   final gsi.GoogleSignIn _googleSignIn = gsi.GoogleSignIn(
     scopes: ['email', 'profile'],
-    // serverClientId is REQUIRED to get an idToken that the backend can verify.
-    // Use the SAME Web Client ID from your server .env here.
-    serverClientId: ApiConfig.googleServerClientId,
+    // serverClientId is not supported on Web. Pass null on Web.
+    serverClientId: kIsWeb ? null : ApiConfig.googleServerClientId,
+    clientId: kIsWeb ? ApiConfig.googleServerClientId : null,
   );
 
   AuthRepository(this._dio);

@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
+import 'connection/connection.dart' as impl;
 import 'tables/tables.dart';
 
 part 'app_database.g.dart';
@@ -21,7 +18,7 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
+  AppDatabase([QueryExecutor? e]) : super(e ?? impl.openConnection());
 
   @override
   int get schemaVersion => 5;
@@ -45,11 +42,3 @@ class AppDatabase extends _$AppDatabase {
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   throw UnimplementedError('Initialize AppDatabase in main');
 });
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}

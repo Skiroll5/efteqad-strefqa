@@ -1,9 +1,25 @@
+# STAGE 1: Build the Flutter App
+# We use a pre-made image that has Flutter installed
+FROM ghcr.io/cirruslabs/flutter:stable AS build
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Copy the 'mobile' folder from your server into the container
+# (Because build context is root, we copy mobile/ to mobile/)
+COPY mobile/ mobile/
+
+# Move into the folder and build
+WORKDIR /app/mobile
+RUN flutter pub get
+RUN flutter build web --release
+
+# STAGE 2: Serve with Nginx
 FROM nginx:alpine
 
-# 1. Copy config
-# Context is Root, so we must specify "webapp/default.conf"
+# Copy the Nginx config
 COPY webapp/default.conf /etc/nginx/conf.d/default.conf
 
-# 2. Copy Flutter files
-# Context is Root, so we can see "mobile/" directly
-COPY mobile/build/web /usr/share/nginx/html
+# Copy the BUILT files from the previous stage
+# Notice we copy from "--from=build" instead of the local file system
+COPY --from=build /app/mobile/build/web /usr/share/nginx/html

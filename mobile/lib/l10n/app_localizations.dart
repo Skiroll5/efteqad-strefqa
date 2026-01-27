@@ -1301,7 +1301,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsappDefaultTemplate.
   ///
   /// In en, this message translates to:
-  /// **'إزيك يا [firstname]'**
+  /// **'ازيك يا [firstname]'**
   String get whatsappDefaultTemplate;
 
   /// No description provided for @notificationSettingsDesc.
@@ -2437,6 +2437,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search country or code...'**
   String get searchCountryPlaceholder;
+
+  /// No description provided for @developerCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Developed by Kyrollos El-Quess Yostos'**
+  String get developerCredit;
 }
 
 class _AppLocalizationsDelegate

@@ -649,10 +649,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emptyMessage => '(رسالة فارغة)';
 
   @override
-  String get whatsappMessageHint => 'إزيك يا [firstname]';
+  String get whatsappMessageHint => '';
 
   @override
-  String get whatsappDefaultTemplate => 'إزيك يا [firstname]';
+  String get whatsappDefaultTemplate => 'ازيك يا [firstname]';
 
   @override
   String get notificationSettingsDesc => 'إدارة الإشعارات';
@@ -1254,4 +1254,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchCountryPlaceholder => 'بحث عن دولة أو كود...';
+
+  @override
+  String get developerCredit => 'كيرلس القس يسطس';
 }

@@ -206,8 +206,8 @@
   "availablePlaceholders": "المتغيرات المتاحة:",
   "preview": "معاينة",
   "emptyMessage": "(رسالة فارغة)",
-  "whatsappMessageHint": "إزيك يا [firstname]",
-  "whatsappDefaultTemplate": "إزيك يا [firstname]",
+  "whatsappMessageHint": "",
+  "whatsappDefaultTemplate": "ازيك يا [firstname]",
   "notificationSettingsDesc": "إدارة الإشعارات",
   "notesNotification": "الملاحظات",
   "notesNotificationDesc": "تلقي إشعار عند إضافة ملاحظة",
@@ -474,5 +474,6 @@
         "className": {}
     }
   },
-  "searchCountryPlaceholder": "بحث عن دولة أو كود..."
+  "searchCountryPlaceholder": "بحث عن دولة أو كود...",
+  "developerCredit": "كيرلس القس يسطس"
 }

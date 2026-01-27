@@ -285,7 +285,7 @@
   "preview": "Preview",
   "emptyMessage": "(Empty message)",
   "whatsappMessageHint": "Hello [firstname], how are you?",
-  "whatsappDefaultTemplate": "إزيك يا [firstname]",
+  "whatsappDefaultTemplate": "ازيك يا [firstname]",
   "notificationSettingsDesc": "Manage push notifications",
   "notesNotification": "Notes",
   "notesNotificationDesc": "Get notified when a note is added",
@@ -585,5 +585,6 @@
         "className": {}
     }
   },
-  "searchCountryPlaceholder": "Search country or code..."
+  "searchCountryPlaceholder": "Search country or code...",
+  "developerCredit": "Developed by Kyrollos El-Quess Yostos"
 }

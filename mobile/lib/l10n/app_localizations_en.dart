@@ -655,7 +655,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsappMessageHint => 'Hello [firstname], how are you?';
 
   @override
-  String get whatsappDefaultTemplate => 'إزيك يا [firstname]';
+  String get whatsappDefaultTemplate => 'ازيك يا [firstname]';
 
   @override
   String get notificationSettingsDesc => 'Manage push notifications';
@@ -1266,4 +1266,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchCountryPlaceholder => 'Search country or code...';
+
+  @override
+  String get developerCredit => 'Developed by Kyrollos El-Quess Yostos';
 }

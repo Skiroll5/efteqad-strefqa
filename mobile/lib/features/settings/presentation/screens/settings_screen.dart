@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/components/app_snackbar.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -124,9 +125,10 @@ class SettingsScreen extends ConsumerWidget {
                                       children: [
                                         Text(
                                           user.name,
-                                          style: theme.textTheme.titleLarge
+                                          style: theme.textTheme.headlineSmall
                                               ?.copyWith(
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 20,
                                                 color: isDark
                                                     ? Colors.white
                                                     : Colors.black87,
@@ -216,7 +218,7 @@ class SettingsScreen extends ConsumerWidget {
                           _showLanguagePicker(context, ref, locale, isDark),
                     ),
                   ],
-                ).animate().fade().slideY(begin: 0.1),
+                ),
 
                 const SizedBox(height: 16),
 
@@ -258,40 +260,33 @@ class SettingsScreen extends ConsumerWidget {
                         );
                       },
                     ),
-                  ],
-                ).animate().fade(delay: 100.ms).slideY(begin: 0.1),
-
-                const SizedBox(height: 16),
-
-                // Statistics Section
-                Consumer(
-                  builder: (context, ref, child) {
-                    final threshold = ref.watch(statisticsSettingsProvider);
-                    return _SettingsSection(
-                      title: l10n.statistics,
-                      icon: Icons.analytics_outlined,
-                      isDark: isDark,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                    const SizedBox(height: 16),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final threshold = ref.watch(statisticsSettingsProvider);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(10),
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: Colors.red.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
                                       Icons.warning_amber_rounded,
                                       color: Colors.red.shade400,
-                                      size: 22,
+                                      size: 18,
                                     ),
                                   ),
-                                  const SizedBox(width: 14),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -306,11 +301,10 @@ class SettingsScreen extends ConsumerWidget {
                                                 : Colors.black87,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
                                         Text(
                                           l10n.thresholdCaption(threshold),
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 11,
                                             color: isDark
                                                 ? Colors.white54
                                                 : Colors.black45,
@@ -321,62 +315,62 @@ class SettingsScreen extends ConsumerWidget {
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 8,
+                                      horizontal: 10,
+                                      vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
                                       color: AppColors.goldPrimary.withValues(
                                         alpha: 0.15,
                                       ),
-                                      borderRadius: BorderRadius.circular(20),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       '$threshold',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         color: AppColors.goldPrimary,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor: AppColors.goldPrimary,
-                                  inactiveTrackColor: isDark
-                                      ? Colors.white12
-                                      : Colors.grey.shade200,
-                                  thumbColor: AppColors.goldPrimary,
-                                  overlayColor: AppColors.goldPrimary
-                                      .withValues(alpha: 0.2),
-                                  trackHeight: 6,
-                                  thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 10,
-                                  ),
+                            ),
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                activeTrackColor: AppColors.goldPrimary,
+                                inactiveTrackColor: isDark
+                                    ? Colors.white12
+                                    : Colors.grey.shade200,
+                                thumbColor: AppColors.goldPrimary,
+                                overlayColor: AppColors.goldPrimary.withValues(
+                                  alpha: 0.2,
                                 ),
-                                child: Slider(
-                                  value: threshold.toDouble(),
-                                  min: 1,
-                                  max: 10,
-                                  divisions: 9,
-                                  onChanged: (val) {
-                                    ref
-                                        .read(
-                                          statisticsSettingsProvider.notifier,
-                                        )
-                                        .setThreshold(val.toInt());
-                                  },
+                                trackHeight: 4,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 8,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ).animate().fade(delay: 150.ms).slideY(begin: 0.1);
-                  },
+                              child: Slider(
+                                value: threshold.toDouble(),
+                                min: 1,
+                                max: 10,
+                                divisions: 9,
+                                onChanged: (val) {
+                                  ref
+                                      .read(statisticsSettingsProvider.notifier)
+                                      .setThreshold(val.toInt());
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ),
+
+                const SizedBox(height: 16),
 
                 // Admin Section
                 if (user?.role == 'ADMIN') ...[
@@ -397,7 +391,7 @@ class SettingsScreen extends ConsumerWidget {
                             context.push('/settings/denied-activations'),
                       ),
                     ],
-                  ).animate().fade(delay: 200.ms).slideY(begin: 0.1),
+                  ),
 
                   const SizedBox(height: 16),
 
@@ -474,72 +468,8 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                     ],
-                  ).animate().fade(delay: 250.ms).slideY(begin: 0.1),
+                  ),
                 ],
-
-                const SizedBox(height: 16),
-
-                // App Info
-                _SettingsSection(
-                  title: l10n.about,
-                  icon: Icons.info_outline_rounded,
-                  isDark: isDark,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.goldPrimary.withValues(alpha: 0.2),
-                                  AppColors.goldPrimary.withValues(alpha: 0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.school_rounded,
-                              color: AppColors.goldPrimary,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.appTitle,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  '${l10n.version} 1.0.0',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.black45,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ).animate().fade(delay: 300.ms).slideY(begin: 0.1),
-
-                const SizedBox(height: 24),
 
                 // Logout Button
                 SafeArea(
@@ -560,11 +490,48 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       elevation: 0,
                     ),
-                  ).animate().fade(delay: 350.ms),
+                  ),
                 ),
 
                 const SizedBox(height: 16),
               ]),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
+              child: Column(
+                children: [
+                  Text(
+                    l10n.churchName,
+                    style: GoogleFonts.tajawal(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white54 : Colors.black45,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.appTitle,
+                    style: GoogleFonts.cairo(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.developerCredit,
+                    style: GoogleFonts.tajawal(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

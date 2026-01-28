@@ -33,27 +33,29 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> signInWithGoogle() async {
     try {
-      debugPrint('DEBUG: Starting Google Sign In details...');
+      debugPrint('DEBUG: Starting Google Sign In process...');
 
-      // Force sign out for debugging
-      await _googleSignIn.signOut();
+      // Removed force sign out to prevent race conditions on Web
+      // await _googleSignIn.signOut();
 
       // 1. Native Sign In
+      debugPrint('DEBUG: Calling _googleSignIn.signIn()');
       final gsi.GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        debugPrint('DEBUG: Sign in aborted by user');
+        debugPrint('DEBUG: Sign in returned null (aborted by user)');
         throw AuthError('Sign in aborted by user', 'ABORTED');
       }
 
-      debugPrint('DEBUG: User signed in: ${googleUser.email}');
+      debugPrint('DEBUG: User signed in successfully: ${googleUser.email}');
 
       // 2. Get ID Token
+      debugPrint('DEBUG: Retrieving authentication/ID Token...');
       final gsi.GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
 
-      debugPrint('DEBUG: ID Token retrieved (Length: ${idToken?.length})');
+      debugPrint('DEBUG: ID Token retrieved (Length: ${idToken?.length ?? 0})');
 
       if (idToken == null) {
         throw AuthError('Failed to get ID Token from Google', 'TOKEN_ERROR');
@@ -76,7 +78,8 @@ class AuthRepository {
       throw AuthError('Timeout', 'TIMEOUT');
     } on DioException catch (e) {
       debugPrint('DEBUG: DioException: ${e.message} ${e.response?.data}');
-      await _googleSignIn.signOut();
+      // Only sign out on failure if we successfully signed in locally first
+      // await _googleSignIn.signOut();
       final data = e.response?.data;
       String message = 'Google connection failed';
       String code = 'UNKNOWN';
@@ -87,10 +90,10 @@ class AuthRepository {
       }
       throw AuthError(message, code);
     } catch (e) {
-      debugPrint('DEBUG: General Exception: $e');
+      debugPrint('DEBUG: General Exception in signInWithGoogle: $e');
       if (e is AuthError) rethrow;
 
-      await _googleSignIn.signOut();
+      // await _googleSignIn.signOut();
       throw AuthError('Google Sign In failed: ${e.toString()}', 'GOOGLE_ERROR');
     }
   }
